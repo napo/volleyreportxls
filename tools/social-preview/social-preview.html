@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><style>
+@font-face { font-family: Montserrat; src: url(montserrat-latin-wght-normal.woff2); font-weight: 100 900; }
+@font-face { font-family: Roboto; src: url(roboto-latin-wght-normal.woff2); font-weight: 100 900; }
+* { box-sizing: border-box; margin: 0; }
+body { width: 1280px; height: 640px; overflow: hidden; font-family: Roboto, sans-serif;
+  background: radial-gradient(ellipse at 85% 10%, #dbecf4 0%, transparent 55%), #f4f4f2; position: relative; color: #383838; }
+.accent { position: absolute; left: 0; top: 0; bottom: 0; width: 14px; background: linear-gradient(#062845 0 70%, #e96e23 70% 100%); }
+.left { position: absolute; left: 72px; top: 64px; width: 560px; }
+.brand { display: flex; align-items: center; gap: 20px; }
+.brand img { height: 92px; }
+.brand h1 { font-family: Montserrat; font-weight: 800; font-size: 64px; color: #062845; letter-spacing: -1px; }
+.claim { margin-top: 34px; font-family: Montserrat; font-weight: 700; font-size: 40px; line-height: 1.15; color: #383838; }
+.claim em { font-style: normal; color: #e96e23; }
+.sub { margin-top: 20px; font-size: 22px; line-height: 1.4; color: #5c5c5c; }
+.chips { margin-top: 30px; display: flex; flex-wrap: wrap; gap: 10px; }
+.chips span { padding: 7px 14px; border-radius: 999px; background: #062845; color: #fff; font-weight: 600; font-size: 17px; }
+.url { position: absolute; left: 72px; bottom: 44px; font-family: Montserrat; font-weight: 700; font-size: 24px; color: #1876a1; }
+.paper { position: absolute; left: 640px; top: 40px; width: 620px; transform: rotate(-6deg); border-radius: 6px;
+  box-shadow: 0 18px 40px rgba(6,40,69,.22); background: #fff; }
+.app { position: absolute; left: 700px; top: 250px; width: 640px; border-radius: 14px; border: 1px solid rgba(6,40,69,.12);
+  box-shadow: 0 24px 60px rgba(6,40,69,.30); background: #fff; }
+.arrow { position: absolute; left: 650px; top: 405px; font-size: 56px; color: #e96e23; font-family: Montserrat; font-weight: 800; }
+</style></head><body>
+<div class="accent"></div>
+<img class="paper" src="og-form-1.png">
+<img class="app" src="og-tab-crop.png">
+<div class="left">
+  <div class="brand"><img src="og-logo.png"><h1>VolleyReport</h1></div>
+  <p class="claim">Dal foglio di rilevazione<br>a <em>tabellino e grafici</em></p>
+  <p class="sub">Segni i tocchi a penna, fotografi il modulo: l’app conta i segni e calcola le statistiche con le definizioni DataVolley.</p>
+  <div class="chips"><span>Foto del modulo</span><span>PDF A4</span><span>Open source</span></div>
+</div>
+<p class="url">report.volleyserve.it</p>
+</body></html>
