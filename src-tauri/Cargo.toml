@@ -1,0 +1,32 @@
+[package]
+name = "volleyreport"
+version = "0.1.0"
+description = "Dalla carta al report della gara di pallavolo"
+authors = ["Maurizio Napolitano"]
+license = "AGPL-3.0-or-later"
+repository = "https://github.com/napo/volleyreportxls"
+edition = "2021"
+rust-version = "1.77.2"
+
+[lib]
+name = "app_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "=2.6.3", features = [] }
+
+[dependencies]
+tauri = { version = "=2.11.6", features = [] }
+# Needed by the generated context when tauri.conf.json configures plugins
+serde_json = "1"
+# Opens external links and download pages in the system browser
+tauri-plugin-opener = "~2.5.5"
+# "Save as" dialog for the PDFs, so the user knows where the file goes
+# (exact versions: the newer ones need tauri 2.12)
+tauri-plugin-dialog = "=2.7.0"
+tauri-plugin-fs = "=2.5.1"
+
+# Automatic updates with user confirmation: desktop only (the Tauri updater does not support mobile)
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-updater = "~2.12.0"
+tauri-plugin-process = "~2.3.1"

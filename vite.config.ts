@@ -1,0 +1,23 @@
+/// <reference types="vitest/config" />
+import { readFileSync } from 'node:fs';
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string };
+
+export default defineConfig({
+  plugins: [react()],
+  // "/" for the dev server and the installed apps; the GitHub Pages workflow sets the repository path.
+  base: process.env.VITE_BASE_PATH || '/',
+  define: {
+    __APP_VERSION__: JSON.stringify(version),
+  },
+  build: {
+    // The PDF chunk (pdf-lib + fontkit, ~1.1 MB) is loaded only when a PDF is generated.
+    chunkSizeWarningLimit: 1200,
+  },
+  test: {
+    include: ['src/**/*.test.ts'],
+    globals: true,
+  },
+});

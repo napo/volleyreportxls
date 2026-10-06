@@ -1,0 +1,286 @@
+/**
+ * PDF of the scouting form: a tally sheet, A4 landscape, one page per set,
+ * drawn from the layout so that print and recognition share the same
+ * coordinates. It is printed before the match is known: team, opponent and
+ * roster are entered in the app after the photo.
+ *
+ * Markers and QR are pure black on white; bubbles, numbers and guide lines are
+ * light grey and thin, so that only pen marks survive the binarisation of a photo.
+ */
+
+import { type PDFPage, PDFDocument, rgb } from 'pdf-lib';
+import { SET_NUMBERS, type SetNumber } from '../domain/model';
+import { arucoMatrix } from './aruco';
+import { type Messages, it } from '../i18n/it';
+import { type PdfFontFiles, type PdfFonts, drawableText, embedPdfFonts } from './fonts';
+import { type FormLayout, type Rect, type RowKind, CURRENT_FORM_LAYOUT } from './layout';
+import { qrMatrix } from './qr';
+import { type FormPageId, formQrPayload } from './scouting-form';
+
+const MM = 72 / 25.4;
+const BLACK = rgb(0, 0, 0);
+const GUIDE = rgb(0.62, 0.62, 0.62);
+const LABEL = rgb(0.45, 0.45, 0.45);
+const NUMBER = rgb(0.4, 0.4, 0.4);
+const BUBBLE = rgb(0.6, 0.6, 0.6);
+const BAND = rgb(0.95, 0.95, 0.95);
+const SKILL_RULE = rgb(0.3, 0.3, 0.3);
+
+/** Draws in layout coordinates (mm, top-left origin). */
+class Sheet {
+  constructor(
+    readonly page: PDFPage,
+    readonly layout: FormLayout,
+    readonly fonts: PdfFonts,
+    readonly texts: Messages,
+  ) {}
+
+  private y(mmFromTop: number): number {
+    return (this.layout.page.height - mmFromTop) * MM;
+  }
+
+  fill(r: Rect, color = BLACK) {
+    this.page.drawRectangle({ x: r.x * MM, y: this.y(r.y + r.height), width: r.width * MM, height: r.height * MM, color });
+  }
+
+  box(r: Rect, thickness = 0.4, color = GUIDE) {
+    this.page.drawRectangle({
+      x: r.x * MM,
+      y: this.y(r.y + r.height),
+      width: r.width * MM,
+      height: r.height * MM,
+      borderColor: color,
+      borderWidth: thickness,
+    });
+  }
+
+  circle(r: Rect, color = BUBBLE) {
+    this.page.drawCircle({
+      x: (r.x + r.width / 2) * MM,
+      y: this.y(r.y + r.height / 2),
+      size: (r.width / 2) * MM,
+      borderColor: color,
+      borderWidth: 0.35,
+    });
+  }
+
+  vline(x: number, y1: number, y2: number, thickness: number, color = GUIDE) {
+    this.page.drawLine({ start: { x: x * MM, y: this.y(y1) }, end: { x: x * MM, y: this.y(y2) }, thickness, color });
+  }
+
+  dashed(x: number, y1: number, y2: number) {
+    this.page.drawLine({
+      start: { x: x * MM, y: this.y(y1) },
+      end: { x: x * MM, y: this.y(y2) },
+      thickness: 0.4,
+      color: GUIDE,
+      dashArray: [1.2, 1.6],
+    });
+  }
+
+  /** Text with its baseline at `baseline` mm from the top. */
+  text(
+    text: string,
+    x: number,
+    baseline: number,
+    size: number,
+    options: { bold?: boolean; heading?: boolean; color?: ReturnType<typeof rgb>; align?: 'left' | 'center'; width?: number } = {},
+  ) {
+    const font = options.heading ? this.fonts.heading : options.bold ? this.fonts.bold : this.fonts.regular;
+    const safe = drawableText(font, text);
+    const width = font.widthOfTextAtSize(safe, size) / MM;
+    const left = options.align === 'center' ? x + ((options.width ?? 0) - width) / 2 : x;
+    this.page.drawText(safe, { x: left * MM, y: this.y(baseline), size, font, color: options.color ?? BLACK });
+  }
+
+  matrix(cells: boolean[][], r: Rect) {
+    const cell = r.width / cells.length;
+    cells.forEach((row, i) =>
+      row.forEach((black, j) => {
+        // Slight overlap avoids hairline gaps between adjacent modules in some viewers.
+        if (black) this.fill({ x: r.x + j * cell, y: r.y + i * cell, width: cell + 0.02, height: cell + 0.02 });
+      }),
+    );
+  }
+}
+
+/** Font size (pt) whose capital letters and digits are `mm` high (Roboto cap height ≈ 0.71 em). */
+function pointsForCapHeight(mm: number): number {
+  return (mm / 0.71) * MM;
+}
+
+function drawField(s: Sheet, label: string, x: number, baseline: number, width: number) {
+  s.text(label, x, baseline, 6.5, { color: LABEL });
+  const start = x + s.fonts.regular.widthOfTextAtSize(label, 6.5) / MM + 1.5;
+  s.page.drawLine({
+    start: { x: start * MM, y: (s.layout.page.height - baseline - 0.6) * MM },
+    end: { x: (x + width) * MM, y: (s.layout.page.height - baseline - 0.6) * MM },
+    thickness: 0.4,
+    color: GUIDE,
+  });
+}
+
+function drawHeader(s: Sheet, page: FormPageId) {
+  const { title, score, qr } = s.layout;
+  s.text(s.texts.form.set(page.setNumber), title.x, title.y + 8, 22, { heading: true });
+  // Handwritten notes for the paper archive; the app does not read them.
+  const x = title.x + 30;
+  const width = title.width - 30;
+  drawField(s, s.texts.form.team, x, title.y + 4.5, width * 0.55 - 3);
+  drawField(s, s.texts.form.opponent, x + width * 0.55, title.y + 4.5, width * 0.45);
+  drawField(s, s.texts.form.competition, x, title.y + 11, width * 0.55 - 3);
+  drawField(s, s.texts.form.date, x + width * 0.55, title.y + 11, width * 0.45);
+  s.text(
+    s.texts.form.instruction,
+    title.x,
+    title.y + 18.5,
+    6.5,
+    { color: LABEL },
+  );
+
+  s.text(s.texts.form.finalScore, score.team[0].x - 20, score.team[0].y - 1.5, 7, { color: LABEL });
+  s.text(s.texts.form.us, score.team[0].x - 7, score.team[0].y + 6.5, 9, { bold: true });
+  s.text(s.texts.form.them, score.opponent[0].x - 9, score.opponent[0].y + 6.5, 9, { bold: true });
+  for (const digit of [...score.team, ...score.opponent]) s.box(digit, 0.6);
+
+  s.matrix(qrMatrix(formQrPayload(page)), qr);
+}
+
+/** Diagonal hatching for areas with nothing to fill. */
+function hatch(s: Sheet, r: Rect) {
+  const step = 2.5;
+  for (let d = -r.height; d < r.width; d += step) {
+    const x1 = Math.max(r.x, r.x + d);
+    const y1 = r.y + (x1 - (r.x + d));
+    const x2 = Math.min(r.x + r.width, r.x + d + r.height);
+    const y2 = r.y + (x2 - (r.x + d));
+    s.page.drawLine({
+      start: { x: x1 * MM, y: (s.layout.page.height - y1) * MM },
+      end: { x: x2 * MM, y: (s.layout.page.height - y2) * MM },
+      thickness: 0.3,
+      color: GUIDE,
+    });
+  }
+}
+
+function drawGrid(s: Sheet) {
+  const { numberHeaders, skills, rows } = s.layout;
+  const rowsOf = (kind: RowKind) => rows.filter((r) => r.kind === kind);
+  const extent = (kind: RowKind) => {
+    const section = rowsOf(kind);
+    return { top: section[0]!.outer.y, bottom: section[section.length - 1]!.outer.y + section[0]!.outer.height };
+  };
+
+  for (const { kind, outer } of numberHeaders) {
+    s.text(kind === 'player' ? s.texts.form.shirt : s.texts.form.libero, outer.x, outer.y + outer.height - 1, kind === 'player' ? 6 : 7, {
+      bold: true,
+      color: kind === 'player' ? LABEL : BLACK,
+      align: 'center',
+      width: outer.width,
+    });
+  }
+
+  for (const kind of ['player', 'libero'] as const) {
+    const { bottom } = extent(kind);
+    const section = skills.filter((h) => h.kind === kind);
+    const small = kind === 'libero';
+    section.forEach((skill, i) => {
+      // Alternate light bands tell the skills apart at a glance.
+      if (i % 2 === 0) s.fill({ x: skill.outer.x, y: skill.outer.y, width: skill.outer.width, height: bottom - skill.outer.y }, BAND);
+      // Narrow blocks (the set faults) drop the letter, then shrink the name to fit.
+      const size = small ? 6 : 7.5;
+      const fits = (text: string, at: number) => s.fonts.bold.widthOfTextAtSize(text, at) / MM <= skill.outer.width - 0.6;
+      const name = s.texts.skills[skill.skill];
+      const full = `${name} (${skill.skill})`;
+      const label = fits(full, size) ? full : name;
+      let labelSize = size;
+      while (!fits(label, labelSize) && labelSize > 4.5) labelSize -= 0.25;
+      s.text(label, skill.outer.x, skill.outer.y + skill.outer.height - (small ? 0.5 : 0.8), labelSize, {
+        bold: true,
+        align: 'center',
+        width: skill.outer.width,
+      });
+      for (const { evaluation, outer } of skill.evaluations) {
+        s.text(evaluation, outer.x, outer.y + outer.height - (small ? 0.4 : 0.6), small ? 7 : 9, { bold: true, align: 'center', width: outer.width });
+      }
+      // Heavier rules between skills.
+      s.vline(skill.outer.x, skill.outer.y, bottom, 0.9, SKILL_RULE);
+      s.vline(skill.outer.x + skill.outer.width, skill.outer.y, bottom, 0.9, SKILL_RULE);
+    });
+  }
+
+  for (const row of rows) {
+    // The shirt-number box is drawn heavier than the tally cells, so the two are not confused.
+    s.box(row.number, 1.1, NUMBER);
+    s.dashed(row.numberDigits[1].x, row.number.y + 1, row.number.y + row.number.height - 1);
+    for (const area of row.unused) hatch(s, area);
+    for (const cell of row.cells) {
+      s.box(cell.outer, 0.3);
+      for (const bubble of cell.bubbles) {
+        s.circle(bubble);
+        // Digits about half the bubble high, baseline set so they sit in its centre.
+        const height = bubble.height * 0.5;
+        s.text(String(bubble.number), bubble.x, bubble.y + (bubble.height + height) / 2, pointsForCapHeight(height), {
+          color: BUBBLE,
+          align: 'center',
+          width: bubble.width,
+        });
+      }
+      s.circle(cell.overflow, NUMBER);
+      const plus = cell.overflow.height * 0.6;
+      s.text('+', cell.overflow.x, cell.overflow.y + (cell.overflow.height + plus) / 2, pointsForCapHeight(plus), {
+        bold: true,
+        color: NUMBER,
+        align: 'center',
+        width: cell.overflow.width,
+      });
+    }
+  }
+}
+
+function drawLegend(s: Sheet, page: FormPageId) {
+  const [left, right] = s.layout.legend;
+  s.text(s.texts.form.legend1, left.x, left.y + 4, 7.5, { bold: true });
+  s.text(s.texts.form.legend2, left.x, left.y + 8.5, 6.5, {
+    color: LABEL,
+  });
+  s.text(s.texts.form.legend3, right.x, right.y + 4, 7.5, { bold: true });
+  s.text(s.texts.form.pageInfo(page.layoutVersion, page.setNumber, page.page), right.x, right.y + 8.5, 6.5, {
+    color: LABEL,
+  });
+}
+
+function drawMarkers(s: Sheet) {
+  for (const marker of s.layout.markers) s.matrix(arucoMatrix(marker.id), marker);
+}
+
+export interface ScoutingFormOptions {
+  /** Sets to print, one page each (default: all five). */
+  readonly sets?: readonly SetNumber[];
+  /** Fonts to embed (the app's bundled Roboto and Montserrat). */
+  readonly fonts: PdfFontFiles;
+  readonly layout?: FormLayout;
+  /** Printed texts in the user's language (Italian by default). */
+  readonly texts?: Messages;
+}
+
+export async function renderScoutingFormPdf(options: ScoutingFormOptions): Promise<Uint8Array> {
+  const layout = options.layout ?? CURRENT_FORM_LAYOUT;
+  const doc = await PDFDocument.create();
+  const texts = options.texts ?? it;
+  doc.setTitle(texts.form.fileName.replace(/\.pdf$/, ''));
+  doc.setCreator('VolleyReport');
+  doc.setProducer('VolleyReport');
+  const fonts = await embedPdfFonts(doc, options.fonts);
+
+  for (const setNumber of options.sets ?? SET_NUMBERS) {
+    const page: FormPageId = { layoutVersion: layout.version, setNumber, page: 1 };
+    const sheet = new Sheet(doc.addPage([layout.page.width * MM, layout.page.height * MM]), layout, fonts, texts);
+    drawMarkers(sheet);
+    drawHeader(sheet, page);
+    drawGrid(sheet);
+    drawLegend(sheet, page);
+  }
+  return doc.save();
+}
+

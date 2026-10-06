@@ -1,0 +1,14 @@
+node_modules/
+dist/
+*.local
+.vite/
+coverage/
+__pycache__/
+src-tauri/target/
+src-tauri/gen/
+desktop-dist/
+android-dist/
+*.jks
+*.keystore
+.env
+.env.local

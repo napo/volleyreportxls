@@ -1,0 +1,4063 @@
+{
+ "source": "VolleyReportXLS.xlsx",
+ "generatedBy": "tools/extract-oracle.py",
+ "event": {
+  "competition": "amichevole",
+  "date": "2023-11-18",
+  "venue": "Sanremo",
+  "team": "Melodic Spikers",
+  "opponent": "Rhythmic Blockers",
+  "scores": [
+   {
+    "set": 1,
+    "team": 25,
+    "opponent": 16
+   },
+   {
+    "set": 2,
+    "team": 25,
+    "opponent": 18
+   },
+   {
+    "set": 3,
+    "team": 25,
+    "opponent": 22
+   },
+   {
+    "set": 4,
+    "team": null,
+    "opponent": null
+   },
+   {
+    "set": 5,
+    "team": null,
+    "opponent": null
+   }
+  ]
+ },
+ "roster": [
+  {
+   "slot": "A",
+   "number": 19,
+   "role": null,
+   "name": "Elisa Toffoli"
+  },
+  {
+   "slot": "B",
+   "number": 1,
+   "role": null,
+   "name": "Irene Grandi"
+  },
+  {
+   "slot": "C",
+   "number": 13,
+   "role": null,
+   "name": "Giorgia Trodani"
+  },
+  {
+   "slot": "D",
+   "number": 10,
+   "role": null,
+   "name": "Emma Marrone"
+  },
+  {
+   "slot": "E",
+   "number": 11,
+   "role": "L",
+   "name": "Lorendana Bertè"
+  },
+  {
+   "slot": "F",
+   "number": 9,
+   "role": null,
+   "name": "Elodie Patrizi"
+  },
+  {
+   "slot": "G",
+   "number": 5,
+   "role": null,
+   "name": "Laura Pausini"
+  },
+  {
+   "slot": "H",
+   "number": 18,
+   "role": null,
+   "name": "Annalisa Scarrone"
+  },
+  {
+   "slot": "I",
+   "number": 22,
+   "role": null,
+   "name": "Sara Sorrenti"
+  },
+  {
+   "slot": "J",
+   "number": 12,
+   "role": null,
+   "name": "Veronica Scopelliti"
+  },
+  {
+   "slot": "K",
+   "number": 3,
+   "role": "L",
+   "name": "Alessandra Amoroso"
+  },
+  {
+   "slot": "L",
+   "number": 17,
+   "role": null,
+   "name": "Carmen Consoli"
+  },
+  {
+   "slot": "M",
+   "number": 4,
+   "role": null,
+   "name": "Gaia Gozzi"
+  },
+  {
+   "slot": "N",
+   "number": 6,
+   "role": null,
+   "name": "Francesca Calearo"
+  }
+ ],
+ "rilevazione": [
+  {
+   "set": 1,
+   "lines": [
+    {
+     "row": 2,
+     "playerNumber": 19,
+     "cells": [
+      "B+",
+      "B+",
+      "B+",
+      "A#",
+      "B+",
+      "B=",
+      "R#",
+      "R#",
+      "R!",
+      "A#"
+     ]
+    },
+    {
+     "row": 3,
+     "playerNumber": 5,
+     "cells": [
+      "M!",
+      "M+",
+      "B-",
+      "M+",
+      "M#",
+      "B+",
+      "B#",
+      "B+",
+      "B-"
+     ]
+    },
+    {
+     "row": 4,
+     "playerNumber": 17,
+     "cells": [
+      "A+",
+      "A#",
+      "A=",
+      "A+",
+      "R#",
+      "A#",
+      "B+",
+      "B+",
+      "B!"
+     ]
+    },
+    {
+     "row": 5,
+     "playerNumber": 1,
+     "cells": [
+      "A#",
+      "M-",
+      "B+",
+      "A+",
+      "A#",
+      "A#",
+      "P="
+     ]
+    },
+    {
+     "row": 6,
+     "playerNumber": 12,
+     "cells": [
+      "A#",
+      "A+",
+      "A=",
+      "A#",
+      "B+",
+      "B+",
+      "B=",
+      "A#",
+      "A#",
+      "A#"
+     ]
+    },
+    {
+     "row": 7,
+     "playerNumber": 10,
+     "cells": [
+      "R-",
+      "A#",
+      "A=",
+      "B#",
+      "B#",
+      "B+",
+      "A-",
+      "M!",
+      "R#"
+     ]
+    },
+    {
+     "row": 8,
+     "playerNumber": 3,
+     "cells": [
+      "R-",
+      "R#",
+      "R!",
+      "R!",
+      "R+",
+      "R="
+     ]
+    },
+    {
+     "row": 9,
+     "playerNumber": 4,
+     "cells": [
+      "B-",
+      "B#",
+      "B=",
+      "B!",
+      "A#",
+      "A#",
+      "M#"
+     ]
+    }
+   ]
+  },
+  {
+   "set": 2,
+   "lines": [
+    {
+     "row": 16,
+     "playerNumber": 19,
+     "cells": [
+      "R/",
+      "A!",
+      "A+",
+      "M!",
+      "A#",
+      "R-",
+      "B-",
+      "B/",
+      "B-",
+      "A+",
+      "R#",
+      "R#"
+     ]
+    },
+    {
+     "row": 17,
+     "playerNumber": 9,
+     "cells": [
+      "B+",
+      "B=",
+      "M+",
+      "M#",
+      "A+",
+      "B+",
+      "B#",
+      "B#",
+      "B#",
+      "B="
+     ]
+    },
+    {
+     "row": 18,
+     "playerNumber": 5,
+     "cells": [
+      "A+",
+      "B+",
+      "B+",
+      "B#",
+      "B-",
+      "M!",
+      "M+",
+      "M+",
+      "M#",
+      "B+",
+      "B+",
+      "B+"
+     ]
+    },
+    {
+     "row": 19,
+     "playerNumber": 17,
+     "cells": [
+      "R-",
+      "A#",
+      "A#",
+      "A#",
+      "A+",
+      "R-",
+      "B+",
+      "B+",
+      "B/",
+      "A+",
+      "A#",
+      "A+",
+      "R+",
+      "A#",
+      "A#"
+     ]
+    },
+    {
+     "row": 20,
+     "playerNumber": 1,
+     "cells": [
+      "M+",
+      "M!",
+      "A-",
+      "A#",
+      "M#"
+     ]
+    },
+    {
+     "row": 21,
+     "playerNumber": 22,
+     "cells": [
+      "A+",
+      "M+",
+      "A/",
+      "M-",
+      "A+",
+      "A+",
+      "A+",
+      "A+",
+      "M+",
+      "A#",
+      "B #",
+      "B-",
+      "B+",
+      "A#",
+      "A=",
+      "A-",
+      "A#"
+     ]
+    },
+    {
+     "row": 22,
+     "playerNumber": 3,
+     "cells": [
+      "R-",
+      "R-",
+      "R+",
+      "R+",
+      "R=",
+      "R+",
+      "R!",
+      "R!",
+      "R+"
+     ]
+    },
+    {
+     "row": 23,
+     "playerNumber": 4,
+     "cells": [
+      "B/",
+      "R-",
+      "R="
+     ]
+    }
+   ]
+  },
+  {
+   "set": 3,
+   "lines": [
+    {
+     "row": 30,
+     "playerNumber": 19,
+     "cells": [
+      "B#",
+      "B=",
+      "A+",
+      "A#",
+      "B+",
+      "B+",
+      "M+",
+      "A+",
+      "A+",
+      "M!",
+      "B+",
+      "A#",
+      "R+",
+      "R!",
+      "R!"
+     ]
+    },
+    {
+     "row": 31,
+     "playerNumber": 5,
+     "cells": [
+      "M!",
+      "B=",
+      "M-",
+      "M!",
+      "B=",
+      "M-",
+      "M+",
+      "B-",
+      "A#"
+     ]
+    },
+    {
+     "row": 32,
+     "playerNumber": 6,
+     "cells": [
+      "A+",
+      "R#",
+      "A+",
+      "B+",
+      "B-",
+      "A#",
+      "A#",
+      "A#",
+      "A-",
+      "A+",
+      "A+",
+      "A-",
+      "B=",
+      "R-",
+      "R+",
+      "A+",
+      "A+",
+      "A+",
+      "B+",
+      "B+",
+      "B+",
+      "R#"
+     ]
+    },
+    {
+     "row": 33,
+     "playerNumber": 9,
+     "cells": [
+      "A+",
+      "A#",
+      "B+",
+      "B+",
+      "B=",
+      "B+",
+      "B+"
+     ]
+    },
+    {
+     "row": 34,
+     "playerNumber": 22,
+     "cells": [
+      "A#",
+      "A#",
+      "A#",
+      "B=",
+      "A/",
+      "A!",
+      "A#",
+      "A=",
+      "A+",
+      "B+",
+      "A+",
+      "B+",
+      "A+"
+     ]
+    },
+    {
+     "row": 35,
+     "playerNumber": 4,
+     "cells": [
+      "R-",
+      "R#",
+      "R=",
+      "R#",
+      "R#",
+      "B+",
+      "A#",
+      "R+",
+      "A+",
+      "B#",
+      "B+",
+      "R+",
+      "R="
+     ]
+    },
+    {
+     "row": 36,
+     "playerNumber": 3,
+     "cells": [
+      "R#",
+      "R-",
+      "R+",
+      "R+",
+      "R#",
+      "R#",
+      "R+",
+      "R/"
+     ]
+    },
+    {
+     "row": 37,
+     "playerNumber": 12,
+     "cells": [
+      "A+",
+      "M+",
+      "A+",
+      "M+",
+      "A=",
+      "M="
+     ]
+    },
+    {
+     "row": 38,
+     "playerNumber": 17,
+     "cells": [
+      "A#",
+      "A#",
+      "A+",
+      "A=",
+      "A#"
+     ]
+    }
+   ]
+  },
+  {
+   "set": 4,
+   "lines": []
+  },
+  {
+   "set": 5,
+   "lines": []
+  }
+ ],
+ "oracle": {
+  "players": {
+   "A": {
+    "number": 19,
+    "sheet": "Gioc A",
+    "match": {
+     "skills": {
+      "R": {
+       "counts": {
+        "R#": {
+         "cell": "B6",
+         "value": 4
+        },
+        "R+": {
+         "cell": "C6",
+         "value": 1
+        },
+        "R!": {
+         "cell": "D6",
+         "value": 3
+        },
+        "R-": {
+         "cell": "E6",
+         "value": 1
+        },
+        "R/": {
+         "cell": "F6",
+         "value": 1
+        },
+        "R=": {
+         "cell": "G6",
+         "value": 0
+        }
+       },
+       "distribution": {
+        "R#": {
+         "cell": "B7",
+         "value": 0.4
+        },
+        "R+": {
+         "cell": "C7",
+         "value": 0.1
+        },
+        "R!": {
+         "cell": "D7",
+         "value": 0.3
+        },
+        "R-": {
+         "cell": "E7",
+         "value": 0.1
+        },
+        "R/": {
+         "cell": "F7",
+         "value": 0.1
+        },
+        "R=": {
+         "cell": "G7",
+         "value": 0
+        }
+       },
+       "total": {
+        "cell": "H6",
+        "value": 10
+       },
+       "distributionTotal": {
+        "cell": "H7",
+        "value": 1
+       },
+       "efficiency": {
+        "cell": "B8",
+        "value": 0.4
+       },
+       "positivity": {
+        "cell": "B9",
+        "value": 0.8
+       }
+      },
+      "M": {
+       "counts": {
+        "M#": {
+         "cell": "J6",
+         "value": 0
+        },
+        "M=": {
+         "cell": "K6",
+         "value": 0
+        }
+       }
+      },
+      "P": {
+       "counts": {
+        "P=": {
+         "cell": "K8",
+         "value": 0
+        }
+       }
+      },
+      "B": {
+       "counts": {
+        "B#": {
+         "cell": "B13",
+         "value": 1
+        },
+        "B/": {
+         "cell": "C13",
+         "value": 1
+        },
+        "B+": {
+         "cell": "D13",
+         "value": 7
+        },
+        "B!": {
+         "cell": "E13",
+         "value": 0
+        },
+        "B-": {
+         "cell": "F13",
+         "value": 2
+        },
+        "B=": {
+         "cell": "G13",
+         "value": 2
+        }
+       },
+       "distribution": {
+        "B#": {
+         "cell": "B14",
+         "value": 0.07692307692
+        },
+        "B/": {
+         "cell": "C14",
+         "value": 0.07692307692
+        },
+        "B+": {
+         "cell": "D14",
+         "value": 0.5384615385
+        },
+        "B!": {
+         "cell": "E14",
+         "value": 0
+        },
+        "B-": {
+         "cell": "F14",
+         "value": 0.1538461538
+        },
+        "B=": {
+         "cell": "G14",
+         "value": 0.1538461538
+        }
+       },
+       "total": {
+        "cell": "H13",
+        "value": 13
+       },
+       "distributionTotal": {
+        "cell": "H14",
+        "value": 1
+       },
+       "efficiency": {
+        "cell": "B15",
+        "value": -0.07692307692
+       },
+       "efficacy": {
+        "cell": "B16",
+        "value": 0.1538461538
+       }
+      },
+      "A": {
+       "counts": {
+        "A#": {
+         "cell": "B20",
+         "value": 5
+        },
+        "A+": {
+         "cell": "C20",
+         "value": 5
+        },
+        "A!": {
+         "cell": "D20",
+         "value": 1
+        },
+        "A-": {
+         "cell": "E20",
+         "value": 0
+        },
+        "A/": {
+         "cell": "F20",
+         "value": 0
+        },
+        "A=": {
+         "cell": "G20",
+         "value": 0
+        }
+       },
+       "distribution": {
+        "A#": {
+         "cell": "B21",
+         "value": 0.4545454545
+        },
+        "A+": {
+         "cell": "C21",
+         "value": 0.4545454545
+        },
+        "A!": {
+         "cell": "D21",
+         "value": 0.09090909091
+        },
+        "A-": {
+         "cell": "E21",
+         "value": 0
+        },
+        "A/": {
+         "cell": "F21",
+         "value": 0
+        },
+        "A=": {
+         "cell": "G21",
+         "value": 0
+        }
+       },
+       "total": {
+        "cell": "H20",
+        "value": 11
+       },
+       "distributionTotal": {
+        "cell": "H21",
+        "value": 1
+       },
+       "efficiency": {
+        "cell": "B22",
+        "value": 0.4545454545
+       },
+       "positivity": {
+        "cell": "B23",
+        "value": 1
+       }
+      }
+     },
+     "summary": {
+      "pointsWon": {
+       "cell": "K11",
+       "value": 6
+      },
+      "errors": {
+       "cell": "K12",
+       "value": 2
+      },
+      "receptionErrors": {
+       "cell": "K13",
+       "value": 0
+      },
+      "blockedAttacks": {
+       "cell": "K14",
+       "value": 0
+      },
+      "receptionEfficiency": {
+       "cell": "K15",
+       "value": 0.4
+      },
+      "attackEfficiency": {
+       "cell": "K16",
+       "value": 0.4545454545
+      },
+      "balance": {
+       "cell": "K17",
+       "value": 4
+      }
+     }
+    },
+    "set1": {
+     "skills": {
+      "R": {
+       "counts": {
+        "R#": {
+         "cell": "N5",
+         "value": 2
+        },
+        "R+": {
+         "cell": "O5",
+         "value": 0
+        },
+        "R!": {
+         "cell": "P5",
+         "value": 1
+        },
+        "R-": {
+         "cell": "Q5",
+         "value": 0
+        },
+        "R/": {
+         "cell": "R5",
+         "value": 0
+        },
+        "R=": {
+         "cell": "S5",
+         "value": 0
+        }
+       },
+       "distribution": {
+        "R#": {
+         "cell": "N6",
+         "value": 0.6666666667
+        },
+        "R+": {
+         "cell": "O6",
+         "value": 0
+        },
+        "R!": {
+         "cell": "P6",
+         "value": 0.3333333333
+        },
+        "R-": {
+         "cell": "Q6",
+         "value": 0
+        },
+        "R/": {
+         "cell": "R6",
+         "value": 0
+        },
+        "R=": {
+         "cell": "S6",
+         "value": 0
+        }
+       },
+       "total": {
+        "cell": "T5",
+        "value": 3
+       },
+       "distributionTotal": {
+        "cell": "T6",
+        "value": 1
+       },
+       "efficiency": {
+        "cell": "N7",
+        "value": 0.6666666667
+       },
+       "positivity": {
+        "cell": "N8",
+        "value": 1
+       }
+      },
+      "M": {
+       "counts": {
+        "M#": {
+         "cell": "W5",
+         "value": 0
+        },
+        "M=": {
+         "cell": "X5",
+         "value": 0
+        }
+       }
+      },
+      "B": {
+       "counts": {
+        "B#": {
+         "cell": "N12",
+         "value": 0
+        },
+        "B+": {
+         "cell": "O12",
+         "value": 4
+        },
+        "B!": {
+         "cell": "P12",
+         "value": 0
+        },
+        "B-": {
+         "cell": "Q12",
+         "value": 0
+        },
+        "B/": {
+         "cell": "R12",
+         "value": 0
+        },
+        "B=": {
+         "cell": "S12",
+         "value": 1
+        }
+       },
+       "distribution": {
+        "B#": {
+         "cell": "N13",
+         "value": 0
+        },
+        "B+": {
+         "cell": "O13",
+         "value": 0
+        },
+        "B!": {
+         "cell": "P13",
+         "value": 0
+        },
+        "B-": {
+         "cell": "Q13",
+         "value": 0
+        },
+        "B/": {
+         "cell": "R13",
+         "value": 0
+        },
+        "B=": {
+         "cell": "S13",
+         "value": 0
+        }
+       },
+       "total": {
+        "cell": "T12",
+        "value": 5
+       },
+       "distributionTotal": {
+        "cell": "T13",
+        "value": 0
+       },
+       "efficiency": {
+        "cell": "N14",
+        "value": -0.2
+       },
+       "positivity": {
+        "cell": "N15",
+        "value": 0.8
+       }
+      },
+      "A": {
+       "counts": {
+        "A#": {
+         "cell": "N19",
+         "value": 2
+        },
+        "A+": {
+         "cell": "O19",
+         "value": 0
+        },
+        "A!": {
+         "cell": "P19",
+         "value": 0
+        },
+        "A-": {
+         "cell": "Q19",
+         "value": 0
+        },
+        "A/": {
+         "cell": "R19",
+         "value": 0
+        },
+        "A=": {
+         "cell": "S19",
+         "value": 0
+        }
+       },
+       "distribution": {
+        "A#": {
+         "cell": "N20",
+         "value": 1
+        },
+        "A+": {
+         "cell": "O20",
+         "value": 0
+        },
+        "A!": {
+         "cell": "P20",
+         "value": 0
+        },
+        "A-": {
+         "cell": "Q20",
+         "value": 0
+        },
+        "A/": {
+         "cell": "R20",
+         "value": 0
+        },
+        "A=": {
+         "cell": "S20",
+         "value": 0
+        }
+       },
+       "total": {
+        "cell": "T19",
+        "value": 2
+       },
+       "distributionTotal": {
+        "cell": "T20",
+        "value": 1
+       },
+       "efficiency": {
+        "cell": "N21",
+        "value": 1
+       },
+       "positivity": {
+        "cell": "N22",
+        "value": 1
+       }
+      }
+     },
+     "summary": {
+      "pointsWon": {
+       "cell": "X10",
+       "value": 2
+      },
+      "errors": {
+       "cell": "X11",
+       "value": 1
+      },
+      "receptionErrors": {
+       "cell": "X12",
+       "value": 0
+      },
+      "blockedAttacks": {
+       "cell": "X13",
+       "value": 0
+      },
+      "receptionEfficiency": {
+       "cell": "X14",
+       "value": 0.6666666667
+      },
+      "attackEfficiency": {
+       "cell": "X15",
+       "value": 1
+      }
+     }
+    },
+    "set2": {
+     "skills": {
+      "R": {
+       "counts": {
+        "R#": {
+         "cell": "B27",
+         "value": 2
+        },
+        "R+": {
+         "cell": "C27",
+         "value": 0
+        },
+        "R!": {
+         "cell": "D27",
+         "value": 0
+        },
+        "R-": {
+         "cell": "E27",
+         "value": 1
+        },
+        "R/": {
+         "cell": "F27",
+         "value": 1
+        },
+        "R=": {
+         "cell": "G27",
+         "value": 0
+        }
+       },
+       "distribution": {
+        "R#": {
+         "cell": "B28",
+         "value": 0.5
+        },
+        "R+": {
+         "cell": "C28",
+         "value": 0
+        },
+        "R!": {
+         "cell": "D28",
+         "value": 0
+        },
+        "R-": {
+         "cell": "E28",
+         "value": 0
+        },
+        "R/": {
+         "cell": "F28",
+         "value": 0.25
+        },
+        "R=": {
+         "cell": "G28",
+         "value": 0
+        }
+       },
+       "total": {
+        "cell": "H27",
+        "value": 4
+       },
+       "distributionTotal": {
+        "cell": "H28",
+        "value": 0.75
+       },
+       "efficiency": {
+        "cell": "B29",
+        "value": 0.5
+       },
+       "positivity": {
+        "cell": "B30",
+        "value": 0.5
+       }
+      },
+      "M": {
+       "counts": {
+        "M#": {
+         "cell": "J27",
+         "value": 0
+        },
+        "M=": {
+         "cell": "K27",
+         "value": 0
+        }
+       }
+      },
+      "B": {
+       "counts": {
+        "B#": {
+         "cell": "B34",
+         "value": 0
+        },
+        "B+": {
+         "cell": "C34",
+         "value": 0
+        },
+        "B!": {
+         "cell": "D34",
+         "value": 0
+        },
+        "B-": {
+         "cell": "E34",
+         "value": 2
+        },
+        "B/": {
+         "cell": "F34",
+         "value": 1
+        },
+        "B=": {
+         "cell": "G34",
+         "value": 0
+        }
+       },
+       "distribution": {
+        "B#": {
+         "cell": "B35",
+         "value": 0
+        },
+        "B+": {
+         "cell": "C35",
+         "value": 0
+        },
+        "B!": {
+         "cell": "D35",
+         "value": 0
+        },
+        "B-": {
+         "cell": "E35",
+         "value": 0.6666666667
+        },
+        "B/": {
+         "cell": "F35",
+         "value": 0.3333333333
+        },
+        "B=": {
+         "cell": "G35",
+         "value": 0
+        }
+       },
+       "total": {
+        "cell": "H34",
+        "value": 3
+       },
+       "distributionTotal": {
+        "cell": "H35",
+        "value": 1
+       },
+       "efficiency": {
+        "cell": "B36",
+        "value": 0
+       },
+       "positivity": {
+        "cell": "B37",
+        "value": 0
+       }
+      },
+      "A": {
+       "counts": {
+        "A#": {
+         "cell": "B41",
+         "value": 1
+        },
+        "A+": {
+         "cell": "C41",
+         "value": 2
+        },
+        "A!": {
+         "cell": "D41",
+         "value": 1
+        },
+        "A-": {
+         "cell": "E41",
+         "value": 0
+        },
+        "A/": {
+         "cell": "F41",
+         "value": 0
+        },
+        "A=": {
+         "cell": "G41",
+         "value": 0
+        }
+       },
+       "distribution": {
+        "A#": {
+         "cell": "B42",
+         "value": 0.25
+        },
+        "A+": {
+         "cell": "C42",
+         "value": 0.5
+        },
+        "A!": {
+         "cell": "D42",
+         "value": 0.25
+        },
+        "A-": {
+         "cell": "E42",
+         "value": 0
+        },
+        "A/": {
+         "cell": "F42",
+         "value": 0
+        },
+        "A=": {
+         "cell": "G42",
+         "value": 0
+        }
+       },
+       "total": {
+        "cell": "H41",
+        "value": 4
+       },
+       "distributionTotal": {
+        "cell": "H42",
+        "value": 1
+       },
+       "efficiency": {
+        "cell": "B43",
+        "value": 0.25
+       },
+       "positivity": {
+        "cell": "B44",
+        "value": 1
+       }
+      }
+     },
+     "summary": {
+      "pointsWon": {
+       "cell": "K32",
+       "value": 1
+      },
+      "errors": {
+       "cell": "K33",
+       "value": 0
+      },
+      "receptionErrors": {
+       "cell": "K34",
+       "value": 0
+      },
+      "receptionEfficiency": {
+       "cell": "K35",
+       "value": 0.5
+      },
+      "attackEfficiency": {
+       "cell": "K36",
+       "value": 0.25
+      },
+      "blockedAttacks": {
+       "cell": "J37",
+       "value": 0
+      }
+     }
+    },
+    "set3": {
+     "skills": {
+      "R": {
+       "counts": {
+        "R#": {
+         "cell": "N27",
+         "value": 0
+        },
+        "R+": {
+         "cell": "O27",
+         "value": 1
+        },
+        "R!": {
+         "cell": "P27",
+         "value": 2
+        },
+        "R-": {
+         "cell": "Q27",
+         "value": 0
+        },
+        "R/": {
+         "cell": "R27",
+         "value": 0
+        },
+        "R=": {
+         "cell": "S27",
+         "value": 0
+        }
+       },
+       "distribution": {
+        "R#": {
+         "cell": "N28",
+         "value": 0
+        },
+        "R+": {
+         "cell": "O28",
+         "value": 0.3333333333
+        },
+        "R!": {
+         "cell": "P28",
+         "value": 0.6666666667
+        },
+        "R-": {
+         "cell": "Q28",
+         "value": 0
+        },
+        "R/": {
+         "cell": "R28",
+         "value": 0
+        },
+        "R=": {
+         "cell": "S28",
+         "value": 0
+        }
+       },
+       "total": {
+        "cell": "T27",
+        "value": 3
+       },
+       "distributionTotal": {
+        "cell": "T28",
+        "value": 1
+       },
+       "efficiency": {
+        "cell": "N29",
+        "value": 0
+       },
+       "positivity": {
+        "cell": "N30",
+        "value": 1
+       }
+      },
+      "M": {
+       "counts": {
+        "M#": {
+         "cell": "W27",
+         "value": 0
+        },
+        "M=": {
+         "cell": "X27",
+         "value": 0
+        }
+       }
+      },
+      "B": {
+       "counts": {
+        "B#": {
+         "cell": "N34",
+         "value": 1
+        },
+        "B+": {
+         "cell": "O34",
+         "value": 3
+        },
+        "B!": {
+         "cell": "P34",
+         "value": 0
+        },
+        "B-": {
+         "cell": "Q34",
+         "value": 0
+        },
+        "B/": {
+         "cell": "R34",
+         "value": 0
+        },
+        "B=": {
+         "cell": "S34",
+         "value": 1
+        }
+       },
+       "distribution": {
+        "B#": {
+         "cell": "N35",
+         "value": 0
+        },
+        "B+": {
+         "cell": "O35",
+         "value": 0
+        },
+        "B!": {
+         "cell": "P35",
+         "value": 0
+        },
+        "B-": {
+         "cell": "Q35",
+         "value": 0
+        },
+        "B/": {
+         "cell": "R35",
+         "value": 0
+        },
+        "B=": {
+         "cell": "S35",
+         "value": 0
+        }
+       },
+       "total": {
+        "cell": "T34",
+        "value": 5
+       },
+       "distributionTotal": {
+        "cell": "T35",
+        "value": null
+       },
+       "efficiency": {
+        "cell": "N36",
+        "value": 0
+       },
+       "positivity": {
+        "cell": "N37",
+        "value": 0.8
+       }
+      },
+      "A": {
+       "counts": {
+        "A#": {
+         "cell": "N41",
+         "value": 2
+        },
+        "A+": {
+         "cell": "O41",
+         "value": 3
+        },
+        "A!": {
+         "cell": "P41",
+         "value": 0
+        },
+        "A-": {
+         "cell": "Q41",
+         "value": 0
+        },
+        "A/": {
+         "cell": "R41",
+         "value": 0
+        },
+        "A=": {
+         "cell": "S41",
+         "value": 0
+        }
+       },
+       "distribution": {
+        "A#": {
+         "cell": "N42",
+         "value": 0.4
+        },
+        "A+": {
+         "cell": "O42",
+         "value": 0.6
+        },
+        "A!": {
+         "cell": "P42",
+         "value": 0
+        },
+        "A-": {
+         "cell": "Q42",
+         "value": 0
+        },
+        "A/": {
+         "cell": "R42",
+         "value": 0
+        },
+        "A=": {
+         "cell": "S42",
+         "value": 0
+        }
+       },
+       "total": {
+        "cell": "T41",
+        "value": 5
+       },
+       "distributionTotal": {
+        "cell": "T42",
+        "value": 1
+       },
+       "efficiency": {
+        "cell": "N43",
+        "value": 0.4
+       },
+       "positivity": {
+        "cell": "N44",
+        "value": 1
+       }
+      }
+     },
+     "summary": {
+      "pointsWon": {
+       "cell": "X32",
+       "value": 3
+      },
+      "errors": {
+       "cell": "X33",
+       "value": 1
+      },
+      "receptionErrors": {
+       "cell": "X34",
+       "value": 0
+      },
+      "receptionEfficiency": {
+       "cell": "X35",
+       "value": 0
+      },
+      "attackEfficiency": {
+       "cell": "X36",
+       "value": 0.4
+      },
+      "blockedAttacks": {
+       "cell": "W37",
+       "value": 0
+      }
+     }
+    },
+    "set4": {
+     "skills": {
+      "R": {
+       "counts": {
+        "R#": {
+         "cell": "B49",
+         "value": 0
+        },
+        "R+": {
+         "cell": "C49",
+         "value": 0
+        },
+        "R!": {
+         "cell": "D49",
+         "value": 0
+        },
+        "R-": {
+         "cell": "E49",
+         "value": 0
+        },
+        "R/": {
+         "cell": "F49",
+         "value": 0
+        },
+        "R=": {
+         "cell": "G49",
+         "value": 0
+        }
+       },
+       "distribution": {
+        "R#": {
+         "cell": "B50",
+         "value": 0
+        },
+        "R+": {
+         "cell": "C50",
+         "value": 0
+        },
+        "R!": {
+         "cell": "D50",
+         "value": 0
+        },
+        "R-": {
+         "cell": "E50",
+         "value": 0
+        },
+        "R/": {
+         "cell": "F50",
+         "value": 0
+        },
+        "R=": {
+         "cell": "G50",
+         "value": 0
+        }
+       },
+       "total": {
+        "cell": "H49",
+        "value": 0
+       },
+       "distributionTotal": {
+        "cell": "H50",
+        "value": 0
+       },
+       "efficiency": {
+        "cell": "B51",
+        "value": 0
+       },
+       "positivity": {
+        "cell": "B52",
+        "value": 0
+       }
+      },
+      "M": {
+       "counts": {
+        "M#": {
+         "cell": "J49",
+         "value": 0
+        },
+        "M=": {
+         "cell": "K49",
+         "value": 0
+        }
+       }
+      },
+      "B": {
+       "counts": {
+        "B#": {
+         "cell": "B56",
+         "value": 0
+        },
+        "B+": {
+         "cell": "C56",
+         "value": 0
+        },
+        "B!": {
+         "cell": "D56",
+         "value": 0
+        },
+        "B-": {
+         "cell": "E56",
+         "value": 0
+        },
+        "B/": {
+         "cell": "F56",
+         "value": 0
+        },
+        "B=": {
+         "cell": "G56",
+         "value": 0
+        }
+       },
+       "distribution": {
+        "B#": {
+         "cell": "B57",
+         "value": 0
+        },
+        "B+": {
+         "cell": "C57",
+         "value": 0
+        },
+        "B!": {
+         "cell": "D57",
+         "value": 0
+        },
+        "B-": {
+         "cell": "E57",
+         "value": 0
+        },
+        "B/": {
+         "cell": "F57",
+         "value": 0
+        },
+        "B=": {
+         "cell": "G57",
+         "value": 0
+        }
+       },
+       "total": {
+        "cell": "H56",
+        "value": 0
+       },
+       "distributionTotal": {
+        "cell": "H57",
+        "value": 0
+       },
+       "efficiency": {
+        "cell": "B58",
+        "value": 0
+       },
+       "positivity": {
+        "cell": "B59",
+        "value": 0
+       }
+      },
+      "A": {
+       "counts": {
+        "A#": {
+         "cell": "B63",
+         "value": 0
+        },
+        "A+": {
+         "cell": "C63",
+         "value": 0
+        },
+        "A!": {
+         "cell": "D63",
+         "value": 0
+        },
+        "A-": {
+         "cell": "E63",
+         "value": 0
+        },
+        "A/": {
+         "cell": "F63",
+         "value": 0
+        },
+        "A=": {
+         "cell": "G63",
+         "value": 0
+        }
+       },
+       "distribution": {
+        "A#": {
+         "cell": "B64",
+         "value": 0
+        },
+        "A+": {
+         "cell": "C64",
+         "value": 0
+        },
+        "A!": {
+         "cell": "D64",
+         "value": 0
+        },
+        "A-": {
+         "cell": "E64",
+         "value": 0
+        },
+        "A/": {
+         "cell": "F64",
+         "value": 0
+        },
+        "A=": {
+         "cell": "G64",
+         "value": 0
+        }
+       },
+       "total": {
+        "cell": "H63",
+        "value": 0
+       },
+       "distributionTotal": {
+        "cell": "H64",
+        "value": 0
+       },
+       "efficiency": {
+        "cell": "B65",
+        "value": 0
+       },
+       "positivity": {
+        "cell": "B66",
+        "value": 0
+       }
+      }
+     },
+     "summary": {
+      "pointsWon": {
+       "cell": "K54",
+       "value": 0
+      },
+      "errors": {
+       "cell": "K55",
+       "value": 0
+      },
+      "receptionErrors": {
+       "cell": "K56",
+       "value": 0
+      },
+      "blockedAttacks": {
+       "cell": "K57",
+       "value": 0
+      },
+      "receptionEfficiency": {
+       "cell": "K58",
+       "value": 0
+      },
+      "attackEfficiency": {
+       "cell": "K59",
+       "value": 0
+      }
+     }
+    },
+    "set5": {
+     "skills": {
+      "R": {
+       "counts": {
+        "R#": {
+         "cell": "N49",
+         "value": 0
+        },
+        "R+": {
+         "cell": "O49",
+         "value": 0
+        },
+        "R!": {
+         "cell": "P49",
+         "value": 0
+        },
+        "R-": {
+         "cell": "Q49",
+         "value": 0
+        },
+        "R/": {
+         "cell": "R49",
+         "value": 0
+        },
+        "R=": {
+         "cell": "S49",
+         "value": 0
+        }
+       },
+       "distribution": {
+        "R#": {
+         "cell": "N50",
+         "value": 0
+        },
+        "R+": {
+         "cell": "O50",
+         "value": 0
+        },
+        "R!": {
+         "cell": "P50",
+         "value": 0
+        },
+        "R-": {
+         "cell": "Q50",
+         "value": 0
+        },
+        "R/": {
+         "cell": "R50",
+         "value": 0
+        },
+        "R=": {
+         "cell": "S50",
+         "value": 0
+        }
+       },
+       "total": {
+        "cell": "T49",
+        "value": 0
+       },
+       "distributionTotal": {
+        "cell": "T50",
+        "value": 0
+       },
+       "efficiency": {
+        "cell": "N51",
+        "value": 0
+       },
+       "positivity": {
+        "cell": "N52",
+        "value": 0
+       }
+      },
+      "M": {
+       "counts": {
+        "M#": {
+         "cell": "W49",
+         "value": 0
+        },
+        "M=": {
+         "cell": "X49",
+         "value": 0
+        }
+       }
+      },
+      "B": {
+       "counts": {
+        "B#": {
+         "cell": "N56",
+         "value": 0
+        },
+        "B+": {
+         "cell": "O56",
+         "value": 0
+        },
+        "B!": {
+         "cell": "P56",
+         "value": 0
+        },
+        "B-": {
+         "cell": "Q56",
+         "value": 0
+        },
+        "B/": {
+         "cell": "R56",
+         "value": 0
+        },
+        "B=": {
+         "cell": "S56",
+         "value": 0
+        }
+       },
+       "distribution": {
+        "B#": {
+         "cell": "N57",
+         "value": 0
+        },
+        "B+": {
+         "cell": "O57",
+         "value": 0
+        },
+        "B!": {
+         "cell": "P57",
+         "value": 0
+        },
+        "B-": {
+         "cell": "Q57",
+         "value": 0
+        },
+        "B/": {
+         "cell": "R57",
+         "value": 0
+        },
+        "B=": {
+         "cell": "S57",
+         "value": 0
+        }
+       },
+       "total": {
+        "cell": "T56",
+        "value": 0
+       },
+       "distributionTotal": {
+        "cell": "T57",
+        "value": 0
+       },
+       "efficiency": {
+        "cell": "N58",
+        "value": 0
+       },
+       "positivity": {
+        "cell": "N59",
+        "value": 0
+       }
+      },
+      "A": {
+       "counts": {
+        "A#": {
+         "cell": "N63",
+         "value": 0
+        },
+        "A+": {
+         "cell": "O63",
+         "value": 0
+        },
+        "A!": {
+         "cell": "P63",
+         "value": 0
+        },
+        "A-": {
+         "cell": "Q63",
+         "value": 0
+        },
+        "A/": {
+         "cell": "R63",
+         "value": 0
+        },
+        "A=": {
+         "cell": "S63",
+         "value": 0
+        }
+       },
+       "distribution": {
+        "A#": {
+         "cell": "N64",
+         "value": 0
+        },
+        "A+": {
+         "cell": "O64",
+         "value": 0
+        },
+        "A!": {
+         "cell": "P64",
+         "value": 0
+        },
+        "A-": {
+         "cell": "Q64",
+         "value": 0
+        },
+        "A/": {
+         "cell": "R64",
+         "value": 0
+        },
+        "A=": {
+         "cell": "S64",
+         "value": 0
+        }
+       },
+       "total": {
+        "cell": "T63",
+        "value": 0
+       },
+       "distributionTotal": {
+        "cell": "T64",
+        "value": 0
+       },
+       "efficiency": {
+        "cell": "N65",
+        "value": 0
+       },
+       "positivity": {
+        "cell": "N66",
+        "value": 0
+       }
+      }
+     },
+     "summary": {
+      "pointsWon": {
+       "cell": "X54",
+       "value": 0
+      },
+      "errors": {
+       "cell": "X55",
+       "value": 0
+      },
+      "receptionErrors": {
+       "cell": "X56",
+       "value": 0
+      },
+      "blockedAttacks": {
+       "cell": "X57",
+       "value": 0
+      },
+      "receptionEfficiency": {
+       "cell": "X58",
+       "value": 0
+      },
+      "attackEfficiency": {
+       "cell": "X59",
+       "value": 0
+      }
+     }
+    }
+   }
+  },
+  "team": {
+   "match": {
+    "skills": {
+     "R": {
+      "counts": {
+       "R#": {
+        "cell": "B5",
+        "value": 15
+       },
+       "R+": {
+        "cell": "C5",
+        "value": 13
+       },
+       "R!": {
+        "cell": "D5",
+        "value": 7
+       },
+       "R-": {
+        "cell": "E5",
+        "value": 11
+       },
+       "R/": {
+        "cell": "F5",
+        "value": 2
+       },
+       "R=": {
+        "cell": "G5",
+        "value": 5
+       }
+      },
+      "distribution": {
+       "R#": {
+        "cell": "B6",
+        "value": 0.2830188679
+       },
+       "R+": {
+        "cell": "C6",
+        "value": 0.2452830189
+       },
+       "R!": {
+        "cell": "D6",
+        "value": 0.1320754717
+       },
+       "R-": {
+        "cell": "E6",
+        "value": 0.2075471698
+       },
+       "R/": {
+        "cell": "F6",
+        "value": 0.03773584906
+       },
+       "R=": {
+        "cell": "G6",
+        "value": 0.09433962264
+       }
+      },
+      "total": {
+       "cell": "H5",
+       "value": 53
+      },
+      "distributionTotal": {
+       "cell": "H6",
+       "value": 1
+      },
+      "efficiency": {
+       "cell": "B7",
+       "value": 0.1886792453
+      },
+      "positivity": {
+       "cell": "B8",
+       "value": 0.6603773585
+      }
+     },
+     "M": {
+      "counts": {
+       "M#": {
+        "cell": "J5",
+        "value": 5
+       },
+       "M=": {
+        "cell": "K5",
+        "value": 1
+       }
+      }
+     },
+     "P": {
+      "counts": {
+       "P=": {
+        "cell": "K7",
+        "value": 1
+       }
+      }
+     },
+     "B": {
+      "counts": {
+       "B#": {
+        "cell": "B12",
+        "value": 10
+       },
+       "B/": {
+        "cell": "C12",
+        "value": 3
+       },
+       "B+": {
+        "cell": "D12",
+        "value": 35
+       },
+       "B!": {
+        "cell": "E12",
+        "value": 2
+       },
+       "B-": {
+        "cell": "F12",
+        "value": 9
+       },
+       "B=": {
+        "cell": "G12",
+        "value": 11
+       }
+      },
+      "distribution": {
+       "B#": {
+        "cell": "B13",
+        "value": 0.1428571429
+       },
+       "B/": {
+        "cell": "C13",
+        "value": 0.04285714286
+       },
+       "B+": {
+        "cell": "D13",
+        "value": 0.5
+       },
+       "B!": {
+        "cell": "E13",
+        "value": 0.02857142857
+       },
+       "B-": {
+        "cell": "F13",
+        "value": 0.1285714286
+       },
+       "B=": {
+        "cell": "G13",
+        "value": 0.1571428571
+       }
+      },
+      "total": {
+       "cell": "H12",
+       "value": 70
+      },
+      "distributionTotal": {
+       "cell": "H13",
+       "value": 1
+      },
+      "efficiency": {
+       "cell": "B14",
+       "value": -0.01428571429
+      },
+      "efficacy": {
+       "cell": "B15",
+       "value": 0.1857142857
+      }
+     },
+     "A": {
+      "counts": {
+       "A#": {
+        "cell": "B19",
+        "value": 41
+       },
+       "A+": {
+        "cell": "C19",
+        "value": 34
+       },
+       "A!": {
+        "cell": "D19",
+        "value": 2
+       },
+       "A-": {
+        "cell": "E19",
+        "value": 5
+       },
+       "A/": {
+        "cell": "F19",
+        "value": 2
+       },
+       "A=": {
+        "cell": "G19",
+        "value": 7
+       }
+      },
+      "distribution": {
+       "A#": {
+        "cell": "B20",
+        "value": 0.4505494505
+       },
+       "A+": {
+        "cell": "C20",
+        "value": 0.3736263736
+       },
+       "A!": {
+        "cell": "D20",
+        "value": 0.02197802198
+       },
+       "A-": {
+        "cell": "E20",
+        "value": 0.05494505495
+       },
+       "A/": {
+        "cell": "F20",
+        "value": 0.02197802198
+       },
+       "A=": {
+        "cell": "G20",
+        "value": 0.07692307692
+       }
+      },
+      "total": {
+       "cell": "H19",
+       "value": 91
+      },
+      "distributionTotal": {
+       "cell": "H20",
+       "value": 1
+      },
+      "efficiency": {
+       "cell": "B21",
+       "value": 0.3736263736
+      },
+      "positivity": {
+       "cell": "B22",
+       "value": 0.9010989011
+      }
+     }
+    },
+    "summary": {
+     "pointsWon": {
+      "cell": "K10",
+      "value": 56
+     },
+     "errors": {
+      "cell": "K11",
+      "value": 20
+     },
+     "receptionErrors": {
+      "cell": "K12",
+      "value": 5
+     },
+     "blockedAttacks": {
+      "cell": "K13",
+      "value": 2
+     },
+     "receptionEfficiency": {
+      "cell": "K14",
+      "value": 0.1886792453
+     },
+     "attackEfficiency": {
+      "cell": "K15",
+      "value": 0.3736263736
+     },
+     "balance": {
+      "cell": "K16",
+      "value": 31
+     },
+     "errorsIncludingReception": {
+      "cell": "L11",
+      "value": 25
+     }
+    }
+   },
+   "set1": {
+    "skills": {
+     "R": {
+      "counts": {
+       "R#": {
+        "cell": "B27",
+        "value": 5
+       },
+       "R+": {
+        "cell": "C27",
+        "value": 1
+       },
+       "R!": {
+        "cell": "D27",
+        "value": 3
+       },
+       "R-": {
+        "cell": "E27",
+        "value": 2
+       },
+       "R/": {
+        "cell": "F27",
+        "value": 0
+       },
+       "R=": {
+        "cell": "G27",
+        "value": 1
+       }
+      },
+      "distribution": {
+       "R#": {
+        "cell": "B28",
+        "value": 0.4166666667
+       },
+       "R+": {
+        "cell": "C28",
+        "value": 0.08333333333
+       },
+       "R!": {
+        "cell": "D28",
+        "value": 0.25
+       },
+       "R-": {
+        "cell": "E28",
+        "value": 0.1666666667
+       },
+       "R/": {
+        "cell": "F28",
+        "value": 0
+       },
+       "R=": {
+        "cell": "G28",
+        "value": 0.08333333333
+       }
+      },
+      "total": {
+       "cell": "H27",
+       "value": 12
+      },
+      "distributionTotal": {
+       "cell": "H28",
+       "value": 1
+      },
+      "efficiency": {
+       "cell": "B29",
+       "value": 0.3333333333
+      },
+      "positivity": {
+       "cell": "B30",
+       "value": 0.75
+      }
+     },
+     "M": {
+      "counts": {
+       "M#": {
+        "cell": "J27",
+        "value": 2
+       },
+       "M=": {
+        "cell": "K27",
+        "value": 0
+       }
+      }
+     },
+     "P": {
+      "counts": {
+       "P=": {
+        "cell": "K29",
+        "value": 1
+       }
+      }
+     },
+     "B": {
+      "counts": {
+       "B#": {
+        "cell": "B34",
+        "value": 4
+       },
+       "B+": {
+        "cell": "C34",
+        "value": 12
+       },
+       "B!": {
+        "cell": "D34",
+        "value": 2
+       },
+       "B-": {
+        "cell": "E34",
+        "value": 3
+       },
+       "B/": {
+        "cell": "F34",
+        "value": 0
+       },
+       "B=": {
+        "cell": "G34",
+        "value": 3
+       }
+      },
+      "distribution": {
+       "B#": {
+        "cell": "B35",
+        "value": 0.1666666667
+       },
+       "B+": {
+        "cell": "C35",
+        "value": 0.5
+       },
+       "B!": {
+        "cell": "D35",
+        "value": 0.08333333333
+       },
+       "B-": {
+        "cell": "E35",
+        "value": 0.125
+       },
+       "B/": {
+        "cell": "F35",
+        "value": 0
+       },
+       "B=": {
+        "cell": "G35",
+        "value": 0.125
+       }
+      },
+      "total": {
+       "cell": "H34",
+       "value": 24
+      },
+      "distributionTotal": {
+       "cell": "H35",
+       "value": 1
+      },
+      "efficiency": {
+       "cell": "B36",
+       "value": 0.04166666667
+      },
+      "positivity": {
+       "cell": "B37",
+       "value": 0.6666666667
+      }
+     },
+     "A": {
+      "counts": {
+       "A#": {
+        "cell": "B41",
+        "value": 15
+       },
+       "A+": {
+        "cell": "C41",
+        "value": 4
+       },
+       "A!": {
+        "cell": "D41",
+        "value": 0
+       },
+       "A-": {
+        "cell": "E41",
+        "value": 1
+       },
+       "A/": {
+        "cell": "F41",
+        "value": 0
+       },
+       "A=": {
+        "cell": "G41",
+        "value": 3
+       }
+      },
+      "distribution": {
+       "A#": {
+        "cell": "B42",
+        "value": 0.652173913
+       },
+       "A+": {
+        "cell": "C42",
+        "value": 0.1739130435
+       },
+       "A!": {
+        "cell": "D42",
+        "value": 0
+       },
+       "A-": {
+        "cell": "E42",
+        "value": 0.04347826087
+       },
+       "A/": {
+        "cell": "F42",
+        "value": 0
+       },
+       "A=": {
+        "cell": "G42",
+        "value": 0.1304347826
+       }
+      },
+      "total": {
+       "cell": "H41",
+       "value": 23
+      },
+      "distributionTotal": {
+       "cell": "H42",
+       "value": 1
+      },
+      "efficiency": {
+       "cell": "B43",
+       "value": 0.5217391304
+      },
+      "positivity": {
+       "cell": "B44",
+       "value": 0.8695652174
+      }
+     }
+    },
+    "summary": {
+     "pointsWon": {
+      "cell": "K32",
+      "value": 21
+     },
+     "errors": {
+      "cell": "K33",
+      "value": 7
+     },
+     "receptionErrors": {
+      "cell": "K34",
+      "value": 1
+     },
+     "blockedAttacks": {
+      "cell": "K35",
+      "value": 0
+     },
+     "receptionEfficiency": {
+      "cell": "K36",
+      "value": 0.3333333333
+     },
+     "attackEfficiency": {
+      "cell": "K37",
+      "value": 0.5217391304
+     }
+    }
+   },
+   "set2": {
+    "skills": {
+     "R": {
+      "counts": {
+       "R#": {
+        "cell": "B49",
+        "value": 2
+       },
+       "R+": {
+        "cell": "C49",
+        "value": 5
+       },
+       "R!": {
+        "cell": "D49",
+        "value": 2
+       },
+       "R-": {
+        "cell": "E49",
+        "value": 6
+       },
+       "R/": {
+        "cell": "F49",
+        "value": 1
+       },
+       "R=": {
+        "cell": "G49",
+        "value": 2
+       }
+      },
+      "distribution": {
+       "R#": {
+        "cell": "B50",
+        "value": 0.1111111111
+       },
+       "R+": {
+        "cell": "C50",
+        "value": 0.2777777778
+       },
+       "R!": {
+        "cell": "D50",
+        "value": 0.1111111111
+       },
+       "R-": {
+        "cell": "E50",
+        "value": 0.3333333333
+       },
+       "R/": {
+        "cell": "F50",
+        "value": 0.05555555556
+       },
+       "R=": {
+        "cell": "G50",
+        "value": 0.1111111111
+       }
+      },
+      "total": {
+       "cell": "H49",
+       "value": 18
+      },
+      "distributionTotal": {
+       "cell": "H50",
+       "value": 1
+      },
+      "efficiency": {
+       "cell": "B51",
+       "value": 0
+      },
+      "positivity": {
+       "cell": "B52",
+       "value": 0.5
+      }
+     },
+     "M": {
+      "counts": {
+       "M#": {
+        "cell": "J49",
+        "value": 3
+       },
+       "M=": {
+        "cell": "K49",
+        "value": 0
+       }
+      }
+     },
+     "P": {
+      "counts": {
+       "P=": {
+        "cell": "K51",
+        "value": 0
+       }
+      }
+     },
+     "B": {
+      "counts": {
+       "B#": {
+        "cell": "B56",
+        "value": 4
+       },
+       "B+": {
+        "cell": "C56",
+        "value": 10
+       },
+       "B!": {
+        "cell": "D56",
+        "value": 0
+       },
+       "B-": {
+        "cell": "E56",
+        "value": 4
+       },
+       "B/": {
+        "cell": "F56",
+        "value": 3
+       },
+       "B=": {
+        "cell": "G56",
+        "value": 2
+       }
+      },
+      "distribution": {
+       "B#": {
+        "cell": "B57",
+        "value": 0.1739130435
+       },
+       "B+": {
+        "cell": "C57",
+        "value": 0.4347826087
+       },
+       "B!": {
+        "cell": "D57",
+        "value": 0
+       },
+       "B-": {
+        "cell": "E57",
+        "value": 0.1739130435
+       },
+       "B/": {
+        "cell": "F57",
+        "value": 0.1304347826
+       },
+       "B=": {
+        "cell": "G57",
+        "value": 0.08695652174
+       }
+      },
+      "total": {
+       "cell": "H56",
+       "value": 23
+      },
+      "distributionTotal": {
+       "cell": "H57",
+       "value": 1
+      },
+      "efficiency": {
+       "cell": "B58",
+       "value": 0.08695652174
+      },
+      "positivity": {
+       "cell": "B59",
+       "value": 0.6086956522
+      }
+     },
+     "A": {
+      "counts": {
+       "A#": {
+        "cell": "B63",
+        "value": 11
+       },
+       "A+": {
+        "cell": "C63",
+        "value": 12
+       },
+       "A!": {
+        "cell": "D63",
+        "value": 1
+       },
+       "A-": {
+        "cell": "E63",
+        "value": 2
+       },
+       "A/": {
+        "cell": "F63",
+        "value": 1
+       },
+       "A=": {
+        "cell": "G63",
+        "value": 1
+       }
+      },
+      "distribution": {
+       "A#": {
+        "cell": "B64",
+        "value": 0.3928571429
+       },
+       "A+": {
+        "cell": "C64",
+        "value": 0.4285714286
+       },
+       "A!": {
+        "cell": "D64",
+        "value": 0.03571428571
+       },
+       "A-": {
+        "cell": "E64",
+        "value": 0.07142857143
+       },
+       "A/": {
+        "cell": "F64",
+        "value": 0.03571428571
+       },
+       "A=": {
+        "cell": "G64",
+        "value": 0.03571428571
+       }
+      },
+      "total": {
+       "cell": "H63",
+       "value": 28
+      },
+      "distributionTotal": {
+       "cell": "H64",
+       "value": 1
+      },
+      "efficiency": {
+       "cell": "B65",
+       "value": 0.3571428571
+      },
+      "positivity": {
+       "cell": "B66",
+       "value": 0.9285714286
+      }
+     }
+    },
+    "summary": {
+     "pointsWon": {
+      "cell": "K54",
+      "value": 18
+     },
+     "errors": {
+      "cell": "K55",
+      "value": 3
+     },
+     "receptionErrors": {
+      "cell": "K56",
+      "value": 2
+     },
+     "blockedAttacks": {
+      "cell": "K57",
+      "value": 1
+     },
+     "receptionEfficiency": {
+      "cell": "K58",
+      "value": 0
+     },
+     "attackEfficiency": {
+      "cell": "K59",
+      "value": 0.3571428571
+     }
+    }
+   },
+   "set3": {
+    "skills": {
+     "R": {
+      "counts": {
+       "R#": {
+        "cell": "B72",
+        "value": 8
+       },
+       "R+": {
+        "cell": "C72",
+        "value": 7
+       },
+       "R!": {
+        "cell": "D72",
+        "value": 2
+       },
+       "R-": {
+        "cell": "E72",
+        "value": 3
+       },
+       "R/": {
+        "cell": "F72",
+        "value": 1
+       },
+       "R=": {
+        "cell": "G72",
+        "value": 2
+       }
+      },
+      "distribution": {
+       "R#": {
+        "cell": "B73",
+        "value": 0.347826087
+       },
+       "R+": {
+        "cell": "C73",
+        "value": 0.3043478261
+       },
+       "R!": {
+        "cell": "D73",
+        "value": 0.08695652174
+       },
+       "R-": {
+        "cell": "E73",
+        "value": 0.1304347826
+       },
+       "R/": {
+        "cell": "F73",
+        "value": 0.04347826087
+       },
+       "R=": {
+        "cell": "G73",
+        "value": 0.08695652174
+       }
+      },
+      "total": {
+       "cell": "H72",
+       "value": 23
+      },
+      "distributionTotal": {
+       "cell": "H73",
+       "value": 1
+      },
+      "efficiency": {
+       "cell": "B74",
+       "value": 0.2608695652
+      },
+      "positivity": {
+       "cell": "B75",
+       "value": 0.7391304348
+      }
+     },
+     "M": {
+      "counts": {
+       "M#": {
+        "cell": "J72",
+        "value": 0
+       },
+       "M=": {
+        "cell": "K72",
+        "value": 1
+       }
+      }
+     },
+     "P": {
+      "counts": {
+       "P=": {
+        "cell": "K74",
+        "value": 0
+       }
+      }
+     },
+     "B": {
+      "counts": {
+       "B#": {
+        "cell": "B79",
+        "value": 2
+       },
+       "B+": {
+        "cell": "C79",
+        "value": 15
+       },
+       "B!": {
+        "cell": "D79",
+        "value": 0
+       },
+       "B-": {
+        "cell": "E79",
+        "value": 2
+       },
+       "B/": {
+        "cell": "F79",
+        "value": 0
+       },
+       "B=": {
+        "cell": "G79",
+        "value": 6
+       }
+      },
+      "distribution": {
+       "B#": {
+        "cell": "B80",
+        "value": 0.08
+       },
+       "B+": {
+        "cell": "C80",
+        "value": 0.6
+       },
+       "B!": {
+        "cell": "D80",
+        "value": 0
+       },
+       "B-": {
+        "cell": "E80",
+        "value": 0.08
+       },
+       "B/": {
+        "cell": "F80",
+        "value": 0
+       },
+       "B=": {
+        "cell": "G80",
+        "value": 0.24
+       }
+      },
+      "total": {
+       "cell": "H79",
+       "value": 25
+      },
+      "distributionTotal": {
+       "cell": "H80",
+       "value": 1
+      },
+      "efficiency": {
+       "cell": "B81",
+       "value": -0.16
+      },
+      "positivity": {
+       "cell": "B82",
+       "value": 0.68
+      }
+     },
+     "A": {
+      "counts": {
+       "A#": {
+        "cell": "B86",
+        "value": 15
+       },
+       "A+": {
+        "cell": "C86",
+        "value": 18
+       },
+       "A!": {
+        "cell": "D86",
+        "value": 1
+       },
+       "A-": {
+        "cell": "E86",
+        "value": 2
+       },
+       "A/": {
+        "cell": "F86",
+        "value": 1
+       },
+       "A=": {
+        "cell": "G86",
+        "value": 3
+       }
+      },
+      "distribution": {
+       "A#": {
+        "cell": "B87",
+        "value": 0.375
+       },
+       "A+": {
+        "cell": "C87",
+        "value": 0.45
+       },
+       "A!": {
+        "cell": "D87",
+        "value": 0.025
+       },
+       "A-": {
+        "cell": "E87",
+        "value": 0.05
+       },
+       "A/": {
+        "cell": "F87",
+        "value": 0.025
+       },
+       "A=": {
+        "cell": "G87",
+        "value": 0.075
+       }
+      },
+      "total": {
+       "cell": "H86",
+       "value": 40
+      },
+      "distributionTotal": {
+       "cell": "H87",
+       "value": 1
+      },
+      "efficiency": {
+       "cell": "B88",
+       "value": 0.3
+      },
+      "positivity": {
+       "cell": "B89",
+       "value": 0.9
+      }
+     }
+    },
+    "summary": {
+     "pointsWon": {
+      "cell": "K77",
+      "value": 17
+     },
+     "errors": {
+      "cell": "K78",
+      "value": 9
+     },
+     "receptionErrors": {
+      "cell": "K79",
+      "value": 2
+     },
+     "blockedAttacks": {
+      "cell": "K80",
+      "value": 1
+     },
+     "receptionEfficiency": {
+      "cell": "K81",
+      "value": 0.2608695652
+     },
+     "attackEfficiency": {
+      "cell": "K82",
+      "value": 0.3
+     }
+    }
+   },
+   "set4": {
+    "skills": {
+     "R": {
+      "counts": {
+       "R#": {
+        "cell": "B95",
+        "value": 0
+       },
+       "R+": {
+        "cell": "C95",
+        "value": 0
+       },
+       "R!": {
+        "cell": "D95",
+        "value": 0
+       },
+       "R-": {
+        "cell": "E95",
+        "value": 0
+       },
+       "R/": {
+        "cell": "F95",
+        "value": 0
+       },
+       "R=": {
+        "cell": "G95",
+        "value": 0
+       }
+      },
+      "distribution": {
+       "R#": {
+        "cell": "B96",
+        "value": 0
+       },
+       "R+": {
+        "cell": "C96",
+        "value": 0
+       },
+       "R!": {
+        "cell": "D96",
+        "value": 0
+       },
+       "R-": {
+        "cell": "E96",
+        "value": 0
+       },
+       "R/": {
+        "cell": "F96",
+        "value": 0
+       },
+       "R=": {
+        "cell": "G96",
+        "value": 0
+       }
+      },
+      "total": {
+       "cell": "H95",
+       "value": 0
+      },
+      "distributionTotal": {
+       "cell": "H96",
+       "value": 0
+      },
+      "efficiency": {
+       "cell": "B97",
+       "value": 0
+      },
+      "positivity": {
+       "cell": "B98",
+       "value": 0
+      }
+     },
+     "M": {
+      "counts": {
+       "M#": {
+        "cell": "J95",
+        "value": 0
+       },
+       "M=": {
+        "cell": "K95",
+        "value": 0
+       }
+      }
+     },
+     "P": {
+      "counts": {
+       "P=": {
+        "cell": "K97",
+        "value": 0
+       }
+      }
+     },
+     "B": {
+      "counts": {
+       "B#": {
+        "cell": "B102",
+        "value": 0
+       },
+       "B+": {
+        "cell": "D102",
+        "value": 0
+       },
+       "B-": {
+        "cell": "E102",
+        "value": 0
+       },
+       "B/": {
+        "cell": "F102",
+        "value": 0
+       },
+       "B=": {
+        "cell": "G102",
+        "value": 0
+       }
+      },
+      "distribution": {
+       "B#": {
+        "cell": "B103",
+        "value": 0
+       },
+       "B+": {
+        "cell": "D103",
+        "value": 0
+       },
+       "B-": {
+        "cell": "E103",
+        "value": 0
+       },
+       "B/": {
+        "cell": "F103",
+        "value": 0
+       },
+       "B=": {
+        "cell": "G103",
+        "value": 0
+       }
+      },
+      "total": {
+       "cell": "H102",
+       "value": 0
+      },
+      "distributionTotal": {
+       "cell": "H103",
+       "value": 0
+      },
+      "efficiency": {
+       "cell": "B104",
+       "value": 0
+      },
+      "positivity": {
+       "cell": "B105",
+       "value": 0
+      }
+     },
+     "A": {
+      "counts": {
+       "A#": {
+        "cell": "B109",
+        "value": 0
+       },
+       "A+": {
+        "cell": "C109",
+        "value": 0
+       },
+       "A!": {
+        "cell": "D109",
+        "value": 0
+       },
+       "A-": {
+        "cell": "E109",
+        "value": 0
+       },
+       "A/": {
+        "cell": "F109",
+        "value": 0
+       },
+       "A=": {
+        "cell": "G109",
+        "value": 0
+       }
+      },
+      "distribution": {
+       "A#": {
+        "cell": "B110",
+        "value": 0
+       },
+       "A+": {
+        "cell": "C110",
+        "value": 0
+       },
+       "A!": {
+        "cell": "D110",
+        "value": 0
+       },
+       "A-": {
+        "cell": "E110",
+        "value": 0
+       },
+       "A/": {
+        "cell": "F110",
+        "value": 0
+       },
+       "A=": {
+        "cell": "G110",
+        "value": 0
+       }
+      },
+      "total": {
+       "cell": "H109",
+       "value": 0
+      },
+      "distributionTotal": {
+       "cell": "H110",
+       "value": 0
+      },
+      "efficiency": {
+       "cell": "B111",
+       "value": 0
+      },
+      "positivity": {
+       "cell": "B112",
+       "value": 0
+      }
+     }
+    },
+    "summary": {
+     "pointsWon": {
+      "cell": "K100",
+      "value": 0
+     },
+     "errors": {
+      "cell": "K101",
+      "value": 0
+     },
+     "receptionErrors": {
+      "cell": "K102",
+      "value": 0
+     },
+     "blockedAttacks": {
+      "cell": "K103",
+      "value": 0
+     },
+     "receptionEfficiency": {
+      "cell": "K104",
+      "value": 0
+     },
+     "attackEfficiency": {
+      "cell": "K105",
+      "value": 0
+     }
+    }
+   },
+   "set5": {
+    "skills": {
+     "R": {
+      "counts": {
+       "R#": {
+        "cell": "B118",
+        "value": 0
+       },
+       "R+": {
+        "cell": "C118",
+        "value": 0
+       },
+       "R!": {
+        "cell": "D118",
+        "value": 0
+       },
+       "R-": {
+        "cell": "E118",
+        "value": 0
+       },
+       "R/": {
+        "cell": "F118",
+        "value": 0
+       },
+       "R=": {
+        "cell": "G118",
+        "value": 0
+       }
+      },
+      "distribution": {
+       "R#": {
+        "cell": "B119",
+        "value": 0
+       },
+       "R+": {
+        "cell": "C119",
+        "value": 0
+       },
+       "R!": {
+        "cell": "D119",
+        "value": 0
+       },
+       "R-": {
+        "cell": "E119",
+        "value": 0
+       },
+       "R/": {
+        "cell": "F119",
+        "value": 0
+       },
+       "R=": {
+        "cell": "G119",
+        "value": 0
+       }
+      },
+      "total": {
+       "cell": "H118",
+       "value": 0
+      },
+      "distributionTotal": {
+       "cell": "H119",
+       "value": 0
+      },
+      "efficiency": {
+       "cell": "B120",
+       "value": 0
+      },
+      "positivity": {
+       "cell": "B121",
+       "value": 0
+      }
+     },
+     "M": {
+      "counts": {
+       "M#": {
+        "cell": "J118",
+        "value": 0
+       },
+       "M=": {
+        "cell": "K118",
+        "value": 0
+       }
+      }
+     },
+     "P": {
+      "counts": {
+       "P=": {
+        "cell": "K120",
+        "value": 0
+       }
+      }
+     },
+     "B": {
+      "counts": {
+       "B#": {
+        "cell": "B125",
+        "value": 0
+       },
+       "B+": {
+        "cell": "C125",
+        "value": 0
+       },
+       "B!": {
+        "cell": "D125",
+        "value": 0
+       },
+       "B-": {
+        "cell": "E125",
+        "value": 0
+       },
+       "B/": {
+        "cell": "F125",
+        "value": 0
+       },
+       "B=": {
+        "cell": "G125",
+        "value": 0
+       }
+      },
+      "distribution": {
+       "B#": {
+        "cell": "B126",
+        "value": 0
+       },
+       "B+": {
+        "cell": "C126",
+        "value": 0
+       },
+       "B!": {
+        "cell": "D126",
+        "value": 0
+       },
+       "B-": {
+        "cell": "E126",
+        "value": 0
+       },
+       "B/": {
+        "cell": "F126",
+        "value": 0
+       },
+       "B=": {
+        "cell": "G126",
+        "value": 0
+       }
+      },
+      "total": {
+       "cell": "H125",
+       "value": 0
+      },
+      "distributionTotal": {
+       "cell": "H126",
+       "value": 0
+      },
+      "efficiency": {
+       "cell": "B127",
+       "value": 0
+      },
+      "positivity": {
+       "cell": "B128",
+       "value": 0
+      }
+     },
+     "A": {
+      "counts": {
+       "A#": {
+        "cell": "B132",
+        "value": 0
+       },
+       "A+": {
+        "cell": "C132",
+        "value": 0
+       },
+       "A!": {
+        "cell": "D132",
+        "value": 0
+       },
+       "A-": {
+        "cell": "E132",
+        "value": 0
+       },
+       "A/": {
+        "cell": "F132",
+        "value": 0
+       },
+       "A=": {
+        "cell": "G132",
+        "value": 0
+       }
+      },
+      "distribution": {
+       "A#": {
+        "cell": "B133",
+        "value": 0
+       },
+       "A+": {
+        "cell": "C133",
+        "value": 0
+       },
+       "A!": {
+        "cell": "D133",
+        "value": 0
+       },
+       "A-": {
+        "cell": "E133",
+        "value": 0
+       },
+       "A/": {
+        "cell": "F133",
+        "value": 0
+       },
+       "A=": {
+        "cell": "G133",
+        "value": 0
+       }
+      },
+      "total": {
+       "cell": "H132",
+       "value": 0
+      },
+      "distributionTotal": {
+       "cell": "H133",
+       "value": 0
+      },
+      "efficiency": {
+       "cell": "B134",
+       "value": 0
+      },
+      "positivity": {
+       "cell": "B135",
+       "value": 0
+      }
+     }
+    },
+    "summary": {
+     "pointsWon": {
+      "cell": "K123",
+      "value": 0
+     },
+     "errors": {
+      "cell": "K124",
+      "value": 0
+     },
+     "receptionErrors": {
+      "cell": "K125",
+      "value": 0
+     },
+     "blockedAttacks": {
+      "cell": "K126",
+      "value": 0
+     },
+     "receptionEfficiency": {
+      "cell": "K127",
+      "value": 0
+     },
+     "attackEfficiency": {
+      "cell": "K128",
+      "value": 0
+     }
+    }
+   }
+  },
+  "tabellino": {
+   "cells": {
+    "B2": "Melodic Spikers",
+    "G2": 3,
+    "I2": 25,
+    "J2": 25,
+    "K2": 25,
+    "L2": null,
+    "M2": null,
+    "B3": "Rhythmic Blockers",
+    "G3": 0,
+    "I3": 16,
+    "J3": 18,
+    "K3": 22,
+    "L3": null,
+    "M3": null,
+    "B7": 19,
+    "C7": null,
+    "D7": "Elisa Toffoli",
+    "G7": 6,
+    "H7": 4,
+    "J7": 13,
+    "K7": 2,
+    "L7": 1,
+    "N7": 10,
+    "O7": "-",
+    "P7": 0.8,
+    "Q7": 0.4,
+    "R7": 0.4,
+    "T7": 11,
+    "U7": "-",
+    "V7": "-",
+    "W7": 5,
+    "X7": 0.4545454545,
+    "Y7": 0.4545454545,
+    "AA7": "-",
+    "B8": 1,
+    "C8": null,
+    "D8": "Irene Grandi",
+    "G8": 5,
+    "H8": 4,
+    "J8": 1,
+    "K8": "-",
+    "L8": "-",
+    "N8": "-",
+    "O8": "-",
+    "P8": "-",
+    "Q8": "-",
+    "R8": "-",
+    "T8": 6,
+    "U8": "-",
+    "V8": "-",
+    "W8": 4,
+    "X8": 0.6666666667,
+    "Y8": 0.6666666667,
+    "AA8": 1,
+    "B9": 13,
+    "C9": null,
+    "D9": "Giorgia Trodani",
+    "G9": "-",
+    "H9": "-",
+    "J9": "-",
+    "K9": "-",
+    "L9": "-",
+    "N9": "-",
+    "O9": "-",
+    "P9": "-",
+    "Q9": "-",
+    "R9": "-",
+    "T9": "-",
+    "U9": "-",
+    "V9": "-",
+    "W9": "-",
+    "X9": "-",
+    "Y9": "-",
+    "AA9": "-",
+    "B10": 10,
+    "C10": null,
+    "D10": "Emma Marrone",
+    "G10": 3,
+    "H10": 2,
+    "J10": 3,
+    "K10": "-",
+    "L10": 2,
+    "N10": 2,
+    "O10": "-",
+    "P10": 0.5,
+    "Q10": 0.5,
+    "R10": 0.5,
+    "T10": 3,
+    "U10": 1,
+    "V10": "-",
+    "W10": 1,
+    "X10": 0.3333333333,
+    "Y10": "-",
+    "AA10": "-",
+    "B11": 11,
+    "C11": "L",
+    "D11": "Lorendana Bertè",
+    "G11": "-",
+    "H11": "-",
+    "J11": "-",
+    "K11": "-",
+    "L11": "-",
+    "N11": "-",
+    "O11": "-",
+    "P11": "-",
+    "Q11": "-",
+    "R11": "-",
+    "T11": "-",
+    "U11": "-",
+    "V11": "-",
+    "W11": "-",
+    "X11": "-",
+    "Y11": "-",
+    "AA11": "-",
+    "B12": 9,
+    "C12": null,
+    "D12": "Elodie Patrizi",
+    "G12": 5,
+    "H12": 2,
+    "J12": 12,
+    "K12": 3,
+    "L12": 3,
+    "N12": "-",
+    "O12": "-",
+    "P12": "-",
+    "Q12": "-",
+    "R12": "-",
+    "T12": 3,
+    "U12": "-",
+    "V12": "-",
+    "W12": 1,
+    "X12": 0.3333333333,
+    "Y12": 0.3333333333,
+    "AA12": 1,
+    "B13": 5,
+    "C13": null,
+    "D13": "Laura Pausini",
+    "G13": 5,
+    "H13": 3,
+    "J13": 15,
+    "K13": 2,
+    "L13": 2,
+    "N13": "-",
+    "O13": "-",
+    "P13": "-",
+    "Q13": "-",
+    "R13": "-",
+    "T13": 2,
+    "U13": "-",
+    "V13": "-",
+    "W13": 1,
+    "X13": 0.5,
+    "Y13": 0.5,
+    "AA13": 2,
+    "B14": 18,
+    "C14": null,
+    "D14": "Annalisa Scarrone",
+    "G14": "-",
+    "H14": "-",
+    "J14": "-",
+    "K14": "-",
+    "L14": "-",
+    "N14": "-",
+    "O14": "-",
+    "P14": "-",
+    "Q14": "-",
+    "R14": "-",
+    "T14": "-",
+    "U14": "-",
+    "V14": "-",
+    "W14": "-",
+    "X14": "-",
+    "Y14": "-",
+    "AA14": "-",
+    "B15": 22,
+    "C15": null,
+    "D15": "Sara Sorrenti",
+    "G15": 7,
+    "H15": 4,
+    "J15": 5,
+    "K15": 1,
+    "L15": "-",
+    "N15": "-",
+    "O15": "-",
+    "P15": "-",
+    "Q15": "-",
+    "R15": "-",
+    "T15": 21,
+    "U15": 2,
+    "V15": 2,
+    "W15": 7,
+    "X15": 0.3333333333,
+    "Y15": 0.2380952381,
+    "AA15": "-",
+    "B16": 12,
+    "C16": null,
+    "D16": "Veronica Scopelliti",
+    "G16": 5,
+    "H16": 1,
+    "J16": 3,
+    "K16": 1,
+    "L16": "-",
+    "N16": "-",
+    "O16": "-",
+    "P16": "-",
+    "Q16": "-",
+    "R16": "-",
+    "T16": 10,
+    "U16": 2,
+    "V16": "-",
+    "W16": 5,
+    "X16": 0.5,
+    "Y16": 0.3,
+    "AA16": "-",
+    "B17": 3,
+    "C17": "L",
+    "D17": "Alessandra Amoroso",
+    "G17": "-",
+    "H17": -2,
+    "J17": "-",
+    "K17": "-",
+    "L17": "-",
+    "N17": 23,
+    "O17": 2,
+    "P17": 0.6956521739,
+    "Q17": 0.1739130435,
+    "R17": 0.08695652174,
+    "T17": "-",
+    "U17": "-",
+    "V17": "-",
+    "W17": "-",
+    "X17": "-",
+    "Y17": "-",
+    "AA17": "-",
+    "B18": 17,
+    "C18": null,
+    "D18": "Carmen Consoli",
+    "G18": 11,
+    "H18": 9,
+    "J18": 6,
+    "K18": "-",
+    "L18": "-",
+    "N18": 4,
+    "O18": "-",
+    "P18": 0.5,
+    "Q18": 0.25,
+    "R18": 0.25,
+    "T18": 19,
+    "U18": 2,
+    "V18": "-",
+    "W18": 11,
+    "X18": 0.5789473684,
+    "Y18": 0.4736842105,
+    "AA18": "-",
+    "B19": 4,
+    "C19": null,
+    "D19": "Gaia Gozzi",
+    "G19": 6,
+    "H19": 2,
+    "J19": 8,
+    "K19": 1,
+    "L19": 2,
+    "N19": 10,
+    "O19": 3,
+    "P19": 0.5,
+    "Q19": 0.3,
+    "R19": "-",
+    "T19": 4,
+    "U19": "-",
+    "V19": "-",
+    "W19": 3,
+    "X19": 0.75,
+    "Y19": 0.75,
+    "AA19": 1,
+    "B20": 6,
+    "C20": null,
+    "D20": "Francesca Calearo",
+    "G20": 3,
+    "H20": 2,
+    "J20": 6,
+    "K20": 1,
+    "L20": "-",
+    "N20": 4,
+    "O20": "-",
+    "P20": 0.75,
+    "Q20": 0.5,
+    "R20": 0.5,
+    "T20": 12,
+    "U20": "-",
+    "V20": "-",
+    "W20": 3,
+    "X20": 0.25,
+    "Y20": 0.25,
+    "AA20": "-",
+    "G21": 53,
+    "H21": 31,
+    "J21": 66,
+    "K21": 10,
+    "L21": 10,
+    "N21": 49,
+    "O21": 5,
+    "P21": 0.6603773585,
+    "Q21": 0.2830188679,
+    "R21": 0.1886792453,
+    "T21": 79,
+    "U21": 7,
+    "V21": 2,
+    "W21": 38,
+    "X21": 0.4505494505,
+    "Y21": 0.3736263736,
+    "AA21": 5,
+    "D23": "Set 1",
+    "E23": 4,
+    "F23": 15,
+    "G23": 2,
+    "H23": 4,
+    "J23": 21,
+    "K23": 3,
+    "L23": 4,
+    "N23": 12,
+    "O23": 1,
+    "P23": 0.75,
+    "Q23": 0.4166666667,
+    "T23": 23,
+    "U23": 3,
+    "V23": 2,
+    "W23": 15,
+    "X23": 0.652173913,
+    "AA23": 2,
+    "D24": "Set 2",
+    "E24": 4,
+    "F24": 11,
+    "G24": 3,
+    "H24": 7,
+    "J24": 18,
+    "K24": 2,
+    "L24": 4,
+    "N24": 18,
+    "O24": 2,
+    "P24": 0.5,
+    "Q24": 0.1111111111,
+    "T24": 28,
+    "U24": 1,
+    "V24": 3,
+    "W24": 11,
+    "X24": 0.3928571429,
+    "AA24": 3,
+    "D25": "Set 3",
+    "E25": 2,
+    "F25": 15,
+    "G25": 0,
+    "H25": 8,
+    "J25": 17,
+    "K25": 6,
+    "L25": 2,
+    "N25": 23,
+    "O25": 2,
+    "P25": 0.7391304348,
+    "Q25": 0.347826087,
+    "T25": 40,
+    "U25": 3,
+    "V25": 0,
+    "W25": 15,
+    "X25": 0.375,
+    "AA25": "-",
+    "D26": null,
+    "E26": null,
+    "F26": null,
+    "G26": null,
+    "H26": null,
+    "J26": null,
+    "K26": null,
+    "L26": null,
+    "N26": null,
+    "O26": null,
+    "P26": null,
+    "Q26": null,
+    "T26": null,
+    "U26": null,
+    "V26": null,
+    "W26": null,
+    "X26": null,
+    "AA26": null,
+    "D27": null,
+    "E27": null,
+    "F27": null,
+    "G27": null,
+    "H27": null,
+    "J27": null,
+    "K27": null,
+    "L27": null,
+    "N27": null,
+    "O27": null,
+    "P27": null,
+    "Q27": null,
+    "T27": null,
+    "U27": null,
+    "V27": null,
+    "W27": null,
+    "X27": null,
+    "AA27": null,
+    "E28": 20,
+    "F28": "+ 5 ace subiti",
+    "M28": 1,
+    "E29": 19,
+    "M29": 1
+   }
+  },
+  "vintiPersi": {
+   "B3": 53,
+   "C3": 19,
+   "B4": 38,
+   "C4": 7,
+   "B5": 10,
+   "C5": 10,
+   "B6": 5,
+   "C6": 1,
+   "C7": 1,
+   "B8": 19
+  }
+ }
+}
