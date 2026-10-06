@@ -38,7 +38,9 @@ let current: Lang = storedLang() ?? systemLang();
 const listeners = new Set<() => void>();
 
 function apply(lang: Lang) {
-  if (typeof document !== 'undefined') document.documentElement.lang = lang;
+  if (typeof document === 'undefined') return;
+  document.documentElement.lang = lang;
+  document.title = MESSAGES[lang].appTitle;
 }
 apply(current);
 

@@ -376,6 +376,8 @@ export const it = {
   },
 
   language: { label: 'Lingua' },
+  /** Title of the browser tab. */
+  appTitle: 'VolleyReport · dalla carta al report della gara',
 
   acquisition: {
     eyebrow: 'Partita · foto dei fogli',

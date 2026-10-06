@@ -411,6 +411,7 @@ export const en: Messages = {
   },
 
   language: { label: 'Language' },
+  appTitle: 'VolleyReport · from paper to match report',
 
   acquisition: {
     eyebrow: 'Match · photos of the sheets',
