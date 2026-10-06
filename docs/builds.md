@@ -58,7 +58,7 @@ All'avvio le app installate controllano se esiste una versione più recente e mo
 
 ### Firma Android (facoltativa, consigliata)
 
-Senza chiave viene pubblicato un APK *debug*, installabile ma che non può aggiornare un'installazione fatta con un'altra chiave. Per un APK firmato, sempre aggiornabile con la stessa chiave, servono i secret `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` e `ANDROID_KEY_PASSWORD`. Il keystore va conservato con la stessa cura della chiave degli aggiornamenti.
+Senza chiave viene pubblicato un APK *debug*, installabile ma che non può aggiornare un'installazione fatta con un'altra chiave. Per un APK firmato, sempre aggiornabile con la stessa chiave, servono i secret `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` e `ANDROID_KEY_PASSWORD`. Il keystore va conservato con la stessa cura della chiave degli aggiornamenti. Il keystore attuale è `~/.tauri-keys/volleyreport-android.jks` (PKCS12, alias `volleyreport`, password in `volleyreport-android.password`, stessa per keystore e chiave), creato il 6/10/2026; i quattro secret sono configurati.
 
 ## Versione web e dominio
 

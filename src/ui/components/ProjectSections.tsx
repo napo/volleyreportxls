@@ -137,7 +137,7 @@ export function DownloadSection() {
         <div className="vr-downloads">
           {latest.groups.map((group) => (
             <div className="vr-download" key={group.platform}>
-              <h3>{group.platform}</h3>
+              <h3>{t.platformNames[group.platform] ?? group.platform}</h3>
               <p>{t.platformNotes[group.note]}</p>
               <div className="vr-chips">
                 {group.files.map((file) => (

@@ -16,6 +16,7 @@ const release = {
     asset('VolleyReport_0.2.0_aarch64.dmg'),
     asset('VolleyReport_0.2.0_x64.dmg'),
     asset('VolleyReport_0.2.0_android-universal.apk'),
+    asset('VolleyReport_0.2.0_iOS-unsigned.ipa'),
     asset('latest.json'),
   ],
 };
@@ -37,6 +38,7 @@ test('downloads grouped by platform, in order, signatures and manifests skipped'
     ['macOS', ['Apple Silicon', 'Intel']],
     ['Linux', ['AppImage', 'deb', 'rpm']],
     ['Android', ['apk']],
+    ['ios', ['ipa']],
   ]);
 });
 

@@ -19,5 +19,7 @@ export default defineConfig({
   test: {
     include: ['src/**/*.test.ts'],
     globals: true,
+    // Image tests (synthetic and photographed sheets) are slow on the Windows and macOS runners.
+    testTimeout: 30_000,
   },
 });

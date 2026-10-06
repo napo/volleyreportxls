@@ -353,9 +353,10 @@ export const en: Messages = {
     latestRelease: (version: string, date: string | null) => `Latest release: v${version}${date ? ` (${date})` : ''}`,
     openWeb: 'Open the web version',
     allReleases: 'All releases on GitHub',
-    platformNotes: { installer: 'Installer (.exe / .msi)', disk: 'Disk image (.dmg)', linux: 'AppImage, .deb, .rpm', apk: 'APK package' },
+    platformNotes: { installer: 'Installer (.exe / .msi)', disk: 'Disk image (.dmg)', linux: 'AppImage, .deb, .rpm', apk: 'APK package', ipa: 'Unsigned IPA (sideloading)' },
+    platformNames: { ios: 'iPhone and iPad' },
     buildsNote:
-      'The builds are made by GitHub Actions from the public source code. The Windows and macOS builds are not signed by a registered developer: on first start the system may show a warning. On Android allow installing from the browser or the file manager.',
+      'The builds are made by GitHub Actions from the public source code. The Windows and macOS builds are not signed by a registered developer: on first start the system may show a warning. On Android allow installing from the browser or the file manager. On iPhone and iPad the IPA is not signed: install it with AltStore, Sideloadly or TrollStore.',
     updatesTitle: 'Updates',
     updatesText:
       'The installed apps check for a new version at start and tell you: you decide whether to update. On Windows, macOS and Linux the update downloads, is verified and installs by itself; on Android the download of the new package opens. Only the number of the latest version is read from GitHub, no match data leaves the device.',

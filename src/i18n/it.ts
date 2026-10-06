@@ -317,9 +317,10 @@ export const it = {
     latestRelease: (version: string, date: string | null) => `Ultima release: v${version}${date ? ` (${date})` : ''}`,
     openWeb: 'Apri la versione web',
     allReleases: 'Tutte le release su GitHub',
-    platformNotes: { installer: 'Installer (.exe / .msi)', disk: 'Immagine disco (.dmg)', linux: 'AppImage, .deb, .rpm', apk: 'Pacchetto APK' },
+    platformNotes: { installer: 'Installer (.exe / .msi)', disk: 'Immagine disco (.dmg)', linux: 'AppImage, .deb, .rpm', apk: 'Pacchetto APK', ipa: 'IPA non firmato (sideloading)' },
+    platformNames: { ios: 'iPhone e iPad' } as Record<string, string>,
     buildsNote:
-      'Le build sono prodotte da GitHub Actions a partire dal codice sorgente pubblico. Le build per Windows e macOS non sono firmate da uno sviluppatore registrato: al primo avvio il sistema può mostrare un avviso. Su Android consenti l’installazione dal browser o dal file manager.',
+      'Le build sono prodotte da GitHub Actions a partire dal codice sorgente pubblico. Le build per Windows e macOS non sono firmate da uno sviluppatore registrato: al primo avvio il sistema può mostrare un avviso. Su Android consenti l’installazione dal browser o dal file manager. Su iPhone e iPad l’IPA non è firmato: si installa con AltStore, Sideloadly o TrollStore.',
     updatesTitle: 'Aggiornamenti',
     updatesText:
       'Le app installate controllano all’avvio se c’è una nuova versione e ti avvisano: decidi tu se aggiornare. Su Windows, macOS e Linux l’aggiornamento si scarica, si verifica e si installa da solo; su Android si apre il download del nuovo pacchetto. Viene letto da GitHub solo il numero dell’ultima versione, nessun dato delle gare lascia il dispositivo.',

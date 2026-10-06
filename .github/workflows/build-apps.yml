@@ -1,6 +1,6 @@
 name: Build applicazioni
 
-# Installers for Windows, macOS, Linux and Android, built when a version tag (vX.Y.Z) is pushed;
+# Installers for Windows, macOS, Linux, Android and iOS (unsigned IPA), built when a version tag (vX.Y.Z) is pushed;
 # the release job then publishes them, with the updater manifest, as a GitHub Release.
 # Can also be started by hand (Actions → Build applicazioni → Run workflow) to test the builds:
 # without a tag nothing is published, the packages stay as workflow artifacts.
@@ -164,10 +164,47 @@ jobs:
         if: always()
         run: rm -f src-tauri/gen/android/release.jks
 
+  ios:
+    name: iPhone e iPad · IPA non firmato
+    needs: version
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+          key: aarch64-apple-ios
+      - run: npm ci
+      - run: npm run tauri -- ios init --ci --skip-targets-install
+      - name: Build iOS/iPadOS senza credenziali Apple
+        run: npm run tauri -- ios build --target aarch64 --no-sign --ci -- --locked
+      # Unsigned IPA for sideloading (AltStore, Sideloadly, TrollStore): the .app inside a Payload folder.
+      - name: Pacchetto IPA
+        run: |
+          APP_PATH=$(find src-tauri/gen/apple/build -name "*.app" -type d | head -n 1)
+          test -n "$APP_PATH"
+          mkdir Payload
+          cp -R "$APP_PATH" Payload/
+          VERSION=$(node -p "require('./package.json').version")
+          zip -qr "VolleyReport_${VERSION}_iOS-unsigned.ipa" Payload
+      - uses: actions/upload-artifact@v7
+        with:
+          name: VolleyReport-iOS
+          if-no-files-found: error
+          path: VolleyReport_*_iOS-unsigned.ipa
+
   release:
     name: Release su GitHub
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs: [desktop, android]
+    # iOS is optional: if its build fails, the release goes out without the IPA.
+    if: always() && startsWith(github.ref, 'refs/tags/v') && needs.desktop.result == 'success' && needs.android.result == 'success'
+    needs: [desktop, android, ios]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -180,7 +217,7 @@ jobs:
         run: |
           mkdir -p release-files
           find release-assets/ -type f \( -name "*.exe" -o -name "*.msi" -o -name "*.dmg" -o -name "*.deb" -o -name "*.rpm" \
-            -o -name "*.AppImage" -o -name "*.apk" -o -name "*.app.tar.gz" -o -name "*.sig" \) -exec cp {} release-files/ \;
+            -o -name "*.AppImage" -o -name "*.apk" -o -name "*.ipa" -o -name "*.app.tar.gz" -o -name "*.sig" \) -exec cp {} release-files/ \;
           ls -lah release-files/
       - name: Manifest degli aggiornamenti automatici (latest.json)
         run: node scripts/updater-manifest.mjs release-files "${GITHUB_REF_NAME}"

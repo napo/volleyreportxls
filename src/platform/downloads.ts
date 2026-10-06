@@ -12,7 +12,7 @@ interface Rule {
   readonly label: (name: string) => string;
 }
 
-export type PlatformNote = 'installer' | 'disk' | 'linux' | 'apk';
+export type PlatformNote = 'installer' | 'disk' | 'linux' | 'apk' | 'ipa';
 
 /** Order, card text and chip labels of the platforms; the first matching rule wins. */
 const RULES: readonly Rule[] = [
@@ -23,6 +23,8 @@ const RULES: readonly Rule[] = [
   { platform: 'Linux', note: 'linux', test: /\.deb$/i, label: () => 'deb' },
   { platform: 'Linux', note: 'linux', test: /\.rpm$/i, label: () => 'rpm' },
   { platform: 'Android', note: 'apk', test: /android-universal(-debug)?\.apk$/i, label: () => 'apk' },
+  // "ios" is shown with its translated name (iPhone e iPad / iPhone and iPad).
+  { platform: 'ios', note: 'ipa', test: /\.ipa$/i, label: () => 'ipa' },
 ];
 
 export interface DownloadGroup {
