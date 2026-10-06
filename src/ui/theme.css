@@ -182,14 +182,12 @@ a {
 }
 
 .vr-hero h1 {
-  max-width: 22ch;
   margin-bottom: 0.75rem;
   font-size: clamp(2rem, 4.5vw, 3.1rem);
   line-height: 1.12;
 }
 
 .vr-lead {
-  max-width: 62ch;
   margin: 0 0 1rem;
   font-size: 1.05rem;
 }
@@ -254,9 +252,10 @@ a {
   font-weight: 700;
 }
 
+/* Title, icon and buttons centred; the description uses the whole width, aligned to the left. */
 .vr-dropzone p {
-  margin: 0 auto 1.25rem;
-  max-width: 52ch;
+  margin: 0 0 1.25rem;
+  text-align: left;
   color: var(--vr-muted);
 }
 
@@ -694,6 +693,7 @@ a {
 
 .vr-dropzone .vr-dropzone-help {
   margin: 1.25rem auto 0;
+  text-align: center;
   font-size: 0.9rem;
 }
 
