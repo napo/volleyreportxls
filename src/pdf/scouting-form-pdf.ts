@@ -8,7 +8,8 @@
  * light grey and thin, so that only pen marks survive the binarisation of a photo.
  */
 
-import { type PDFPage, PDFDocument, rgb } from 'pdf-lib';
+import { type PDFImage, type PDFPage, PDFDocument, rgb } from 'pdf-lib';
+import { WEB_APP_URL } from '../config';
 import { SET_NUMBERS, type SetNumber } from '../domain/model';
 import { arucoMatrix } from './aruco';
 import { type Messages, it } from '../i18n/it';
@@ -33,7 +34,12 @@ class Sheet {
     readonly layout: FormLayout,
     readonly fonts: PdfFonts,
     readonly texts: Messages,
+    readonly logo: PDFImage | null,
   ) {}
+
+  image(image: PDFImage, r: Rect) {
+    this.page.drawImage(image, { x: r.x * MM, y: this.y(r.y + r.height), width: r.width * MM, height: r.height * MM });
+  }
 
   private y(mmFromTop: number): number {
     return (this.layout.page.height - mmFromTop) * MM;
@@ -244,10 +250,15 @@ function drawLegend(s: Sheet, page: FormPageId) {
   s.text(s.texts.form.legend2, left.x, left.y + 8.5, 6.5, {
     color: LABEL,
   });
-  s.text(s.texts.form.legend3, right.x, right.y + 4, 7.5, { bold: true });
-  s.text(s.texts.form.pageInfo(page.layoutVersion, page.setNumber, page.page), right.x, right.y + 8.5, 6.5, {
-    color: LABEL,
-  });
+  // Right: ratings, where to go with the filled-in form, credits; the project logo at the end.
+  s.text(s.texts.form.legend3, right.x, right.y + 3.2, 7, { bold: true });
+  s.text(s.texts.form.after(WEB_APP_URL.replace(/\/$/, '')), right.x, right.y + 6.4, 6.5);
+  s.text(s.texts.form.credits(page.layoutVersion, page.setNumber, page.page), right.x, right.y + 9.4, 6, { color: LABEL });
+  if (s.logo) {
+    const height = right.height - 1;
+    const width = (s.logo.width / s.logo.height) * height;
+    s.image(s.logo, { x: right.x + right.width - width, y: right.y, width, height });
+  }
 }
 
 function drawMarkers(s: Sheet) {
@@ -262,6 +273,8 @@ export interface ScoutingFormOptions {
   readonly layout?: FormLayout;
   /** Printed texts in the user's language (Italian by default). */
   readonly texts?: Messages;
+  /** PNG of the project logo, printed in the footer. */
+  readonly logoPng?: Uint8Array;
 }
 
 export async function renderScoutingFormPdf(options: ScoutingFormOptions): Promise<Uint8Array> {
@@ -272,10 +285,11 @@ export async function renderScoutingFormPdf(options: ScoutingFormOptions): Promi
   doc.setCreator('VolleyReport');
   doc.setProducer('VolleyReport');
   const fonts = await embedPdfFonts(doc, options.fonts);
+  const logo = options.logoPng ? await doc.embedPng(options.logoPng) : null;
 
   for (const setNumber of options.sets ?? SET_NUMBERS) {
     const page: FormPageId = { layoutVersion: layout.version, setNumber, page: 1 };
-    const sheet = new Sheet(doc.addPage([layout.page.width * MM, layout.page.height * MM]), layout, fonts, texts);
+    const sheet = new Sheet(doc.addPage([layout.page.width * MM, layout.page.height * MM]), layout, fonts, texts, logo);
     drawMarkers(sheet);
     drawHeader(sheet, page);
     drawGrid(sheet);

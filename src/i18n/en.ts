@@ -404,7 +404,9 @@ export const en: Messages = {
     legend1: 'One bubble for every ball touched: fill or cross it, always the first free one.',
     legend2: 'Cell full: mark the "+" and correct the total in the app. Setting =: fault whistled on the second touch.',
     legend3: '#  double plus     +  plus     !  exclamation     -  minus     /  slash     =  double minus',
-    pageInfo: (version: number, set: number, page: number) => `VolleyReport · form v${version} · set ${set} · page ${page}`,
+    after: (url: string) => `After filling in the form, visit ${url} and photograph it.`,
+    credits: (version: number, set: number, page: number) =>
+      `VolleyReport · an idea of Maurizio Napolitano · form v${version} · set ${set} · page ${page}`,
   },
 
   language: { label: 'Language' },

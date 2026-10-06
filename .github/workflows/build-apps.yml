@@ -21,7 +21,7 @@ jobs:
     name: Versione
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Il tag corrisponde alla versione di package.json, tauri.conf.json e Cargo
         run: node scripts/check-version.mjs ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
 
@@ -50,8 +50,8 @@ jobs:
             bundles: deb,rpm,appimage
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -85,7 +85,7 @@ jobs:
       - name: Raccogli pacchetti e file di aggiornamento
         shell: bash
         run: node scripts/collect-desktop.mjs ${{ matrix.target }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: VolleyReport-${{ matrix.name }}
           if-no-files-found: error
@@ -98,16 +98,16 @@ jobs:
     env:
       NDK_VERSION: '27.2.12479018'
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 17
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v4
         with:
           packages: platform-tools
       - uses: dtolnay/rust-toolchain@stable
@@ -155,7 +155,7 @@ jobs:
             cp "$debug_apk" "android-dist/${base}-debug.apk"
           fi
           ls -lah android-dist
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: VolleyReport-Android
           if-no-files-found: error
@@ -170,8 +170,8 @@ jobs:
     needs: [desktop, android]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
         with:
           path: release-assets
           pattern: VolleyReport-*
@@ -184,7 +184,7 @@ jobs:
           ls -lah release-files/
       - name: Manifest degli aggiornamenti automatici (latest.json)
         run: node scripts/updater-manifest.mjs release-files "${GITHUB_REF_NAME}"
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           files: release-files/*
           generate_release_notes: true

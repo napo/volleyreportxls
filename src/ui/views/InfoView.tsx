@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { CodeLegend } from '../components/CodeLegend';
 import { DownloadSection, PrivacySection, ProjectSection, SupportSection, UpdatesSection } from '../components/ProjectSections';
 import { saveFile } from '../../platform/save-file';
-import { loadPdfFonts } from '../pdf-assets';
+import { loadLogoPng, loadPdfFonts } from '../pdf-assets';
 import { messagesFor, useI18n } from '../../i18n';
 
 function DownloadFormButton() {
@@ -16,7 +16,10 @@ function DownloadFormButton() {
     try {
       const { renderScoutingFormPdf } = await import('../../pdf/scouting-form-pdf');
       const texts = messagesFor(lang);
-      await saveFile(texts.form.fileName, async () => renderScoutingFormPdf({ fonts: await loadPdfFonts(), texts }));
+      await saveFile(texts.form.fileName, async () => {
+        const [fonts, logoPng] = await Promise.all([loadPdfFonts(), loadLogoPng()]);
+        return renderScoutingFormPdf({ fonts, logoPng, texts });
+      });
     } finally {
       setBusy(false);
     }

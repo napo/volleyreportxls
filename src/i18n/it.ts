@@ -369,7 +369,9 @@ export const it = {
     legend1: 'Un pallino per ogni pallone toccato: anneriscilo o barralo, sempre il primo libero.',
     legend2: 'Casella piena: segna il "+" e correggi il totale nell’app. Alzata =: fallo fischiato sul secondo tocco.',
     legend3: '#  doppio più     +  più     !  esclamativo     -  meno     /  barra     =  doppio meno',
-    pageInfo: (version: number, set: number, page: number) => `VolleyReport · modulo v${version} · set ${set} · pagina ${page}`,
+    after: (url: string) => `Dopo che hai compilato il modulo visita ${url} e fotografalo.`,
+    credits: (version: number, set: number, page: number) =>
+      `VolleyReport · un’idea di Maurizio Napolitano · modulo v${version} · set ${set} · pagina ${page}`,
   },
 
   language: { label: 'Lingua' },
