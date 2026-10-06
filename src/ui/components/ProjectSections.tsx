@@ -101,6 +101,8 @@ export function ProjectSection() {
       </dl>
       <h3>{t.originsTitle}</h3>
       <p>{t.originsText}</p>
+      <h3>{t.thanksTitle}</h3>
+      <p>{t.thanksText}</p>
     </section>
   );
 }

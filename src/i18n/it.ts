@@ -310,6 +310,8 @@ export const it = {
     projectLicense:
       'VolleyReport è software open source distribuito secondo i termini della GNU Affero General Public License v3.0 o successive: chiunque può usarlo, studiarne il codice, modificarlo e ridistribuirlo alle stesse condizioni.',
     facts: { project: 'Progetto', origin: 'Origine', originLink: 'VolleyReportXLS (articolo su Medium)', source: 'Codice sorgente', license: 'Licenza', version: 'Versione' },
+    thanksTitle: 'Ringraziamenti',
+    thanksText: 'Grazie a Cataldo Di Michele.',
     originsTitle: 'Origini',
     originsText:
       'VolleyReportXLS è il foglio di calcolo in cui si trascrivono i codici rilevati a penna per ottenere tabellino e statistiche. VolleyReport toglie la trascrizione: il modulo si fotografa e l’app ne legge i conteggi; si possono comunque inserire o correggere a mano.',

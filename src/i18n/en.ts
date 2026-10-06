@@ -346,6 +346,8 @@ export const en: Messages = {
     projectLicense:
       'VolleyReport is open source software released under the GNU Affero General Public License v3.0 or later: anyone can use it, study its code, modify it and redistribute it under the same terms.',
     facts: { project: 'Project', origin: 'Origin', originLink: 'VolleyReportXLS (article on Medium)', source: 'Source code', license: 'License', version: 'Version' },
+    thanksTitle: 'Acknowledgements',
+    thanksText: 'Thanks to Cataldo Di Michele.',
     originsTitle: 'Origins',
     originsText:
       'VolleyReportXLS is the spreadsheet where the codes scouted with a pen are typed in to get scoresheet and statistics. VolleyReport removes the typing: you photograph the form and the app reads the counts; they can still be entered or corrected by hand.',
