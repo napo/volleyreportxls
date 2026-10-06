@@ -17,6 +17,7 @@ export const en: Messages = {
     backToMatches: 'Back to the matches',
     team: 'Team',
     opponent: 'Opponent',
+    pdfError: 'The PDF could not be created. Reload the page and try again.',
     downloadPdf: 'Download PDF (A4)',
     example: 'example match',
     match: 'match',

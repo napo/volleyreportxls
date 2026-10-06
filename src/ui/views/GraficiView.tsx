@@ -158,12 +158,16 @@ export default function GraficiView({ report }: { report: MatchReport }) {
   const { m } = useI18n();
   const t = m.charts;
   const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
   async function exportPdf() {
     setBusy(true);
+    setFailed(false);
     try {
       // PDF library and canvas renderer are loaded only when needed.
       const { exportChartsPdf } = await import('../charts/charts-export');
       await exportChartsPdf(report, ordered, m);
+    } catch {
+      setFailed(true);
     } finally {
       setBusy(false);
     }
@@ -191,6 +195,7 @@ export default function GraficiView({ report }: { report: MatchReport }) {
 
       <section className="vr-card vr-export">
         <p>{t.pdfIntro(ordered.length)}</p>
+        {failed && <p className="vr-message warning">{m.common.pdfError}</p>}
         <button type="button" className="vr-btn vr-btn-primary" onClick={exportPdf} disabled={busy}>
           {busy ? m.common.preparing : m.common.downloadPdf}
         </button>

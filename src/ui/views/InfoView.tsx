@@ -10,9 +10,11 @@ import { messagesFor, useI18n } from '../../i18n';
 function DownloadFormButton() {
   const { m, lang } = useI18n();
   const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   async function download() {
     setBusy(true);
+    setFailed(false);
     try {
       const { renderScoutingFormPdf } = await import('../../pdf/scouting-form-pdf');
       const texts = messagesFor(lang);
@@ -20,15 +22,20 @@ function DownloadFormButton() {
         const [fonts, logoPng] = await Promise.all([loadPdfFonts(), loadLogoPng()]);
         return renderScoutingFormPdf({ fonts, logoPng, texts });
       });
+    } catch {
+      setFailed(true);
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <button type="button" className="vr-btn vr-btn-primary" onClick={download} disabled={busy}>
-      {busy ? m.common.preparing : m.info.formButton}
-    </button>
+    <>
+      <button type="button" className="vr-btn vr-btn-primary" onClick={download} disabled={busy}>
+        {busy ? m.common.preparing : m.info.formButton}
+      </button>
+      {failed && <p className="vr-message warning">{m.common.pdfError}</p>}
+    </>
   );
 }
 

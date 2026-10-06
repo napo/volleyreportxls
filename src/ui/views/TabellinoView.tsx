@@ -20,9 +20,11 @@ export function TabellinoView({ report }: { report: MatchReport }) {
     [report, setShown],
   );
   const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   async function exportPdf() {
     setBusy(true);
+    setFailed(false);
     try {
       // The PDF library is loaded only when needed.
       const { renderTabellinoPdf, tabellinoFileName } = await import('../../pdf/tabellino-pdf');
@@ -30,6 +32,8 @@ export function TabellinoView({ report }: { report: MatchReport }) {
         const [fonts, logoPng] = await Promise.all([loadPdfFonts(), loadLogoPng()]);
         return renderTabellinoPdf(tabellino, { fonts, logoPng, texts: messagesFor(lang).scoresheet });
       });
+    } catch {
+      setFailed(true);
     } finally {
       setBusy(false);
     }
@@ -93,6 +97,7 @@ export function TabellinoView({ report }: { report: MatchReport }) {
             </button>
           </div>
         </div>
+        {failed && <p className="vr-message warning">{m.common.pdfError}</p>}
         <TabellinoTable tabellino={tabellino} />
         <p className="vr-note">{t.legend}</p>
       </section>

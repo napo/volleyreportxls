@@ -222,7 +222,8 @@ export async function renderTabellinoPdf(tabellino: Tabellino, options: Tabellin
 /** File name in the official summary format, e.g. "Home - Guest 3-0 (25-16, 25-18, 25-22).pdf", plus " - Set 2" for one set. */
 export function tabellinoFileName(t: Tabellino): string {
   const scores = t.setScores.map((s) => `${s.score.team}-${s.score.opponent}`).join(', ');
-  const name = `${t.teamName} - ${t.opponentName} ${t.setsWon.team}-${t.setsWon.opponent}${scores ? ` (${scores})` : ''}`;
+  const teams = [t.teamName, t.opponentName].map((n) => n.trim()).filter(Boolean).join(' - ') || 'VolleyReport';
+  const name = `${teams} ${t.setsWon.team}-${t.setsWon.opponent}${scores ? ` (${scores})` : ''}`;
   const set = t.set ? ` - Set ${t.set}` : '';
   return `${(name + set).replace(/[\\/:*?"<>|]/g, '_')}.pdf`;
 }
