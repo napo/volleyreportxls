@@ -26,6 +26,7 @@ import { isTauriApp, setUpdateChecksEnabled, updateChecksEnabled } from '../../p
 import { formatDate } from '../../report/format';
 import { APP_VERSION } from '../../version';
 import { useI18n } from '../../i18n';
+import { openGuide, setShowGuideAtStart, useGuide } from '../guide';
 
 function CardHead({ title, subtitle }: { title: string; subtitle?: string | undefined }) {
   return (
@@ -60,6 +61,25 @@ export function SupportSection() {
           {t.contributeBefore} <ExternalLink href={SOURCE_REPOSITORY_URL}>{t.contributeLink}</ExternalLink>.
         </p>
       )}
+    </section>
+  );
+}
+
+export function GuideSection() {
+  const t = useI18n().m.guide;
+  const { showAtStart } = useGuide();
+  return (
+    <section className="vr-card" id="guida">
+      <CardHead title={t.infoTitle} subtitle={t.infoText} />
+      <div className="vr-actions start">
+        <button type="button" className="vr-btn vr-btn-secondary" onClick={openGuide}>
+          {t.infoOpen}
+        </button>
+        <label className="vr-check">
+          <input type="checkbox" checked={showAtStart} onChange={(e) => setShowGuideAtStart(e.target.checked)} />
+          {t.infoShowAtStart}
+        </label>
+      </div>
     </section>
   );
 }

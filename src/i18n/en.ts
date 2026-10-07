@@ -43,8 +43,15 @@ export const en: Messages = {
     formButton: 'Download the form to print (PDF)',
     noForm: 'No form yet?',
     noFormLink: 'Download it here',
-    howTitle: 'How it works, in 5 steps',
-    howText: 'From the paper sheet to the scoresheet, without typing anything in.',
+    exampleTitle: 'Example match',
+    exampleText: (competition: string, venue: string) => `The VolleyReportXLS test match: ${competition}, ${venue}.`,
+    openTabellino: 'Open the scoresheet',
+  },
+
+  /** The 5-step guide (dialog at start). */
+  guide: {
+    title: 'How it works, in 5 steps',
+    text: 'From the paper sheet to the scoresheet, without typing anything in.',
     steps: [
       {
         title: 'Get the form',
@@ -72,11 +79,18 @@ export const en: Messages = {
         alt: 'The match scoresheet',
       },
     ],
-    stepUpload: 'Go to the upload',
-    stepExample: 'See an example scoresheet',
-    exampleTitle: 'Example match',
-    exampleText: (competition: string, venue: string) => `The VolleyReportXLS test match: ${competition}, ${venue}.`,
-    openTabellino: 'Open the scoresheet',
+    upload: 'Go to the upload',
+    example: 'See an example scoresheet',
+    stepOf: (step: number, steps: number) => `Step ${step} of ${steps}`,
+    back: 'Back',
+    next: 'Next',
+    done: 'Start',
+    close: 'Close the guide',
+    dontShow: 'Do not show it again at start',
+    infoTitle: 'Quick guide',
+    infoText: 'The five steps from the paper form to the scoresheet, in a window that opens when the app starts.',
+    infoShowAtStart: 'Show the guide at start',
+    infoOpen: 'Open the guide',
   },
 
   matches: {

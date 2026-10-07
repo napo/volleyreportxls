@@ -1,7 +1,7 @@
 import { VOLLEYREPORTXLS_URL } from '../../config';
 import { ExternalLink } from '../../platform/ExternalLink';
 import { CodeLegend } from '../components/CodeLegend';
-import { DownloadSection, PrivacySection, ProjectSection, SupportSection, UpdatesSection } from '../components/ProjectSections';
+import { DownloadSection, GuideSection, PrivacySection, ProjectSection, SupportSection, UpdatesSection } from '../components/ProjectSections';
 import { useI18n } from '../../i18n';
 import { DownloadFormButton } from '../components/DownloadFormButton';
 
@@ -20,6 +20,8 @@ export function InfoView() {
       </header>
 
       <SupportSection />
+
+      <GuideSection />
 
       <section id="modulo" className="vr-card vr-dropzone">
         <span className="vr-icon-tile" aria-hidden="true">

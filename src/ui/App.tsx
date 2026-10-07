@@ -4,6 +4,7 @@ import { LICENSE_URL, SOURCE_REPOSITORY_URL, VOLLEYREPORTXLS_URL, releaseUrl } f
 import { ExternalLink } from '../platform/ExternalLink';
 import { APP_VERSION } from '../version';
 import { ArchiveProvider } from './archive-context';
+import { GuideDialog } from './components/GuideDialog';
 import { UpdateNotice } from './components/UpdateNotice';
 import { useMatchReport } from './match-report';
 import { type Route, SAMPLE_ID, TABS, type Tab, href, isSectionPage, parseRoute, tabOf } from './routes';
@@ -143,6 +144,7 @@ export function App() {
       </nav>
 
       <UpdateNotice />
+      <GuideDialog />
 
       <main className="vr-shell">
         <Page route={route} />

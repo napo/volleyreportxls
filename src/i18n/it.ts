@@ -43,8 +43,15 @@ export const it = {
     formButton: 'Scarica il modulo da stampare (PDF)',
     noForm: 'Non hai il modulo?',
     noFormLink: 'Scaricalo qui',
-    howTitle: 'Come si fa, in 5 passi',
-    howText: 'Dal foglio di carta al tabellino, senza ricopiare niente.',
+    exampleTitle: 'Partita d’esempio',
+    exampleText: (competition: string, venue: string) => `La gara di prova di VolleyReportXLS: ${competition}, ${venue}.`,
+    openTabellino: 'Apri il tabellino',
+  },
+
+  /** The 5-step guide (dialog at start). */
+  guide: {
+    title: 'Come si fa, in 5 passi',
+    text: 'Dal foglio di carta al tabellino, senza ricopiare niente.',
     steps: [
       {
         title: 'Prendi il modulo',
@@ -72,11 +79,18 @@ export const it = {
         alt: 'Il tabellino della partita',
       },
     ],
-    stepUpload: 'Vai al caricamento',
-    stepExample: 'Guarda un tabellino d’esempio',
-    exampleTitle: 'Partita d’esempio',
-    exampleText: (competition: string, venue: string) => `La gara di prova di VolleyReportXLS: ${competition}, ${venue}.`,
-    openTabellino: 'Apri il tabellino',
+    upload: 'Vai al caricamento',
+    example: 'Guarda un tabellino d’esempio',
+    stepOf: (step: number, steps: number) => `Passo ${step} di ${steps}`,
+    back: 'Indietro',
+    next: 'Avanti',
+    done: 'Inizia',
+    close: 'Chiudi la guida',
+    dontShow: 'Non mostrarla più all’avvio',
+    infoTitle: 'Guida rapida',
+    infoText: 'I cinque passi dal modulo di carta al tabellino, in una finestra che si apre all’avvio dell’app.',
+    infoShowAtStart: 'Mostra la guida all’avvio',
+    infoOpen: 'Apri la guida',
   },
 
   matches: {
