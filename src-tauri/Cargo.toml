@@ -1,6 +1,6 @@
 [package]
 name = "volleyreport"
-version = "0.2.2"
+version = "0.2.3"
 description = "Dalla carta al report della gara di pallavolo"
 authors = ["Maurizio Napolitano"]
 license = "AGPL-3.0-or-later"
