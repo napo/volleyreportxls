@@ -18,6 +18,7 @@ export const en: Messages = {
     team: 'Team',
     opponent: 'Opponent',
     pdfError: 'The PDF could not be created. Reload the page and try again.',
+    pdfReady: 'PDF ready. If the download did not start, tap here to open it',
     downloadPdf: 'Download PDF (A4)',
     example: 'example match',
     match: 'match',

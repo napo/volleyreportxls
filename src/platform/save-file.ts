@@ -7,6 +7,9 @@
  *
  * The location is asked first and the file made afterwards: browsers open the dialog only
  * right after a click, and making a PDF can take a moment.
+ *
+ * A download started after that moment may be ignored (Safari on iOS, some Android browsers):
+ * the result then carries the file's address, for a link the user can tap.
  */
 import { isTauriApp } from './updates';
 
@@ -14,6 +17,8 @@ export interface SavedFile {
   readonly fileName: string;
   /** Only in the installed apps. */
   readonly path?: string;
+  /** Only for a browser download: the file, for a link the user can tap if the download did not start. */
+  readonly url?: string;
 }
 
 export interface FileKind {
@@ -25,13 +30,23 @@ export interface FileKind {
 
 export const PDF: FileKind = { description: 'PDF', type: 'application/pdf', extension: 'pdf' };
 
-function browserDownload(bytes: Uint8Array, fileName: string, type: string) {
+// The last file stays available until the next one: mobile browsers read it after a
+// confirmation or later on, and the user may tap the link offered with it.
+let lastUrl: string | undefined;
+
+function browserDownload(bytes: Uint8Array, fileName: string, type: string): SavedFile {
+  if (lastUrl) URL.revokeObjectURL(lastUrl);
   const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type }));
+  lastUrl = url;
   const link = document.createElement('a');
   link.href = url;
   link.download = fileName;
+  // Some browsers follow only links that are in the page.
+  link.style.display = 'none';
+  document.body.appendChild(link);
   link.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  link.remove();
+  return { fileName, url };
 }
 
 /** Dialog opened in the Downloads folder (desktop); just the name where the folder is not known (mobile). */
@@ -60,8 +75,7 @@ async function saveInApp(fileName: string, make: () => Promise<Uint8Array>, kind
     const { save } = await import('@tauri-apps/plugin-dialog');
     path = await save({ defaultPath: await defaultPath(fileName), filters: [{ name: kind.description, extensions: [kind.extension] }] });
   } catch {
-    browserDownload(await make(), fileName, kind.type);
-    return { fileName };
+    return browserDownload(await make(), fileName, kind.type);
   }
   if (!path) return null;
   const bytes = await make();
@@ -91,6 +105,5 @@ export async function saveFile(fileName: string, make: () => Promise<Uint8Array>
       return { fileName };
     }
   }
-  browserDownload(await make(), fileName, kind.type);
-  return { fileName };
+  return browserDownload(await make(), fileName, kind.type);
 }

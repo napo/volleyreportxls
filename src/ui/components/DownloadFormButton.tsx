@@ -1,7 +1,8 @@
 /** Downloads the printable scouting form (PDF, one page per set) in the current language. */
 import { useState } from 'react';
 import { messagesFor, useI18n } from '../../i18n';
-import { saveFile } from '../../platform/save-file';
+import { type SavedFile, saveFile } from '../../platform/save-file';
+import { SavedFileLink } from './SavedFileLink';
 import { loadLogoPng, loadPdfFonts } from '../pdf-assets';
 
 interface Props {
@@ -14,17 +15,19 @@ export function DownloadFormButton({ label, variant = 'primary' }: Props) {
   const { m, lang } = useI18n();
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [saved, setSaved] = useState<SavedFile | null>(null);
 
   async function download() {
     setBusy(true);
     setFailed(false);
+    setSaved(null);
     try {
       const { renderScoutingFormPdf } = await import('../../pdf/scouting-form-pdf');
       const texts = messagesFor(lang);
-      await saveFile(texts.form.fileName, async () => {
+      setSaved(await saveFile(texts.form.fileName, async () => {
         const [fonts, logoPng] = await Promise.all([loadPdfFonts(), loadLogoPng()]);
         return renderScoutingFormPdf({ fonts, logoPng, texts });
-      });
+      }));
     } catch {
       setFailed(true);
     } finally {
@@ -39,6 +42,7 @@ export function DownloadFormButton({ label, variant = 'primary' }: Props) {
         {busy ? m.common.preparing : (label ?? m.info.formButton)}
       </button>
       {failed && <p className="vr-message warning">{m.common.pdfError}</p>}
+      <SavedFileLink file={saved} />
     </>
   );
 }

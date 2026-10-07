@@ -18,6 +18,7 @@ export const it = {
     team: 'Squadra',
     opponent: 'Avversari',
     pdfError: 'Non è stato possibile creare il PDF. Ricarica la pagina e riprova.',
+    pdfReady: 'PDF pronto. Se il download non è partito, tocca qui per aprirlo',
     downloadPdf: 'Scarica PDF (A4)',
     example: 'partita d’esempio',
     match: 'partita',

@@ -7,6 +7,8 @@ import { WonLostChart } from '../charts/WonLostChart';
 import { percent } from '../charts/tokens';
 import type { MatchReport } from '../match-report';
 import { useI18n } from '../../i18n';
+import type { SavedFile } from '../../platform/save-file';
+import { SavedFileLink } from '../components/SavedFileLink';
 
 function Tile({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
@@ -159,13 +161,15 @@ export default function GraficiView({ report }: { report: MatchReport }) {
   const t = m.charts;
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [saved, setSaved] = useState<SavedFile | null>(null);
   async function exportPdf() {
     setBusy(true);
     setFailed(false);
+    setSaved(null);
     try {
       // PDF library and canvas renderer are loaded only when needed.
       const { exportChartsPdf } = await import('../charts/charts-export');
-      await exportChartsPdf(report, ordered, m);
+      setSaved(await exportChartsPdf(report, ordered, m));
     } catch {
       setFailed(true);
     } finally {
@@ -199,6 +203,7 @@ export default function GraficiView({ report }: { report: MatchReport }) {
         <button type="button" className="vr-btn vr-btn-primary" onClick={exportPdf} disabled={busy}>
           {busy ? m.common.preparing : m.common.downloadPdf}
         </button>
+        <SavedFileLink file={saved} />
       </section>
 
       <h2 className="vr-section-title">{t.team}</h2>

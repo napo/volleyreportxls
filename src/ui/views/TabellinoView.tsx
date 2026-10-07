@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react';
 import type { SetNumber } from '../../domain/model';
 import { Scoreboard } from '../components/Scoreboard';
 import { TabellinoSetTable, TabellinoTable } from '../components/TabellinoTable';
-import { saveFile } from '../../platform/save-file';
+import { type SavedFile, saveFile } from '../../platform/save-file';
+import { SavedFileLink } from '../components/SavedFileLink';
 import { loadLogoPng, loadPdfFonts } from '../pdf-assets';
 import { messagesFor, useI18n } from '../../i18n';
 import type { MatchReport } from '../match-report';
@@ -21,17 +22,19 @@ export function TabellinoView({ report }: { report: MatchReport }) {
   );
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [saved, setSaved] = useState<SavedFile | null>(null);
 
   async function exportPdf() {
     setBusy(true);
     setFailed(false);
+    setSaved(null);
     try {
       // The PDF library is loaded only when needed.
       const { renderTabellinoPdf, tabellinoFileName } = await import('../../pdf/tabellino-pdf');
-      await saveFile(tabellinoFileName(tabellino), async () => {
+      setSaved(await saveFile(tabellinoFileName(tabellino), async () => {
         const [fonts, logoPng] = await Promise.all([loadPdfFonts(), loadLogoPng()]);
         return renderTabellinoPdf(tabellino, { fonts, logoPng, texts: messagesFor(lang).scoresheet });
-      });
+      }));
     } catch {
       setFailed(true);
     } finally {
@@ -98,6 +101,7 @@ export function TabellinoView({ report }: { report: MatchReport }) {
           </div>
         </div>
         {failed && <p className="vr-message warning">{m.common.pdfError}</p>}
+        <SavedFileLink file={saved} />
         <TabellinoTable tabellino={tabellino} />
         <p className="vr-note">{t.legend}</p>
       </section>
