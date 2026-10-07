@@ -203,20 +203,20 @@ export const en: Messages = {
 
   codes: {
     B: {
-      '#': 'ace (the opponent does not receive or loses the ball on the second touch)',
-      '+': 'positive (the opponent receives "-" and has a single attack option)',
-      '!': 'custom (e.g. serve that prevents the opponent’s attack)',
-      '-': 'poor (the opponent receives # or + and can play every combination)',
-      '/': 'half point (the opponent’s reception comes back to our court)',
+      '#': 'ace (direct point: the opponent does not receive or loses the ball on the second touch)',
+      '+': 'positive (poor opponent reception: predictable ball, obvious outside attack or high ball)',
+      '!': 'pressuring (negative opponent reception: only high sets or a forced quick)',
+      '-': 'easy (perfect or positive opponent reception: the opponent can run good attack combinations)',
+      '/': 'half point (the opponent’s reception goes straight into our court)',
       '=': 'error (net, out, foot fault)',
     },
     R: {
-      '#': 'perfect (every attack combination possible)',
-      '+': 'positive (ball within 3 m, several attack options but not all)',
-      '!': 'custom (e.g. reception that prevents the attack)',
-      '-': 'poor (a single forced attack)',
-      '/': 'very poor (the ball goes straight to the opponent’s court)',
-      '=': 'error (direct point for the opponent)',
+      '#': 'perfect (ball in the ideal attack zone, every option open, including the quick)',
+      '+': 'positive (good control, a good attack combination can be played)',
+      '!': 'negative / forced (setter limited: only high sets or a forced quick)',
+      '-': 'poor (predictable ball, obvious outside attack or high ball)',
+      '/': 'error / free ball (ball sent straight to the opponent’s court without an attack)',
+      '=': 'aced (direct point for the server)',
     },
     A: {
       '#': 'kill (direct point)',
