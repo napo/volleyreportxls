@@ -1,43 +1,9 @@
 import { VOLLEYREPORTXLS_URL } from '../../config';
 import { ExternalLink } from '../../platform/ExternalLink';
-import { useState } from 'react';
 import { CodeLegend } from '../components/CodeLegend';
 import { DownloadSection, PrivacySection, ProjectSection, SupportSection, UpdatesSection } from '../components/ProjectSections';
-import { saveFile } from '../../platform/save-file';
-import { loadLogoPng, loadPdfFonts } from '../pdf-assets';
-import { messagesFor, useI18n } from '../../i18n';
-
-function DownloadFormButton() {
-  const { m, lang } = useI18n();
-  const [busy, setBusy] = useState(false);
-  const [failed, setFailed] = useState(false);
-
-  async function download() {
-    setBusy(true);
-    setFailed(false);
-    try {
-      const { renderScoutingFormPdf } = await import('../../pdf/scouting-form-pdf');
-      const texts = messagesFor(lang);
-      await saveFile(texts.form.fileName, async () => {
-        const [fonts, logoPng] = await Promise.all([loadPdfFonts(), loadLogoPng()]);
-        return renderScoutingFormPdf({ fonts, logoPng, texts });
-      });
-    } catch {
-      setFailed(true);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <>
-      <button type="button" className="vr-btn vr-btn-primary" onClick={download} disabled={busy}>
-        {busy ? m.common.preparing : m.info.formButton}
-      </button>
-      {failed && <p className="vr-message warning">{m.common.pdfError}</p>}
-    </>
-  );
-}
+import { useI18n } from '../../i18n';
+import { DownloadFormButton } from '../components/DownloadFormButton';
 
 export function InfoView() {
   const { m } = useI18n();
