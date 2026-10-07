@@ -8,16 +8,27 @@ import step2 from '../../assets/howto/2-compilato.webp';
 import step3 from '../../assets/howto/3-caricamento.webp';
 import step4 from '../../assets/howto/4-verifica.webp';
 import step5 from '../../assets/howto/5-tabellino.webp';
-import { useI18n } from '../../i18n';
+import step1en from '../../assets/howto/1-modulo-en.webp';
+import step2en from '../../assets/howto/2-compilato-en.webp';
+import step3en from '../../assets/howto/3-caricamento-en.webp';
+import step4en from '../../assets/howto/4-verifica-en.webp';
+import step5en from '../../assets/howto/5-tabellino-en.webp';
+import { type Lang, useI18n } from '../../i18n';
 import { closeGuide, setShowGuideAtStart, useGuide } from '../guide';
 import { SAMPLE_ID, href } from '../routes';
 import { DownloadFormButton } from './DownloadFormButton';
 
-/** Pictures of the five steps, in order. */
-const STEP_IMAGES = [step1, step2, step3, step4, step5];
+/**
+ * Pictures of the five steps, in order, in each language. The English filled-in
+ * form carries the same pen marks as the Italian one, moved cell by cell.
+ */
+const STEP_IMAGES: Readonly<Record<Lang, readonly string[]>> = {
+  it: [step1, step2, step3, step4, step5],
+  en: [step1en, step2en, step3en, step4en, step5en],
+};
 
 export function GuideDialog() {
-  const { m } = useI18n();
+  const { m, lang } = useI18n();
   const t = m.guide;
   const { open, showAtStart } = useGuide();
   const dialog = useRef<HTMLDialogElement>(null);
@@ -50,7 +61,7 @@ export function GuideDialog() {
       </div>
 
       <figure className="vr-guide-step">
-        <img src={STEP_IMAGES[index]} alt={step.alt} />
+        <img src={STEP_IMAGES[lang][index]} alt={step.alt} />
         <figcaption>
           <h3>
             <span className="vr-step-number">{index + 1}</span>
