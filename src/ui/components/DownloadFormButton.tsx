@@ -1,9 +1,13 @@
-/** Downloads the printable scouting form (PDF, one page per set) in the current language. */
+/**
+ * Downloads the printable scouting form (PDF, one page per set) in the current language.
+ * The form is a file published with the site (src/pdf/form-files.ts): in the browser a plain
+ * link to it, in the installed apps the "Save as" dialog.
+ */
 import { useState } from 'react';
 import { messagesFor, useI18n } from '../../i18n';
-import { type SavedFile, saveFile } from '../../platform/save-file';
-import { SavedFileLink } from './SavedFileLink';
-import { loadLogoPng, loadPdfFonts } from '../pdf-assets';
+import { saveFile } from '../../platform/save-file';
+import { isTauriApp } from '../../platform/updates';
+import { FORM_FILES } from '../../pdf/form-files';
 
 interface Props {
   readonly label?: string;
@@ -15,19 +19,28 @@ export function DownloadFormButton({ label, variant = 'primary' }: Props) {
   const { m, lang } = useI18n();
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
-  const [saved, setSaved] = useState<SavedFile | null>(null);
+  const url = import.meta.env.BASE_URL + FORM_FILES[lang];
+  const fileName = messagesFor(lang).form.fileName;
+  const className = variant === 'link' ? 'vr-link-button' : `vr-btn vr-btn-${variant}`;
+  const text = label ?? m.info.formButton;
+
+  if (!isTauriApp()) {
+    return (
+      <a className={className} href={url} download={fileName}>
+        {text}
+      </a>
+    );
+  }
 
   async function download() {
     setBusy(true);
     setFailed(false);
-    setSaved(null);
     try {
-      const { renderScoutingFormPdf } = await import('../../pdf/scouting-form-pdf');
-      const texts = messagesFor(lang);
-      setSaved(await saveFile(texts.form.fileName, async () => {
-        const [fonts, logoPng] = await Promise.all([loadPdfFonts(), loadLogoPng()]);
-        return renderScoutingFormPdf({ fonts, logoPng, texts });
-      }));
+      await saveFile(fileName, async () => {
+        const response = await fetch(url);
+        if (!response.ok) throw Error(`${url}: ${response.status}`);
+        return new Uint8Array(await response.arrayBuffer());
+      });
     } catch {
       setFailed(true);
     } finally {
@@ -35,14 +48,12 @@ export function DownloadFormButton({ label, variant = 'primary' }: Props) {
     }
   }
 
-  const className = variant === 'link' ? 'vr-link-button' : `vr-btn vr-btn-${variant}`;
   return (
     <>
       <button type="button" className={className} onClick={download} disabled={busy}>
-        {busy ? m.common.preparing : (label ?? m.info.formButton)}
+        {busy ? m.common.preparing : text}
       </button>
       {failed && <p className="vr-message warning">{m.common.pdfError}</p>}
-      <SavedFileLink file={saved} />
     </>
   );
 }

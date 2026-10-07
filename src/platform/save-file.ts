@@ -2,6 +2,7 @@
  * Saving a file made by the app (PDFs): the user always chooses where it goes.
  * - Installed apps (Tauri): the system "Save as" dialog.
  * - Browsers with the File System Access API (Chrome, Edge on desktop): the same dialog.
+ *   Not on phones: Chrome for Android has it, but leaves the file empty.
  * - Other browsers (Firefox, Safari, mobile): a download; the browser asks where to save
  *   it when its "always ask where to save files" setting is on.
  *
@@ -67,6 +68,11 @@ type SaveFilePicker = (options: {
   types: { description: string; accept: Record<string, string[]> }[];
 }) => Promise<WritableFile>;
 
+function isPhone() {
+  const ua = navigator as Navigator & { userAgentData?: { mobile?: boolean } };
+  return ua.userAgentData?.mobile === true || /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
+}
+
 const isAbort = (error: unknown) => error instanceof DOMException && error.name === 'AbortError';
 
 async function saveInApp(fileName: string, make: () => Promise<Uint8Array>, kind: FileKind): Promise<SavedFile | null> {
@@ -88,7 +94,9 @@ async function saveInApp(fileName: string, make: () => Promise<Uint8Array>, kind
 export async function saveFile(fileName: string, make: () => Promise<Uint8Array>, kind: FileKind = PDF): Promise<SavedFile | null> {
   if (isTauriApp()) return saveInApp(fileName, make, kind);
 
-  const picker = (window as unknown as { showSaveFilePicker?: SaveFilePicker }).showSaveFilePicker;
+  // On phones (Chrome for Android) the dialog creates the file but writing to it fails,
+  // leaving it empty: a download works there.
+  const picker = isPhone() ? undefined : (window as unknown as { showSaveFilePicker?: SaveFilePicker }).showSaveFilePicker;
   if (picker) {
     let handle: WritableFile | null = null;
     try {
@@ -99,10 +107,15 @@ export async function saveFile(fileName: string, make: () => Promise<Uint8Array>
     }
     if (handle) {
       const bytes = await make();
-      const writable = await handle.createWritable();
-      await writable.write(new Blob([bytes as BlobPart], { type: kind.type }));
-      await writable.close();
-      return { fileName };
+      try {
+        const writable = await handle.createWritable();
+        await writable.write(new Blob([bytes as BlobPart], { type: kind.type }));
+        await writable.close();
+        return { fileName };
+      } catch {
+        // The file could not be written there: download it instead.
+        return browserDownload(bytes, fileName, kind.type);
+      }
     }
   }
   return browserDownload(await make(), fileName, kind.type);

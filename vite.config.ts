@@ -2,11 +2,12 @@
 import { readFileSync } from 'node:fs';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { formPdfs } from './scripts/form-pdfs-plugin';
 
 const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string };
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), formPdfs()],
   // "/" for the dev server and the installed apps; the GitHub Pages workflow sets the repository path.
   base: process.env.VITE_BASE_PATH || '/',
   define: {
