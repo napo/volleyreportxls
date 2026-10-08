@@ -145,8 +145,11 @@ function drawHeader(s: Sheet, page: FormPageId) {
   );
 
   s.text(s.texts.form.finalScore, score.team[0].x - 20, score.team[0].y - 1.5, 7, { color: LABEL });
-  s.text(s.texts.form.us, score.team[0].x - 7, score.team[0].y + 6.5, 9, { bold: true });
-  s.text(s.texts.form.them, score.opponent[0].x - 9, score.opponent[0].y + 6.5, 9, { bold: true });
+  // Labels end just before their boxes, whatever their length.
+  const label = (text: string, box: (typeof score.team)[0]) =>
+    s.text(text, box.x - 2 - s.fonts.bold.widthOfTextAtSize(text, 9) / MM, box.y + 6.5, 9, { bold: true });
+  label(s.texts.form.us, score.team[0]);
+  label(s.texts.form.them, score.opponent[0]);
   for (const digit of [...score.team, ...score.opponent]) s.box(digit, 0.6);
 
   s.matrix(qrMatrix(formQrPayload(page)), qr);
