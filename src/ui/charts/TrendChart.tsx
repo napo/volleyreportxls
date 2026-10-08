@@ -48,17 +48,17 @@ export function trendChartOption(rows: readonly SetTrendRow[], m: Messages) {
   };
 }
 
-/** Reception Pos% and attack Pt% set by set: one percentage axis, end-labelled lines. */
-export function TrendChart({ rows }: { rows: readonly SetTrendRow[] }) {
+/** Reception Pos% and attack Pt% set by set (or match by match): one percentage axis, end-labelled lines. */
+export function TrendChart({ rows, firstColumn, label }: { rows: readonly SetTrendRow[]; firstColumn?: string; label?: string }) {
   const { m } = useI18n();
   const option = useMemo(() => trendChartOption(rows, m), [rows, m]);
 
   return (
     <>
       <Legend mark="line" items={lines(m).map((l) => ({ label: l.name, color: l.color }))} />
-      <EChart option={option} height={TREND_CHART_HEIGHT} label={m.charts.trendLabel} />
+      <EChart option={option} height={TREND_CHART_HEIGHT} label={label ?? m.charts.trendLabel} />
       <DataTable
-        head={[m.charts.set, m.charts.receptionPos, m.charts.attackPt]}
+        head={[firstColumn ?? m.charts.set, m.charts.receptionPos, m.charts.attackPt]}
         rows={rows.map((r) => [
           r.set,
           r.receptionPositivity === null ? '.' : percent(r.receptionPositivity),

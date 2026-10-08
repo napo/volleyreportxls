@@ -28,6 +28,8 @@ export interface SetRecord {
 export interface PlayerRecord {
   readonly number: number;
   readonly name: string;
+  /** The athlete of the archive this player is (see athletes/matching). */
+  readonly athleteId?: string;
 }
 
 export interface MatchRecord {

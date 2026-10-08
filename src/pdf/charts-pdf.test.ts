@@ -22,8 +22,8 @@ test('charts flow onto as many A4 pages as needed', async () => {
     { ...chart('Valutazioni per fondamentale'), figures: [['V-P', '+10'], ['Errori avversari', '13']] } as ChartsPdfBlock,
     chart('Punti vinti e persi'),
     chart('Andamento per set'),
-    { kind: 'section', title: 'Atleti' },
-    ...Array.from({ length: 6 }, (_, i) => chart(`Atleta ${i + 1}`, 260)),
+    { kind: 'section', title: 'Singoli' },
+    ...Array.from({ length: 6 }, (_, i) => chart(`Divisa ${i + 1}`, 260)),
   ];
   const pdf = await PDFDocument.load(await renderChartsPdf(tabellino, blocks, { fonts: TEST_FONTS }));
   expect(pdf.getPageCount()).toBeGreaterThan(1);

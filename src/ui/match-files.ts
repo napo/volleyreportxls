@@ -5,12 +5,15 @@ import { type FileKind, saveFile } from '../platform/save-file';
 import type { Archive, ImportResult } from '../storage/archive';
 import { APP_VERSION } from '../version';
 
-export function exportMatches(records: readonly MatchRecord[], description: string) {
+/** The matches, with the athletes their players are linked to. */
+export function exportMatches(archive: Archive | null, records: readonly MatchRecord[], description: string) {
   const kind: FileKind = { description, type: VRP_MEDIA_TYPE, extension: VRP_EXTENSION };
-  return saveFile(vrpFileName(records), async () => exportVrp(records, APP_VERSION), kind);
+  return saveFile(vrpFileName(records), async () => exportVrp(records, APP_VERSION, new Date(), (await archive?.listAthletes()) ?? []), kind);
 }
 
 /** Throws VrpError when the file is not a valid .vrp. */
 export async function importMatchFile(archive: Archive, file: File): Promise<ImportResult> {
-  return archive.importMatches(importVrp(new Uint8Array(await file.arrayBuffer())));
+  const { matches, athletes } = importVrp(new Uint8Array(await file.arrayBuffer()));
+  await archive.importAthletes(athletes);
+  return archive.importMatches(matches);
 }

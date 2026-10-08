@@ -12,7 +12,18 @@ function sample(): MatchRecord {
 test('export and import give back the same matches', () => {
   const a = sample();
   const b = { ...sample(), teamName: 'Altra' };
-  expect(importVrp(exportVrp([a, b], '0.1.0'))).toEqual([a, b]);
+  expect(importVrp(exportVrp([a, b], '0.1.0'))).toEqual({ matches: [a, b], athletes: [] });
+});
+
+test('the athletes linked to the players travel with the matches', () => {
+  const a = { ...sample(), players: [{ number: 7, name: 'Rossi', athleteId: 'ath1' }] };
+  const athletes = [
+    { id: 'ath1', name: 'Giulia Rossi', note: '2010' },
+    { id: 'ath2', name: 'Non in questa partita', note: '' },
+  ];
+  const content = importVrp(exportVrp([a], '0.1.0', new Date(), athletes));
+  expect(content.matches[0]!.players).toEqual([{ number: 7, name: 'Rossi', athleteId: 'ath1' }]);
+  expect(content.athletes).toEqual([athletes[0]]);
 });
 
 test('file names', () => {

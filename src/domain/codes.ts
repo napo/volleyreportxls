@@ -37,10 +37,10 @@ export const SKILL_DEFINITIONS: Readonly<Record<Skill, SkillDefinition>> = {
     label: 'Battuta',
     dataVolley: { letter: 'S', name: 'Battuta' },
     evaluations: {
-      '#': "ace (punto diretto: l'avversario non riceve o perde la palla al secondo tocco)",
+      '#': "ace (punto diretto: la squadra avversaria non riceve o perde la palla al secondo tocco)",
       '+': "positiva (ricezione avversaria insufficiente: palla prevedibile, attacco a quattro scontato o palla alta)",
       '!': "forzante (ricezione avversaria negativa: solo alzate staccate o primo tempo forzato)",
-      '-': "facile (ricezione avversaria perfetta o positiva: l'avversario può giocare buone combinazioni d'attacco)",
+      '-': "facile (ricezione avversaria perfetta o positiva: la squadra avversaria può giocare buone combinazioni d'attacco)",
       '/': "mezzo punto (la ricezione avversaria finisce direttamente nel nostro campo)",
       '=': 'errore (rete, fuori, fallo di piede)',
     },
@@ -66,8 +66,8 @@ export const SKILL_DEFINITIONS: Readonly<Record<Skill, SkillDefinition>> = {
       '#': 'vincente (punto diretto)',
       '+': "positivo (difeso con difficoltà, rigioca la nostra squadra)",
       '!': 'murato ma ripreso in copertura dalla nostra squadra',
-      '-': "scadente (difeso facilmente dall'avversario)",
-      '/': "murato (punto dell'avversario)",
+      '-': "scadente (difeso facilmente dalla squadra avversaria)",
+      '/': "murato (punto della squadra avversaria)",
       '=': 'errato (fuori, in rete, invasione)',
     },
   },
@@ -78,9 +78,9 @@ export const SKILL_DEFINITIONS: Readonly<Record<Skill, SkillDefinition>> = {
     evaluations: {
       '#': 'vincente (punto diretto)',
       '+': 'positivo (la palla toccata può essere rigiocata dalla nostra squadra)',
-      '!': "murato ma ripreso in copertura dall'avversario",
-      '-': "scadente (la palla può essere rigiocata dall'avversario)",
-      '/': "invasione (punto dell'avversario)",
+      '!': "murato ma ripreso in copertura dalla squadra avversaria",
+      '-': "scadente (la palla può essere rigiocata dalla squadra avversaria)",
+      '/': "invasione (punto della squadra avversaria)",
       '=': 'errato (mani fuori, in rete, palla a terra nel proprio campo o fuori)',
     },
   },
@@ -90,7 +90,7 @@ export const SKILL_DEFINITIONS: Readonly<Record<Skill, SkillDefinition>> = {
     dataVolley: { letter: 'E', name: 'Alzata' },
     // Only the faults: the set is not evaluated (project decision).
     evaluations: {
-      '=': "fallo fischiato dall'arbitro sul secondo tocco (doppia, trattenuta): punto all'avversario",
+      '=': "fallo fischiato sul secondo tocco (doppia, trattenuta): punto alla squadra avversaria",
     },
   },
   F: {

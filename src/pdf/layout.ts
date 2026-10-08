@@ -93,7 +93,7 @@ export interface FormLayout {
   readonly title: Rect;
   /** Final score: two digit boxes for us, two for the opponent. */
   readonly score: { readonly team: readonly [Rect, Rect]; readonly opponent: readonly [Rect, Rect] };
-  /** "N° maglia" label over the player rows, "Libero" over the libero rows. */
+  /** "N° divisa" label over the player rows, "Libero" over the libero rows. */
   readonly numberHeaders: readonly { readonly kind: RowKind; readonly outer: Rect }[];
   readonly skills: readonly SkillHeader[];
   readonly rows: readonly FormRow[];

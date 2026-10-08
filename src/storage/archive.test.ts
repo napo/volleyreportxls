@@ -48,3 +48,36 @@ test('imported matches never overwrite: same data is skipped, different data bec
   expect((await archive.getMatch(saved.id))!.teamName).toBe('A');
   archive.close();
 });
+
+test('links are remembered by the team, and deleting an athlete unlinks it everywhere', async () => {
+  const archive = await open();
+  const match = await archive.saveMatch({ ...newMatchRecord(), teamName: 'Trento', competition: 'U18', players: [{ number: 7, name: '' }] });
+  await archive.saveAthlete({ id: 'giulia', name: 'Giulia Rossi', note: '' });
+  await archive.saveLink([{ ...match, players: [{ number: 7, name: 'Giulia Rossi', athleteId: 'giulia' }] }], 'Trento', 'U18', 7, 'giulia');
+  expect(await archive.knownPlayers('Trento', 'U18')).toEqual([{ number: 7, name: 'Giulia Rossi', athleteId: 'giulia' }]);
+  const next = withKnownNames({ ...newMatchRecord(), teamName: 'Trento', competition: 'U18' }, await archive.knownPlayers('Trento', 'U18'), [7]);
+  expect(next.players).toEqual([{ number: 7, name: 'Giulia Rossi', athleteId: 'giulia' }]);
+
+  await archive.deleteAthlete('giulia');
+  expect(await archive.listAthletes()).toEqual([]);
+  expect((await archive.getMatch(match.id))!.players).toEqual([{ number: 7, name: 'Giulia Rossi' }]);
+  expect(await archive.knownPlayers('Trento', 'U18')).toEqual([{ number: 7, name: 'Giulia Rossi' }]);
+  archive.close();
+});
+
+test('an archive of version 1 is upgraded keeping its matches', async () => {
+  const { openDB } = await import('idb');
+  const name = `test-${n++}`;
+  const old = await openDB(name, 1, {
+    upgrade(db) {
+      db.createObjectStore('matches', { keyPath: 'id' }).createIndex('updatedAt', 'updatedAt');
+      db.createObjectStore('teams', { keyPath: 'key' });
+    },
+  });
+  await old.put('matches', { ...newMatchRecord(), id: 'old1' });
+  old.close();
+  const archive = await Archive.open(name);
+  expect((await archive.listMatches()).map((m) => m.id)).toEqual(['old1']);
+  expect(await archive.listAthletes()).toEqual([]);
+  archive.close();
+});

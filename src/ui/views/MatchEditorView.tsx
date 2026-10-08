@@ -3,6 +3,7 @@
  * score of every set, the players' names. Every change is saved on the device.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { athleteLabel, rosterEntries } from '../../athletes/matching';
 import { findAnomalies } from '../../matches/checks';
 import { useI18n } from '../../i18n';
 import { type MatchRecord, type SetRecord, liberoNumbers, matchWinner, setIsPlayed, shirtNumbers, withNumbersFromPreviousSet } from '../../matches/record';
@@ -95,6 +96,8 @@ export function MatchEditorView({ id }: { id: string }) {
   const [missing, setMissing] = useState(false);
   const [saved, setSaved] = useState(true);
   const [setNumber, setSetNumber] = useState(1);
+  // Athletes of the archive, by label (the unnamed ones by number and roster).
+  const [athletes, setAthletes] = useState<readonly { id: string; label: string }[]>([]);
   const pending = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Whether the match was over at the last check: the tabellino opens by
   // itself only when entering a score ends it.
@@ -108,6 +111,11 @@ export function MatchEditorView({ id }: { id: string }) {
       if (!found) return setMissing(true);
       over.current = matchWinner(found) !== null;
       setRecord(found);
+    });
+    Promise.all([archive.listAthletes(), archive.listMatches()]).then(([list, records]) => {
+      const entries = rosterEntries(records);
+      const labelled = list.map((a) => ({ id: a.id, label: athleteLabel(a, entries) + (a.note.trim() ? ` (${a.note.trim()})` : '') }));
+      setAthletes(labelled.sort((a, b) => a.label.localeCompare(b.label)));
     });
   }, [archive, id]);
 
@@ -200,7 +208,7 @@ export function MatchEditorView({ id }: { id: string }) {
           <a className="vr-btn vr-btn-secondary" href={href('foto', record.id)}>
             {t.addPhotos}
           </a>
-          <button type="button" className="vr-btn vr-btn-secondary" onClick={() => exportMatches([record], m.matches.fileKind)}>
+          <button type="button" className="vr-btn vr-btn-secondary" onClick={() => exportMatches(archive, [record], m.matches.fileKind)}>
             {t.export}
           </button>
           <button type="button" className="vr-btn vr-btn-secondary vr-btn-danger" onClick={remove}>
@@ -290,10 +298,29 @@ export function MatchEditorView({ id }: { id: string }) {
                   value={record.players.find((p) => p.number === number)?.name ?? ''}
                   placeholder={t.namePlaceholder}
                   onChange={(e) => {
-                    const players = [...record.players.filter((p) => p.number !== number), { number, name: e.target.value }];
+                    const current = record.players.find((p) => p.number === number);
+                    const players = [...record.players.filter((p) => p.number !== number), { ...current, number, name: e.target.value }];
                     change({ ...record, players });
                   }}
                 />
+                {athletes.length > 0 && (
+                  <select
+                    aria-label={`${t.athlete} ${number}`}
+                    value={record.players.find((p) => p.number === number)?.athleteId ?? ''}
+                    onChange={(e) => {
+                      const { athleteId: _, ...current } = record.players.find((p) => p.number === number) ?? { number, name: '' };
+                      const player = e.target.value ? { ...current, athleteId: e.target.value } : current;
+                      change({ ...record, players: [...record.players.filter((p) => p.number !== number), player] });
+                    }}
+                  >
+                    <option value="">{t.noAthlete}</option>
+                    {athletes.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.label}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </label>
             ))}
           </div>

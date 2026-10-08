@@ -2,7 +2,8 @@
  * ".vrp" files (VolleyReport Paper): matches exported from one device and
  * imported on another. A zip archive with
  * - manifest.json: format name and version, app version, export time, match ids;
- * - matches/<id>.json: one MatchRecord each.
+ * - matches/<id>.json: one MatchRecord each;
+ * - athletes.json (optional): the athletes the players of the matches are linked to.
  * Later versions may add the photos of the sheets next to their match.
  *
  * Importing never trusts the file: every record is checked and rebuilt field
@@ -12,6 +13,7 @@
 import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate';
 import { EVALUATIONS, SKILLS, type ScoutCodeString, formatScoutCode, isAllowed, scoutCode } from '../domain/codes';
 import { SET_NUMBERS, type SetNumber } from '../domain/model';
+import type { Athlete } from '../athletes/matching';
 import type { MatchRecord, PlayerRecord, SetRecord, TallyRowRecord } from './record';
 
 export const VRP_EXTENSION = 'vrp';
@@ -27,10 +29,13 @@ interface Manifest {
   readonly matches: readonly string[];
 }
 
-export function exportVrp(records: readonly MatchRecord[], appVersion: string, now = new Date()): Uint8Array {
+export function exportVrp(records: readonly MatchRecord[], appVersion: string, now = new Date(), athletes: readonly Athlete[] = []): Uint8Array {
   const manifest: Manifest = { format: FORMAT, version: VERSION, appVersion, exportedAt: now.toISOString(), matches: records.map((r) => r.id) };
   const files: Record<string, Uint8Array> = { 'manifest.json': strToU8(JSON.stringify(manifest, null, 2)) };
   for (const record of records) files[`matches/${record.id}.json`] = strToU8(JSON.stringify(record, null, 2));
+  const linked = new Set(records.flatMap((r) => r.players.flatMap((p) => (p.athleteId ? [p.athleteId] : []))));
+  const used = athletes.filter((a) => linked.has(a.id));
+  if (used.length) files['athletes.json'] = strToU8(JSON.stringify(used, null, 2));
   return zipSync(files, { level: 6 });
 }
 
@@ -56,6 +61,7 @@ const KNOWN_CODES = new Set<string>(SKILLS.flatMap((s) => EVALUATIONS.map((e) =>
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 const text = (v: unknown, max = 200) => (typeof v === 'string' ? v.slice(0, max) : '');
 const count = (v: unknown) => (typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= 999 ? v : null);
+const isId = (v: unknown): v is string => typeof v === 'string' && /^[a-z0-9]{4,40}$/i.test(v);
 const shirt = (v: unknown) => (typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= 99 ? v : null);
 
 function readRow(v: unknown): TallyRowRecord | null {
@@ -80,11 +86,15 @@ function readSet(v: unknown): SetRecord | null {
 
 /** A MatchRecord rebuilt from untrusted JSON, or null when it is not one. */
 export function readMatchRecord(v: unknown): MatchRecord | null {
-  if (!isObject(v) || typeof v.id !== 'string' || !/^[a-z0-9]{4,40}$/i.test(v.id) || !Array.isArray(v.sets)) return null;
+  if (!isObject(v) || !isId(v.id) || !Array.isArray(v.sets)) return null;
   const sets = v.sets.map(readSet);
   if (sets.some((s) => s === null)) return null;
   const players: PlayerRecord[] = Array.isArray(v.players)
-    ? v.players.flatMap((p) => (isObject(p) && shirt(p.number) !== null ? [{ number: shirt(p.number)!, name: text(p.name, 80) }] : []))
+    ? v.players.flatMap((p) => {
+        if (!isObject(p) || shirt(p.number) === null) return [];
+        const player = { number: shirt(p.number)!, name: text(p.name, 80) };
+        return [isId(p.athleteId) ? { ...player, athleteId: p.athleteId } : player];
+      })
     : [];
   const date = text(v.date, 10);
   return {
@@ -101,11 +111,23 @@ export function readMatchRecord(v: unknown): MatchRecord | null {
   };
 }
 
-/** The matches of a .vrp file; throws VrpError when the file is not one. */
-export function importVrp(bytes: Uint8Array): MatchRecord[] {
+function readAthletes(v: unknown): Athlete[] {
+  if (!Array.isArray(v)) return [];
+  return v.flatMap((a) => (isObject(a) && isId(a.id) ? [{ id: a.id, name: text(a.name, 80), note: text(a.note, 200) }] : []));
+}
+
+export interface VrpContent {
+  readonly matches: MatchRecord[];
+  readonly athletes: Athlete[];
+}
+
+/** The matches (and athletes) of a .vrp file; throws VrpError when the file is not one. */
+export function importVrp(bytes: Uint8Array): VrpContent {
   let files: Record<string, Uint8Array>;
   try {
-    files = unzipSync(bytes, { filter: (f) => f.name === 'manifest.json' || /^matches\/[^/]+\.json$/.test(f.name) });
+    files = unzipSync(bytes, {
+      filter: (f) => f.name === 'manifest.json' || f.name === 'athletes.json' || /^matches\/[^/]+\.json$/.test(f.name),
+    });
   } catch {
     throw new VrpError('not-zip');
   }
@@ -125,5 +147,5 @@ export function importVrp(bytes: Uint8Array): MatchRecord[] {
     .filter((name) => name.startsWith('matches/'))
     .map((name) => readMatchRecord(json(name)));
   if (records.length === 0 || records.some((r) => r === null)) throw new VrpError('invalid');
-  return records as MatchRecord[];
+  return { matches: records as MatchRecord[], athletes: files['athletes.json'] ? readAthletes(json('athletes.json')) : [] };
 }

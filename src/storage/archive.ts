@@ -1,10 +1,12 @@
 /**
- * Local archive (IndexedDB): matches, and the names of the players of every
- * team in a competition, so that a new match of the same team gets the names
- * for the shirt numbers already filled in. Nothing leaves the device.
+ * Local archive (IndexedDB): matches, the athletes, and the names (and
+ * athletes) of the players of every team in a competition, so that a new
+ * match of the same team gets them for the shirt numbers already filled in.
+ * Nothing leaves the device.
  */
 
 import { type DBSchema, type IDBPDatabase, openDB } from 'idb';
+import type { Athlete } from '../athletes/matching';
 import { type MatchRecord, type PlayerRecord, newId, teamKey } from '../matches/record';
 
 export interface ImportResult {
@@ -27,20 +29,24 @@ export interface TeamRecord {
 interface ArchiveSchema extends DBSchema {
   matches: { key: string; value: MatchRecord; indexes: { updatedAt: string } };
   teams: { key: string; value: TeamRecord };
+  athletes: { key: string; value: Athlete };
 }
 
 const DB_NAME = 'volleyreport';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 export class Archive {
   private constructor(private readonly db: IDBPDatabase<ArchiveSchema>) {}
 
   static async open(name = DB_NAME): Promise<Archive> {
     const db = await openDB<ArchiveSchema>(name, DB_VERSION, {
-      upgrade(database) {
-        const matches = database.createObjectStore('matches', { keyPath: 'id' });
-        matches.createIndex('updatedAt', 'updatedAt');
-        database.createObjectStore('teams', { keyPath: 'key' });
+      upgrade(database, oldVersion) {
+        if (oldVersion < 1) {
+          const matches = database.createObjectStore('matches', { keyPath: 'id' });
+          matches.createIndex('updatedAt', 'updatedAt');
+          database.createObjectStore('teams', { keyPath: 'key' });
+        }
+        if (oldVersion < 2) database.createObjectStore('athletes', { keyPath: 'id' });
       },
     });
     return new Archive(db);
@@ -55,20 +61,77 @@ export class Archive {
     return this.db.get('matches', id);
   }
 
-  /** Saves the match and remembers the names of its players for the team. */
+  /** Saves the match and remembers the names and athletes of its players for the team. */
   async saveMatch(record: MatchRecord): Promise<MatchRecord> {
-    const saved = { ...record, updatedAt: new Date().toISOString() };
+    return (await this.saveMatches([record]))[0]!;
+  }
+
+  /** Saves several matches at once (all or none). */
+  async saveMatches(records: readonly MatchRecord[]): Promise<MatchRecord[]> {
+    const now = new Date().toISOString();
     const tx = this.db.transaction(['matches', 'teams'], 'readwrite');
-    await tx.objectStore('matches').put(saved);
-    const named = saved.players.filter((p) => p.name.trim() !== '');
-    if (saved.teamName.trim() && named.length > 0) {
-      const key = teamKey(saved.teamName, saved.competition);
-      const known = (await tx.objectStore('teams').get(key))?.players ?? [];
-      const players = [...known.filter((p) => !named.some((n) => n.number === p.number)), ...named].sort((a, b) => a.number - b.number);
-      await tx.objectStore('teams').put({ key, teamName: saved.teamName, competition: saved.competition, players, updatedAt: saved.updatedAt });
+    const saved = records.map((r) => ({ ...r, updatedAt: now }));
+    for (const record of saved) {
+      await tx.objectStore('matches').put(record);
+      const known = record.players.filter((p) => p.name.trim() !== '' || p.athleteId);
+      if (!record.teamName.trim() || known.length === 0) continue;
+      const key = teamKey(record.teamName, record.competition);
+      const before = (await tx.objectStore('teams').get(key))?.players ?? [];
+      const players = [...before.filter((p) => !known.some((n) => n.number === p.number)), ...known].sort((a, b) => a.number - b.number);
+      await tx.objectStore('teams').put({ key, teamName: record.teamName, competition: record.competition, players, updatedAt: now });
     }
     await tx.done;
     return saved;
+  }
+
+  /**
+   * Matches whose players with this number were linked to an athlete (or
+   * unlinked): the team remembers the link for its next matches.
+   */
+  async saveLink(records: readonly MatchRecord[], teamName: string, competition: string, number: number, athleteId: string | null): Promise<void> {
+    await this.saveMatches(records);
+    if (!teamName.trim()) return;
+    const key = teamKey(teamName, competition);
+    const team = await this.db.get('teams', key);
+    const before = team?.players ?? [];
+    const current = before.find((p) => p.number === number);
+    const name = current?.name ?? records.flatMap((r) => r.players.filter((p) => p.number === number && p.name.trim()).map((p) => p.name))[0] ?? '';
+    const player: PlayerRecord = athleteId ? { number, name, athleteId } : { number, name };
+    const players = [...before.filter((p) => p.number !== number), ...(player.name.trim() || athleteId ? [player] : [])].sort((a, b) => a.number - b.number);
+    await this.db.put('teams', { key, teamName, competition, players, updatedAt: new Date().toISOString() });
+  }
+
+  listAthletes(): Promise<Athlete[]> {
+    return this.db.getAll('athletes');
+  }
+
+  async saveAthlete(athlete: Athlete): Promise<Athlete> {
+    await this.db.put('athletes', athlete);
+    return athlete;
+  }
+
+  /** Deletes the athlete and unlinks it from every match and team. */
+  async deleteAthlete(id: string): Promise<void> {
+    const tx = this.db.transaction(['matches', 'teams', 'athletes'], 'readwrite');
+    const unlink = <T extends { players: readonly PlayerRecord[] }>(r: T): T | null =>
+      r.players.some((p) => p.athleteId === id) ? { ...r, players: r.players.map(({ athleteId, ...p }) => (athleteId === id ? p : { ...p, athleteId })) } : null;
+    for (const match of await tx.objectStore('matches').getAll()) {
+      const changed = unlink(match);
+      if (changed) await tx.objectStore('matches').put(changed);
+    }
+    for (const team of await tx.objectStore('teams').getAll()) {
+      const changed = unlink(team);
+      if (changed) await tx.objectStore('teams').put(changed);
+    }
+    await tx.objectStore('athletes').delete(id);
+    await tx.done;
+  }
+
+  /** Athletes read from a file: those already present (same id) are kept as they are. */
+  async importAthletes(athletes: readonly Athlete[]): Promise<void> {
+    const tx = this.db.transaction('athletes', 'readwrite');
+    for (const athlete of athletes) if (!(await tx.store.get(athlete.id))) await tx.store.put(athlete);
+    await tx.done;
   }
 
   /**
@@ -107,12 +170,17 @@ export class Archive {
   }
 }
 
-/** Fills in the missing names of the record from the archive (names already typed are kept). */
+/**
+ * Fills in the missing names and athletes of the record from the archive
+ * (those already set are kept).
+ */
 export function withKnownNames(record: MatchRecord, known: readonly PlayerRecord[], numbers: readonly number[]): MatchRecord {
-  const players = numbers.map((number) => {
+  const players = numbers.map((number): PlayerRecord => {
     const typed = record.players.find((p) => p.number === number);
-    if (typed?.name.trim()) return typed;
-    return { number, name: known.find((p) => p.number === number)?.name ?? typed?.name ?? '' };
+    const remembered = known.find((p) => p.number === number);
+    const name = typed?.name.trim() ? typed.name : remembered?.name ?? typed?.name ?? '';
+    const athleteId = typed?.athleteId ?? remembered?.athleteId;
+    return athleteId ? { number, name, athleteId } : { number, name };
   });
   return { ...record, players };
 }

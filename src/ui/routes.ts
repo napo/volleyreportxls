@@ -1,12 +1,12 @@
 /** Hash routes: "#tab", "#tab/param" (e.g. "#partita/k3x9…", "#tabellino/esempio"). */
 
 /** Tabs of the main navigation, in order (their names are in the i18n texts). */
-export const TABS = ['partite', 'tabellino', 'grafici', 'informazioni'] as const;
+export const TABS = ['partite', 'tabellino', 'grafici', 'storico', 'informazioni'] as const;
 
 export type Tab = (typeof TABS)[number];
 
 /** Pages that live inside a tab. */
-const PAGES = { partita: 'partite', foto: 'partite', modulo: 'informazioni' } as const satisfies Record<string, Tab>;
+const PAGES = { partita: 'partite', foto: 'partite', atleta: 'storico', modulo: 'informazioni' } as const satisfies Record<string, Tab>;
 
 export interface Route {
   readonly name: Tab | keyof typeof PAGES;

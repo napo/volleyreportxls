@@ -8,6 +8,7 @@ import { GuideDialog } from './components/GuideDialog';
 import { UpdateNotice } from './components/UpdateNotice';
 import { useMatchReport } from './match-report';
 import { type Route, SAMPLE_ID, TABS, type Tab, href, isSectionPage, parseRoute, tabOf } from './routes';
+import { AthletesView } from './views/AthletesView';
 import { HomeView } from './views/HomeView';
 import { InfoView } from './views/InfoView';
 import { MatchEditorView } from './views/MatchEditorView';
@@ -17,6 +18,7 @@ import { TabellinoView } from './views/TabellinoView';
 
 // Charts (ECharts) are loaded only when the tab is opened.
 const GraficiView = lazy(() => import('./views/GraficiView'));
+const AthleteView = lazy(() => import('./views/AthleteView'));
 
 /** Tabellino and Grafici of the match in the route (the example when none). */
 function ReportPage({ route }: { route: Route }) {
@@ -60,6 +62,15 @@ function writeLastMatch(id: string) {
   }
 }
 
+function AthleteRoute({ id }: { id: string }) {
+  const { m } = useI18n();
+  return (
+    <Suspense fallback={<p className="vr-note">{m.common.loadingCharts}</p>}>
+      <AthleteView id={id} />
+    </Suspense>
+  );
+}
+
 function Page({ route }: { route: Route }) {
   switch (route.name) {
     case 'foto':
@@ -69,6 +80,10 @@ function Page({ route }: { route: Route }) {
     case 'tabellino':
     case 'grafici':
       return <ReportPage route={route} />;
+    case 'storico':
+      return <AthletesView />;
+    case 'atleta':
+      return route.param ? <AthleteRoute key={route.param} id={route.param} /> : <AthletesView />;
     case 'informazioni':
     case 'modulo':
       return <InfoView />;

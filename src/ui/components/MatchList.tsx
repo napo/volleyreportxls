@@ -45,7 +45,7 @@ export function MatchList() {
   };
 
   const exportAll = async (records: readonly MatchRecord[]) => {
-    const saved = await exportMatches(records, t.fileKind);
+    const saved = await exportMatches(archive, records, t.fileKind);
     if (saved) setMessage({ text: t.exported(saved.path ?? saved.fileName) });
   };
 

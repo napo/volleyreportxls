@@ -10,8 +10,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ScoutCodeString } from '../../domain/codes';
 import { SET_NUMBERS, type SetNumber, type SetScore } from '../../domain/model';
 import type { SheetResult } from '../../image-processing/read-sheet';
-import { correctionKey, ignoredTouches, setFromSheet, withSets } from '../../matches/from-sheets';
-import { type MatchRecord, newMatchRecord, newId, setIsPlayed } from '../../matches/record';
+import { type SetMerge, correctionKey, ignoredTouches, numbersNotInAll, setFromSheet, withSets } from '../../matches/from-sheets';
+import { type MatchRecord, type SetRecord, newMatchRecord, newId, setIsPlayed } from '../../matches/record';
 import { mobilePlatform } from '../../platform/updates';
 import { useI18n } from '../../i18n';
 import { useArchive } from '../archive-context';
@@ -50,6 +50,16 @@ function scoreOf(photo: Photo): SetScore | null {
   return { team: Number(photo.score.team), opponent: Number(photo.score.opponent) };
 }
 
+function setOf(photo: Photo): SetRecord {
+  return setFromSheet({
+    setNumber: photo.setNumber!,
+    rows: photo.result!.rows,
+    numbers: Object.fromEntries(Object.entries(photo.numbers).map(([k, v]) => [Number(k), digits(v) === '' ? null : Number(digits(v))])),
+    corrections: photo.corrections,
+    score: scoreOf(photo),
+  });
+}
+
 function urlsOf(result: SheetResult): Urls {
   const cells: Record<string, string> = {};
   result.rows.forEach((row) => row.cells.forEach((cell, i) => cell.crop && (cells[`${row.index}:${i}`] = imageUrl(cell.crop))));
@@ -63,6 +73,8 @@ export function AcquisitionView({ matchId }: { matchId: string | null }) {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [camera, setCamera] = useState(false);
   const [target, setTarget] = useState<MatchRecord | null>(null);
+  // Sets with more than one sheet (in the photos or already in the match): the user decides.
+  const [merge, setMerge] = useState<Partial<Record<SetNumber, SetMerge>>>({});
   const [dragging, setDragging] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const cameraInput = useRef<HTMLInputElement>(null);
@@ -129,8 +141,18 @@ export function AcquisitionView({ matchId }: { matchId: string | null }) {
   const setCounts = new Map<number, number>();
   read_.forEach((p) => p.setNumber && setCounts.set(p.setNumber, (setCounts.get(p.setNumber) ?? 0) + 1));
   const duplicate = (p: Photo) => p.setNumber !== null && (setCounts.get(p.setNumber) ?? 0) > 1;
+  const saved = (n: SetNumber) => (target ? target.sets.find((s) => s.number === n) ?? null : null);
+  const conflicts = SET_NUMBERS.filter((n) => {
+    const sheets = setCounts.get(n) ?? 0;
+    const inMatch = saved(n);
+    return sheets > 1 || (sheets > 0 && inMatch !== null && setIsPlayed(inMatch));
+  });
+  const savedConflict = (n: SetNumber) => (setCounts.get(n) ?? 0) > 0 && saved(n) !== null && setIsPlayed(saved(n)!);
+  const decided = (n: SetNumber) => merge[n] !== undefined;
   const waiting = photos.some((p) => p.status === 'reading');
-  const blocking = photos.some((p) => p.status === 'failed' || p.status === 'error' || (p.status === 'read' && (p.setNumber === null || duplicate(p))));
+  const blocking =
+    photos.some((p) => p.status === 'failed' || p.status === 'error' || (p.status === 'read' && p.setNumber === null)) ||
+    conflicts.some((n) => !decided(n));
   const missingNumbers = read_.reduce(
     (n, p) => n + p.result!.rows.filter((r) => total(r) > 0 && digits(p.numbers[r.index] ?? '') === '').length,
     0,
@@ -139,22 +161,15 @@ export function AcquisitionView({ matchId }: { matchId: string | null }) {
 
   const confirm = async () => {
     if (!archive) return;
-    const sets = read_.map((p) =>
-      setFromSheet({
-        setNumber: p.setNumber!,
-        rows: p.result!.rows,
-        numbers: Object.fromEntries(Object.entries(p.numbers).map(([k, v]) => [Number(k), digits(v) === '' ? null : Number(digits(v))])),
-        corrections: p.corrections,
-        score: scoreOf(p),
-      }),
-    );
-    let record = target ?? newMatchRecord();
-    if (target) {
-      const overwritten = sets.filter((s) => setIsPlayed(target.sets.find((x) => x.number === s.number)!)).map((s) => s.number);
-      if (overwritten.length && !window.confirm(t.summary.overwrite(overwritten))) return;
-    }
-    record = await archive.saveMatch(withSets(record, sets));
+    const sum = new Set(conflicts.filter((n) => savedConflict(n) && merge[n] === 'sum'));
+    const record = await archive.saveMatch(withSets(target ?? newMatchRecord(), read_.map(setOf), sum));
     navigate('partita', record.id);
+  };
+
+  /** Shirt numbers not written on every sheet that will be summed for set n. */
+  const unmatched = (n: SetNumber) => {
+    const sheets = read_.filter((p) => p.setNumber === n).map(setOf);
+    return numbersNotInAll(savedConflict(n) && merge[n] === 'sum' ? [saved(n)!, ...sheets] : sheets);
   };
 
   const otherNumbers = (photo: Photo) =>
@@ -212,10 +227,14 @@ export function AcquisitionView({ matchId }: { matchId: string | null }) {
         <SheetCard
           key={photo.id}
           photo={photo}
-          duplicate={duplicate(photo)}
+          duplicate={duplicate(photo) && !decided(photo.setNumber!)}
           others={otherNumbers(photo)}
           onChange={(change) => update(photo.id, change)}
-          onRemove={() => setPhotos((list) => list.filter((p) => p.id !== photo.id))}
+          onRemove={() => {
+            setPhotos((list) => list.filter((p) => p.id !== photo.id));
+            // A new photo of the same set asks again.
+            if (photo.setNumber) setMerge((c) => ({ ...c, [photo.setNumber!]: undefined }));
+          }}
           onReplace={() => {
             replacing.current = photo.id;
             fileInput.current?.click();
@@ -225,6 +244,42 @@ export function AcquisitionView({ matchId }: { matchId: string | null }) {
 
       {photos.length > 0 && (
         <section className="vr-card vr-acq-summary" aria-live="polite">
+          {!waiting && conflicts.length > 0 && (
+            <div className="vr-acq-merge">
+              <h2>{t.merge.title}</h2>
+              {conflicts.map((n) => {
+                const sheets = setCounts.get(n) ?? 0;
+                const numbers = unmatched(n);
+                return (
+                  <fieldset key={n} className="vr-choices">
+                    <legend>
+                      {t.sheet.set} {n}
+                    </legend>
+                    <p className="vr-note">{savedConflict(n) ? t.merge.saved(sheets) : t.merge.sheets(sheets)}</p>
+                    {savedConflict(n) ? (
+                      (['sum', 'replace'] as const).map((choice) => (
+                        <label key={choice} className="vr-choice">
+                          <input type="radio" name={`merge-${n}`} checked={merge[n] === choice} onChange={() => setMerge((c) => ({ ...c, [n]: choice }))} />
+                          {t.merge[choice]}
+                        </label>
+                      ))
+                    ) : (
+                      <label className="vr-choice">
+                        <input
+                          type="checkbox"
+                          checked={merge[n] === 'sum'}
+                          onChange={(e) => setMerge((c) => ({ ...c, [n]: e.target.checked ? 'sum' : undefined }))}
+                        />
+                        {t.merge.sumSheets}
+                      </label>
+                    )}
+                    {(sheets > 1 || merge[n] === 'sum') && numbers.length > 0 && <p className="vr-message warning">{t.merge.numbers(numbers)}</p>}
+                  </fieldset>
+                );
+              })}
+              <p className="vr-note">{t.merge.score}</p>
+            </div>
+          )}
           {waiting ? (
             <p>{t.summary.waiting}</p>
           ) : blocking ? (

@@ -3,7 +3,7 @@ import { formatBracketedPercent, formatCount, formatPercent, formatRating, forma
 import type { Tabellino, TabellinoLine, TabellinoPlayerRow, TabellinoSkills } from '../../report/tabellino';
 import { useI18n } from '../../i18n';
 
-function SkillCells({ row }: { row: TabellinoSkills }) {
+export function SkillCells({ row }: { row: TabellinoSkills }) {
   return (
     <>
       <td className="num group-start">{formatCount(row.serve.total)}</td>
@@ -23,7 +23,7 @@ function SkillCells({ row }: { row: TabellinoSkills }) {
   );
 }
 
-function SkillHeaders() {
+export function SkillHeaders() {
   const t = useI18n().m.scoresheet;
   return (
     <>
@@ -35,7 +35,7 @@ function SkillHeaders() {
   );
 }
 
-function SkillGroups() {
+export function SkillGroups() {
   const t = useI18n().m.scoresheet;
   return (
     <>
@@ -51,7 +51,7 @@ function balanceClass(balance: number) {
   return balance > 0 ? 'num positive' : balance < 0 ? 'num negative' : 'num';
 }
 
-function PointsCells({ line }: { line: TabellinoLine }) {
+export function PointsCells({ line }: { line: TabellinoLine }) {
   return (
     <>
       <td className="num group-start">{formatCount(line.points.total)}</td>
