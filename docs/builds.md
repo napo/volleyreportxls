@@ -73,4 +73,4 @@ npm run desktop:dev                       # app desktop con ricarica a caldo
 npm run desktop:build -- --bundles deb    # pacchetto Linux (richiede libwebkit2gtk-4.1-dev)
 ```
 
-Gli identificativi: app `it.napolitano.volleyreport`, crate Rust `volleyreport`. Le icone (`src-tauri/icons/`) sono generate dal logo con `npx tauri icon src-tauri/app-icon.png -o src-tauri/icons`.
+Gli identificativi: app `it.napolitano.volleyreport`, crate Rust `volleyreport`. Le icone (`src-tauri/icons/`) sono generate dal logo con `npx tauri icon src-tauri/app-icon.png -o src-tauri/icons`. I progetti Android e iOS in `src-tauri/gen/` vengono creati in CI da `tauri android|ios init` con le icone predefinite di Tauri: subito dopo il workflow rilancia `tauri icon src-tauri/app-icon.png`, che vi scrive quelle del logo.

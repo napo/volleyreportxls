@@ -123,6 +123,9 @@ jobs:
           echo "NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
       - run: npm ci
       - run: npm run tauri -- android init --ci --skip-targets-install
+      # init writes Tauri's default icons into src-tauri/gen: put the logo in their place.
+      - name: Icone dal logo
+        run: npm run tauri -- icon src-tauri/app-icon.png
       - name: Firma release (facoltativa)
         run: python3 scripts/android-signing.py
         env:
@@ -183,6 +186,9 @@ jobs:
           key: aarch64-apple-ios
       - run: npm ci
       - run: npm run tauri -- ios init --ci --skip-targets-install
+      # init writes Tauri's default icons into src-tauri/gen: put the logo in their place.
+      - name: Icone dal logo
+        run: npm run tauri -- icon src-tauri/app-icon.png
       - name: Build iOS/iPadOS senza credenziali Apple
         run: npm run tauri -- ios build --target aarch64 --no-sign --ci -- --locked
       # Unsigned IPA for sideloading (AltStore, Sideloadly, TrollStore): the .app inside a Payload folder.
