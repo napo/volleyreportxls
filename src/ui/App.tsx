@@ -81,9 +81,9 @@ function Page({ route }: { route: Route }) {
     case 'grafici':
       return <ReportPage route={route} />;
     case 'storico':
-      return <AthletesView />;
+      return <AthletesView squadId={route.param} />;
     case 'atleta':
-      return route.param ? <AthleteRoute key={route.param} id={route.param} /> : <AthletesView />;
+      return route.param ? <AthleteRoute key={route.param} id={route.param} /> : <AthletesView squadId={null} />;
     case 'informazioni':
     case 'modulo':
       return <InfoView />;

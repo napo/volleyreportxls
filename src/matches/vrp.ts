@@ -3,7 +3,8 @@
  * imported on another. A zip archive with
  * - manifest.json: format name and version, app version, export time, match ids;
  * - matches/<id>.json: one MatchRecord each;
- * - athletes.json (optional): the athletes the players of the matches are linked to.
+ * - athletes.json (optional): the athletes the players of the matches are linked to;
+ * - squads.json (optional): the team names joined into one squad.
  * Later versions may add the photos of the sheets next to their match.
  *
  * Importing never trusts the file: every record is checked and rebuilt field
@@ -14,6 +15,7 @@ import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate';
 import { EVALUATIONS, SKILLS, type ScoutCodeString, formatScoutCode, isAllowed, scoutCode } from '../domain/codes';
 import { SET_NUMBERS, type SetNumber } from '../domain/model';
 import type { Athlete } from '../athletes/matching';
+import { type Squad, normalizeTeam } from '../athletes/squads';
 import type { MatchRecord, PlayerRecord, SetRecord, TallyRowRecord } from './record';
 
 export const VRP_EXTENSION = 'vrp';
@@ -29,13 +31,22 @@ interface Manifest {
   readonly matches: readonly string[];
 }
 
-export function exportVrp(records: readonly MatchRecord[], appVersion: string, now = new Date(), athletes: readonly Athlete[] = []): Uint8Array {
+export function exportVrp(
+  records: readonly MatchRecord[],
+  appVersion: string,
+  now = new Date(),
+  athletes: readonly Athlete[] = [],
+  squads: readonly Squad[] = [],
+): Uint8Array {
   const manifest: Manifest = { format: FORMAT, version: VERSION, appVersion, exportedAt: now.toISOString(), matches: records.map((r) => r.id) };
   const files: Record<string, Uint8Array> = { 'manifest.json': strToU8(JSON.stringify(manifest, null, 2)) };
   for (const record of records) files[`matches/${record.id}.json`] = strToU8(JSON.stringify(record, null, 2));
   const linked = new Set(records.flatMap((r) => r.players.flatMap((p) => (p.athleteId ? [p.athleteId] : []))));
   const used = athletes.filter((a) => linked.has(a.id));
   if (used.length) files['athletes.json'] = strToU8(JSON.stringify(used, null, 2));
+  const teams = new Set(records.map((r) => normalizeTeam(r.teamName)));
+  const joined = squads.filter((s) => s.teamNames.some((n) => teams.has(normalizeTeam(n))));
+  if (joined.length) files['squads.json'] = strToU8(JSON.stringify(joined, null, 2));
   return zipSync(files, { level: 6 });
 }
 
@@ -116,9 +127,19 @@ function readAthletes(v: unknown): Athlete[] {
   return v.flatMap((a) => (isObject(a) && isId(a.id) ? [{ id: a.id, name: text(a.name, 80), note: text(a.note, 200) }] : []));
 }
 
+function readSquads(v: unknown): Squad[] {
+  if (!Array.isArray(v)) return [];
+  return v.flatMap((s) => {
+    if (!isObject(s) || !isId(s.id) || !Array.isArray(s.teamNames)) return [];
+    const teamNames = s.teamNames.map((n) => text(n)).filter((n) => n.trim());
+    return teamNames.length > 1 ? [{ id: s.id, name: text(s.name), teamNames }] : [];
+  });
+}
+
 export interface VrpContent {
   readonly matches: MatchRecord[];
   readonly athletes: Athlete[];
+  readonly squads: Squad[];
 }
 
 /** The matches (and athletes) of a .vrp file; throws VrpError when the file is not one. */
@@ -126,7 +147,7 @@ export function importVrp(bytes: Uint8Array): VrpContent {
   let files: Record<string, Uint8Array>;
   try {
     files = unzipSync(bytes, {
-      filter: (f) => f.name === 'manifest.json' || f.name === 'athletes.json' || /^matches\/[^/]+\.json$/.test(f.name),
+      filter: (f) => ['manifest.json', 'athletes.json', 'squads.json'].includes(f.name) || /^matches\/[^/]+\.json$/.test(f.name),
     });
   } catch {
     throw new VrpError('not-zip');
@@ -147,5 +168,9 @@ export function importVrp(bytes: Uint8Array): VrpContent {
     .filter((name) => name.startsWith('matches/'))
     .map((name) => readMatchRecord(json(name)));
   if (records.length === 0 || records.some((r) => r === null)) throw new VrpError('invalid');
-  return { matches: records as MatchRecord[], athletes: files['athletes.json'] ? readAthletes(json('athletes.json')) : [] };
+  return {
+    matches: records as MatchRecord[],
+    athletes: files['athletes.json'] ? readAthletes(json('athletes.json')) : [],
+    squads: files['squads.json'] ? readSquads(json('squads.json')) : [],
+  };
 }

@@ -165,6 +165,17 @@ export const en: Messages = {
   athletes: {
     eyebrow: 'History',
     title: 'Athlete history analysis',
+    titleOf: (team: string) => `History analysis · ${team}`,
+    squad: 'Team',
+    squadTitle: 'Team names',
+    squadText:
+      'A club may have a different name in every competition, for instance with the sponsor. Join here the names of the same team: the history puts its competitions together. Similar names are only suggested.',
+    squadName: 'Name to show',
+    addName: 'Join another name',
+    join: 'Join',
+    similar: 'similar name',
+    separate: 'Separate',
+    noTeamName: 'Team without a name',
     lead: 'An athlete may wear different shirt numbers in different competitions, and sometimes the name is not written. To join the data of the matches you link the shirt numbers to the athletes: a link applies to every match of the same team and competition with that number.',
     toLinkTitle: 'To link',
     toLinkText: (n: number) =>
@@ -180,6 +191,7 @@ export const en: Messages = {
       name: 'Same name as an athlete already in the archive.',
       sameAs: (label: string) => `Same name as ${label}: with “Confirm all suggestions” they become the same athlete.`,
       ambiguous: 'Several athletes have this name: you choose.',
+      homonym: 'In this team two shirts with this name play in the same matches: they are two different athletes. Use the note to tell them apart.',
       new: 'No athlete with this name.',
       newNoName: 'No name written: the number alone is not enough to recognise the athlete in other competitions, link it yourself if needed.',
     },

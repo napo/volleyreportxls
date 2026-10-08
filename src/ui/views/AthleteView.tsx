@@ -11,6 +11,7 @@ import { useI18n } from '../../i18n';
 import { EvaluationChart } from '../charts/EvaluationChart';
 import { TrendChart } from '../charts/TrendChart';
 import { percent } from '../charts/tokens';
+import { inSquad } from '../../athletes/squads';
 import { useAthletesData } from '../athletes-data';
 import { PointsCells, SkillCells, SkillGroups, SkillHeaders } from '../components/TabellinoTable';
 import { href, navigate } from '../routes';
@@ -78,6 +79,23 @@ export default function AthleteView({ id }: { id: string }) {
       return next;
     });
 
+  // The matches by team name and competition (one roster each), in order of first match.
+  const groups = all.reduce<{ key: string; label: string; matches: typeof all }[]>((list, x) => {
+    const key = `${x.record.teamName}|${x.record.competition}`;
+    const group = list.find((g) => g.key === key);
+    if (group) group.matches.push(x);
+    else list.push({ key, label: [x.record.competition, x.record.teamName].filter((s) => s.trim()).join(' · ') || '—', matches: [x] });
+    return list;
+  }, []);
+  const toggleAll = (ids: readonly string[], include: boolean) =>
+    setExcluded((ex) => {
+      const next = new Set(ex);
+      ids.forEach((id) => (include ? next.delete(id) : next.add(id)));
+      return next;
+    });
+  const squadNames = data.squads.filter((s) => own.some((e) => inSquad(s, e.teamName))).map((s) => s.name);
+  const back = href('storico', data.squads.find((s) => own.some((e) => inSquad(s, e.teamName)))?.id);
+
   const unlink = async (key: string) => {
     const entry = own.find((e) => e.key === key)!;
     await archive.saveLink(linkEntry(data.records, entry, null), entry.teamName, entry.competition, entry.number, null);
@@ -92,7 +110,10 @@ export default function AthleteView({ id }: { id: string }) {
   return (
     <>
       <header className="vr-hero">
-        <p className="vr-eyebrow">{t.history}</p>
+        <p className="vr-eyebrow">
+          {t.history}
+          {squadNames.length > 0 && ` · ${squadNames.join(', ')}`}
+        </p>
         <h1>{athlete.name.trim() || title}</h1>
         <ul className="vr-meta">
           {athlete.note.trim() && <li>{athlete.note.trim()}</li>}
@@ -101,7 +122,7 @@ export default function AthleteView({ id }: { id: string }) {
           ))}
         </ul>
         <div className="vr-actions start">
-          <a className="vr-btn vr-btn-secondary" href={href('storico')}>
+          <a className="vr-btn vr-btn-secondary" href={back}>
             {t.back}
           </a>
         </div>
@@ -155,15 +176,33 @@ export default function AthleteView({ id }: { id: string }) {
               </button>
             </div>
           </div>
-          <fieldset className="vr-choices">
-            <legend className="vr-visually-hidden">{t.matchesTitle}</legend>
-            {all.map((x) => (
-              <label key={x.record.id} className="vr-choice">
-                <input type="checkbox" checked={!excluded.has(x.record.id)} onChange={() => toggle(x.record.id)} />
-                {formatDate(x.record.date)} {x.record.opponentName || m.common.opponent} · {x.record.competition || x.record.teamName} · n. {x.number}
-              </label>
-            ))}
-          </fieldset>
+          {groups.map(({ key, label, matches }) => {
+            const ids = matches.map((x) => x.record.id);
+            const on = ids.filter((id) => !excluded.has(id)).length;
+            return (
+              <fieldset key={key} className="vr-choices vr-match-group">
+                <legend>
+                  <label className="vr-check">
+                    <input
+                      type="checkbox"
+                      checked={on === ids.length}
+                      ref={(el) => {
+                        if (el) el.indeterminate = on > 0 && on < ids.length;
+                      }}
+                      onChange={() => toggleAll(ids, on < ids.length)}
+                    />
+                    {label}
+                  </label>
+                </legend>
+                {matches.map((x) => (
+                  <label key={x.record.id} className="vr-choice">
+                    <input type="checkbox" checked={!excluded.has(x.record.id)} onChange={() => toggle(x.record.id)} />
+                    {formatDate(x.record.date)} {x.record.opponentName || m.common.opponent} · n. {x.number}
+                  </label>
+                ))}
+              </fieldset>
+            );
+          })}
         </section>
       )}
 

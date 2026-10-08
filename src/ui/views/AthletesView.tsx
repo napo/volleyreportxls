@@ -1,7 +1,7 @@
 /**
- * The athletes of the archive and the links between the shirt numbers of the
- * matches and the athletes. The app proposes the links; nothing is linked
- * until the user confirms.
+ * The history of a squad: the names of the squad (one per competition, with
+ * the sponsor), the links between its shirts and the athletes, the athletes.
+ * The app proposes the links; nothing is linked until the user confirms.
  */
 import { useMemo, useState } from 'react';
 import {
@@ -16,11 +16,12 @@ import {
   proposals,
   rosterEntries,
 } from '../../athletes/matching';
+import { type SquadView, inSquad, joinTeam, separateTeam, similarTeams } from '../../athletes/squads';
 import { type MatchRecord, newId } from '../../matches/record';
 import { useI18n } from '../../i18n';
 import type { Archive } from '../../storage/archive';
-import { useAthletesData } from '../athletes-data';
-import { href } from '../routes';
+import { type AthletesData, readLastSquad, useAthletesData, writeLastSquad } from '../athletes-data';
+import { href, navigate } from '../routes';
 
 const NEW = 'new';
 
@@ -42,7 +43,12 @@ async function link(archive: Archive, records: readonly MatchRecord[], entry: Ro
 
 const newAthlete = (names: readonly string[]): Athlete => ({ id: newId(), name: fullestName(names), note: '' });
 
-export function AthletesView() {
+/** The squad in the route, or the one seen last, or the most played. */
+function chosenSquad(data: AthletesData, id: string | null): SquadView | null {
+  return data.squads.find((s) => s.id === id) ?? data.squads.find((s) => s.id === readLastSquad()) ?? data.squads[0] ?? null;
+}
+
+export function AthletesView({ squadId }: { squadId: string | null }) {
   const { m } = useI18n();
   const t = m.athletes;
   const { archive, error, data, reload } = useAthletesData();
@@ -50,14 +56,26 @@ export function AthletesView() {
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
 
-  const unlinked = useMemo(() => data?.entries.filter((e) => !e.athleteId) ?? [], [data]);
-  const proposed = useMemo(() => (data ? proposals(data.entries, data.athletes) : new Map<string, Proposal>()), [data]);
+  const squad = data ? chosenSquad(data, squadId) : null;
+  // Only the shirts of the squad, and the athletes linked there (or nowhere yet).
+  const entries = useMemo(() => (data && squad ? data.entries.filter((e) => inSquad(squad, e.teamName)) : []), [data, squad]);
+  const athletes = useMemo(
+    () => data?.athletes.filter((a) => entries.some((e) => e.athleteId === a.id) || !data.entries.some((e) => e.athleteId === a.id)) ?? [],
+    [data, entries],
+  );
+  const unlinked = useMemo(() => entries.filter((e) => !e.athleteId), [entries]);
+  const proposed = useMemo(() => proposals(entries, athletes), [entries, athletes]);
 
   if (error) return <p className="vr-note">{m.matches.noArchive}</p>;
   if (!data || !archive) return <p className="vr-note">{m.common.loading}</p>;
 
   const label = (a: Athlete) => athleteLabel(a, data.entries) + (a.note.trim() ? ` (${a.note.trim()})` : '');
-  const sorted = [...data.athletes].sort((a, b) => label(a).localeCompare(label(b)));
+  const sorted = [...athletes].sort((a, b) => label(a).localeCompare(label(b)));
+  const listed = sorted.filter((a) => entries.some((e) => e.athleteId === a.id));
+  const choose = (id: string) => {
+    writeLastSquad(id);
+    navigate('storico', id);
+  };
   const choiceOf = (entry: RosterEntry) => choices[entry.key] ?? defaultChoice(proposed.get(entry.key));
 
   const run = async (work: () => Promise<void>) => {
@@ -122,6 +140,7 @@ export function AthletesView() {
       const leader = data.entries.find((e) => e.key === proposal.entryKey);
       return t.reason.sameAs(leader ? entryLabel(leader) : '');
     }
+    if (proposal.homonym) return t.reason.homonym;
     return entry.names.length ? t.reason.new : t.reason.newNoName;
   };
 
@@ -129,9 +148,35 @@ export function AthletesView() {
     <>
       <header className="vr-hero">
         <p className="vr-eyebrow">{t.eyebrow}</p>
-        <h1>{t.title}</h1>
+        <h1>{squad ? t.titleOf(squad.name || t.noTeamName) : t.title}</h1>
         <p className="vr-lead">{t.lead}</p>
+        {data.squads.length > 1 && squad && (
+          <label className="vr-field vr-squad-choice">
+            <span>{t.squad}</span>
+            <select value={squad.id} onChange={(e) => choose(e.target.value)}>
+              {data.squads.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name || t.noTeamName} · {t.matchesCount(s.matches)}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
       </header>
+
+      {squad && (
+        <SquadNames
+          key={squad.id}
+          squad={squad}
+          others={data.squads.filter((s) => s.id !== squad.id)}
+          onSave={async (stored, id) => {
+            await archive.saveSquads(stored);
+            await reload();
+            if (id !== squad.id) choose(id);
+          }}
+          stored={data.stored}
+        />
+      )}
 
       {data.records.length === 0 ? (
         <section className="vr-card">
@@ -207,12 +252,12 @@ export function AthletesView() {
             <p>{t.listText}</p>
           </div>
         </div>
-        {sorted.length === 0 ? (
+        {listed.length === 0 ? (
           <p className="vr-note">{t.none}</p>
         ) : (
           <ul className="vr-matches">
-            {sorted.map((a) => {
-              const own = data.entries.filter((e) => e.athleteId === a.id);
+            {listed.map((a) => {
+              const own = entries.filter((e) => e.athleteId === a.id);
               const matches = new Set(own.flatMap((e) => e.matchIds)).size;
               return (
                 <li key={a.id}>
@@ -236,5 +281,91 @@ export function AthletesView() {
         )}
       </section>
     </>
+  );
+}
+
+interface SquadNamesProps {
+  readonly squad: SquadView;
+  readonly others: readonly SquadView[];
+  readonly stored: AthletesData['stored'];
+  readonly onSave: (stored: AthletesData['stored'], id: string) => void;
+}
+
+/** The team names of the squad: join another name, separate one, rename the squad. */
+function SquadNames({ squad, others, stored, onSave }: SquadNamesProps) {
+  const { m } = useI18n();
+  const t = m.athletes;
+  const [name, setName] = useState(squad.name);
+  const names = others
+    .flatMap((o) => o.teams.map((team) => ({ name: team.name, similar: squad.teams.some((s) => similarTeams(s.name, team.name)) })))
+    .sort((a, b) => Number(b.similar) - Number(a.similar) || a.name.localeCompare(b.name));
+  const [toJoin, setToJoin] = useState('');
+
+  return (
+    <section className="vr-card">
+      <div className="vr-card-head">
+        <div>
+          <h2>{t.squadTitle}</h2>
+          <p>{t.squadText}</p>
+        </div>
+      </div>
+      {squad.stored && (
+        <div className="vr-form-grid">
+          <label className="vr-field">
+            <span>{t.squadName}</span>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onBlur={() => name.trim() && name !== squad.name && onSave(stored.map((s) => (s.id === squad.id ? { ...s, name: name.trim() } : s)), squad.id)}
+            />
+          </label>
+        </div>
+      )}
+      <ul className="vr-matches">
+        {squad.teams.map((team) => (
+          <li key={team.name}>
+            <span>
+              <strong>{team.name || t.noTeamName}</strong>
+              <span>
+                {team.competitions.join(' · ')}
+                {team.competitions.length > 0 && ' · '}
+                {t.matchesCount(team.matches)}
+              </span>
+            </span>
+            {squad.teams.length > 1 && (
+              <span className="vr-actions start">
+                <button type="button" className="vr-btn vr-btn-secondary vr-btn-small" onClick={() => onSave(separateTeam(stored, team.name), squad.id)}>
+                  {t.separate}
+                </button>
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
+      {names.length > 0 && (
+        <div className="vr-actions start vr-links">
+          <select aria-label={t.addName} value={toJoin} onChange={(e) => setToJoin(e.target.value)}>
+            <option value="">{t.addName}</option>
+            {names.map((n) => (
+              <option key={n.name} value={n.name}>
+                {n.name || t.noTeamName}
+                {n.similar ? ` · ${t.similar}` : ''}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            className="vr-btn vr-btn-secondary vr-btn-small"
+            disabled={toJoin === ''}
+            onClick={() => {
+              const { squads, id } = joinTeam(stored, squad, toJoin, newId());
+              onSave(squads, id);
+            }}
+          >
+            {t.join}
+          </button>
+        </div>
+      )}
+    </section>
   );
 }

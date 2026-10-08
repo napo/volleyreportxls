@@ -543,6 +543,31 @@ a {
   accent-color: var(--vr-orange);
 }
 
+.vr-match-group {
+  margin-bottom: 0.75rem;
+}
+
+.vr-match-group legend {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.9rem;
+  color: var(--vr-heading);
+}
+
+.vr-squad-choice {
+  max-width: 24rem;
+  margin-top: 1rem;
+}
+
+.vr-squad-choice select {
+  padding: 0.45rem 0.6rem;
+  font: inherit;
+  color: var(--vr-heading);
+  border: 1px solid var(--vr-border-hover);
+  border-radius: 0.4rem;
+  background: var(--vr-surface);
+}
+
 .vr-acq-merge h2 {
   margin: 0 0 0.75rem;
   font-size: 1.1rem;

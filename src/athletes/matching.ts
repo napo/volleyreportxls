@@ -103,18 +103,26 @@ export type Proposal =
   | { readonly kind: 'athlete'; readonly athleteId: string; readonly reason: 'roster' | 'name' }
   /** The same new athlete as an earlier entry (same name). */
   | { readonly kind: 'same-as'; readonly entryKey: string }
-  /** A new athlete. */
-  | { readonly kind: 'new' }
+  /**
+   * A new athlete. `homonym`: in the team two shirts with this name play in
+   * the same matches, so the name alone does not tell who it is.
+   */
+  | { readonly kind: 'new'; readonly homonym: boolean }
   /** Several athletes have this name: the user chooses. */
-  | { readonly kind: 'ambiguous'; readonly athleteIds: readonly string[] };
+  | { readonly kind: 'ambiguous' };
+
+const shareMatches = (a: RosterEntry, b: RosterEntry) => a.matchIds.some((id) => b.matchIds.includes(id));
+const sameNames = (a: readonly string[], b: readonly string[]) => a.some((n) => b.some((m) => sameName(n, m)));
 
 /**
  * A proposal for every entry not linked yet, in order:
  * - the athlete already linked to the same number in the same roster;
- * - the only athlete with the same name (in the archive or in the matches);
- * - the new athlete proposed for an earlier entry with the same name;
+ * - the only athlete with the same name, linked or proposed for an earlier
+ *   entry (several: the user chooses);
  * - otherwise a new athlete. Without a name there is no proposal across
  *   rosters: the number alone does not identify anyone.
+ * Two shirts with the same name in the same match are never the same athlete.
+ * Call it with the entries of one team, so that names are compared only there.
  */
 export function proposals(entries: readonly RosterEntry[], athletes: readonly Athlete[]): Map<string, Proposal> {
   const result = new Map<string, Proposal>();
@@ -130,26 +138,22 @@ export function proposals(entries: readonly RosterEntry[], athletes: readonly At
       result.set(entry.key, { kind: 'athlete', athleteId: sameRoster.athleteId!, reason: 'roster' });
       continue;
     }
-    const named = athletes.filter(
-      (a) => entry.names.some((n) => namesOf(a.id).some((m) => sameName(n, m))) && !conflicts(entries, entry, a.id),
+    const named = athletes.filter((a) => sameNames(entry.names, namesOf(a.id)) && !conflicts(entries, entry, a.id));
+    const earlier = newOnes.filter((e) => sameNames(entry.names, e.names) && !shareMatches(e, entry));
+    // The name belongs to two athletes playing together: any match by name is the user's choice.
+    const homonym = entries.some(
+      (x) => x.key !== entry.key && sameNames(entry.names, x.names) && entries.some((y) => y.key !== x.key && shareMatches(x, y) && sameNames(x.names, y.names)),
     );
-    if (named.length === 1) {
+    if (named.length + earlier.length > (homonym ? 0 : 1)) {
+      result.set(entry.key, { kind: 'ambiguous' });
+    } else if (named.length === 1) {
       result.set(entry.key, { kind: 'athlete', athleteId: named[0]!.id, reason: 'name' });
-      continue;
+    } else if (earlier.length === 1) {
+      result.set(entry.key, { kind: 'same-as', entryKey: earlier[0]!.key });
+    } else {
+      newOnes.push(entry);
+      result.set(entry.key, { kind: 'new', homonym });
     }
-    if (named.length > 1) {
-      result.set(entry.key, { kind: 'ambiguous', athleteIds: named.map((a) => a.id) });
-      continue;
-    }
-    const earlier = newOnes.find(
-      (e) => e.names.some((n) => entry.names.some((m) => sameName(n, m))) && !e.matchIds.some((id) => entry.matchIds.includes(id)),
-    );
-    if (earlier) {
-      result.set(entry.key, { kind: 'same-as', entryKey: earlier.key });
-      continue;
-    }
-    newOnes.push(entry);
-    result.set(entry.key, { kind: 'new' });
   }
   return result;
 }

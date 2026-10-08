@@ -79,5 +79,17 @@ test('an archive of version 1 is upgraded keeping its matches', async () => {
   const archive = await Archive.open(name);
   expect((await archive.listMatches()).map((m) => m.id)).toEqual(['old1']);
   expect(await archive.listAthletes()).toEqual([]);
+  expect(await archive.listSquads()).toEqual([]);
+  archive.close();
+});
+
+test('imported squads never take a name already joined', async () => {
+  const archive = await open();
+  await archive.saveSquads([{ id: 'sq01', name: 'Trento', teamNames: ['Trento', 'Itas Trentino'] }]);
+  await archive.importSquads([
+    { id: 'sq02', name: 'Altro', teamNames: ['itas trentino', 'Altro'] },
+    { id: 'sq03', name: 'Rovereto', teamNames: ['Rovereto', 'Lagaris Rovereto'] },
+  ]);
+  expect((await archive.listSquads()).map((s) => s.id).sort()).toEqual(['sq01', 'sq03']);
   archive.close();
 });

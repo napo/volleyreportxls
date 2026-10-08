@@ -46,10 +46,10 @@ test('proposals: same roster, then same name, then the same new athlete, never b
   const of = (competition: string, number: number) => p.get(entries.find((e) => e.competition === competition && e.number === number && !e.athleteId)!.key);
   expect(of('U18', 7)).toEqual({ kind: 'athlete', athleteId: 'giulia', reason: 'roster' });
   expect(of('Serie C', 12)).toEqual({ kind: 'athlete', athleteId: 'giulia', reason: 'name' });
-  expect(of('Serie C', 4)).toEqual({ kind: 'new' });
+  expect(of('Serie C', 4)).toEqual({ kind: 'new', homonym: false });
   expect(of('U18', 9)).toEqual({ kind: 'same-as', entryKey: entries.find((e) => e.number === 4)!.key });
-  expect(of('U18', 3)).toEqual({ kind: 'new' });
-  expect(of('Serie C', 3)).toEqual({ kind: 'new' });
+  expect(of('U18', 3)).toEqual({ kind: 'new', homonym: false });
+  expect(of('Serie C', 3)).toEqual({ kind: 'new', homonym: false });
 });
 
 test('an athlete is never proposed twice in the same match', () => {
@@ -57,7 +57,7 @@ test('an athlete is never proposed twice in the same match', () => {
   const entries = rosterEntries(records);
   const other = entries.find((e) => e.number === 8)!;
   expect(conflicts(entries, other, 'giulia')).toBe(true);
-  expect(proposals(entries, [{ id: 'giulia', name: 'Giulia Rossi', note: '' }]).get(other.key)).toEqual({ kind: 'new' });
+  expect(proposals(entries, [{ id: 'giulia', name: 'Giulia Rossi', note: '' }]).get(other.key)).toEqual({ kind: 'new', homonym: true });
 });
 
 test('linking fills empty names and unlinking keeps the name', () => {
@@ -67,4 +67,18 @@ test('linking fills empty names and unlinking keeps the name', () => {
   expect(linked!.players).toEqual([{ number: 7, name: 'Giulia Rossi', athleteId: 'giulia' }]);
   const [unlinked] = linkEntry([linked!], rosterEntries([linked!])[0]!, null);
   expect(unlinked!.players).toEqual([{ number: 7, name: 'Giulia Rossi' }]);
+});
+
+test('two shirts with the same name in the same match are two athletes', () => {
+  const records = [
+    match('Trento', 'U18', '2026-10-01', [{ number: 7, name: 'Giulia Rossi' }, { number: 15, name: 'Giulia Rossi' }]),
+    match('Trento', 'Serie C', '2026-10-05', [{ number: 12, name: 'Rossi G.' }]),
+  ];
+  const entries = rosterEntries(records);
+  const p = proposals(entries, []);
+  const of = (number: number) => p.get(entries.find((e) => e.number === number)!.key);
+  // Serie C comes first: a new athlete, flagged; the two of the under 18 are the user's choice.
+  expect(of(12)).toEqual({ kind: 'new', homonym: true });
+  expect(of(7)).toEqual({ kind: 'ambiguous' });
+  expect(of(15)).toEqual({ kind: 'ambiguous' });
 });

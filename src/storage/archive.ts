@@ -7,6 +7,7 @@
 
 import { type DBSchema, type IDBPDatabase, openDB } from 'idb';
 import type { Athlete } from '../athletes/matching';
+import { type Squad, normalizeTeam } from '../athletes/squads';
 import { type MatchRecord, type PlayerRecord, newId, teamKey } from '../matches/record';
 
 export interface ImportResult {
@@ -30,10 +31,11 @@ interface ArchiveSchema extends DBSchema {
   matches: { key: string; value: MatchRecord; indexes: { updatedAt: string } };
   teams: { key: string; value: TeamRecord };
   athletes: { key: string; value: Athlete };
+  squads: { key: string; value: Squad };
 }
 
 const DB_NAME = 'volleyreport';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 export class Archive {
   private constructor(private readonly db: IDBPDatabase<ArchiveSchema>) {}
@@ -47,6 +49,7 @@ export class Archive {
           database.createObjectStore('teams', { keyPath: 'key' });
         }
         if (oldVersion < 2) database.createObjectStore('athletes', { keyPath: 'id' });
+        if (oldVersion < 3) database.createObjectStore('squads', { keyPath: 'id' });
       },
     });
     return new Archive(db);
@@ -124,6 +127,30 @@ export class Archive {
       if (changed) await tx.objectStore('teams').put(changed);
     }
     await tx.objectStore('athletes').delete(id);
+    await tx.done;
+  }
+
+  listSquads(): Promise<Squad[]> {
+    return this.db.getAll('squads');
+  }
+
+  /** Replaces all the squads (joining or separating a name changes several of them). */
+  async saveSquads(squads: readonly Squad[]): Promise<void> {
+    const tx = this.db.transaction('squads', 'readwrite');
+    await tx.store.clear();
+    for (const squad of squads) await tx.store.put(squad);
+    await tx.done;
+  }
+
+  /** Squads read from a file: only those whose names are not in a squad already. */
+  async importSquads(squads: readonly Squad[]): Promise<void> {
+    const tx = this.db.transaction('squads', 'readwrite');
+    const known = new Set((await tx.store.getAll()).flatMap((s) => s.teamNames.map(normalizeTeam)));
+    for (const squad of squads) {
+      if (await tx.store.get(squad.id)) continue;
+      if (squad.teamNames.some((n) => known.has(normalizeTeam(n)))) continue;
+      await tx.store.put(squad);
+    }
     await tx.done;
   }
 
