@@ -6,7 +6,7 @@ export const TABS = ['partite', 'tabellino', 'grafici', 'storico', 'informazioni
 export type Tab = (typeof TABS)[number];
 
 /** Pages that live inside a tab. */
-const PAGES = { partita: 'partite', foto: 'partite', atleta: 'storico', modulo: 'informazioni' } as const satisfies Record<string, Tab>;
+const PAGES = { partita: 'partite', foto: 'partite', rileva: 'partite', atleta: 'storico', modulo: 'informazioni' } as const satisfies Record<string, Tab>;
 
 export interface Route {
   readonly name: Tab | keyof typeof PAGES;

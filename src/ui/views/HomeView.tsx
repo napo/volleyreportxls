@@ -1,11 +1,39 @@
 import { VOLLEYREPORTXLS_URL } from '../../config';
 import { useI18n } from '../../i18n';
+import { newMatchRecord } from '../../matches/record';
 import { ExternalLink } from '../../platform/ExternalLink';
 import { DownloadFormButton } from '../components/DownloadFormButton';
 import { MatchList } from '../components/MatchList';
 import { Scoreboard } from '../components/Scoreboard';
 import { SAMPLE_REPORT } from '../match-report';
-import { SAMPLE_ID, href } from '../routes';
+import { useArchive } from '../archive-context';
+import { SAMPLE_ID, href, navigate } from '../routes';
+
+/** A new match scouted on the screen, as on the paper form. */
+function LiveStart() {
+  const { m } = useI18n();
+  const { archive } = useArchive();
+  const start = async () => {
+    if (!archive) return;
+    const record = await archive.saveMatch(newMatchRecord());
+    navigate('rileva', record.id);
+  };
+  return (
+    <section className="vr-card vr-dropzone vr-live-start">
+      <span className="vr-icon-tile" aria-hidden="true">
+        ✎
+      </span>
+      <h2>{m.live.homeTitle}</h2>
+      <p>{m.live.homeText}</p>
+      <div className="vr-actions">
+        <button type="button" className="vr-btn vr-btn-primary" onClick={start} disabled={!archive}>
+          {m.live.homeButton}
+        </button>
+      </div>
+      <p className="vr-dropzone-help">{m.live.homeHelp}</p>
+    </section>
+  );
+}
 
 export function HomeView() {
   const { m } = useI18n();
@@ -27,21 +55,25 @@ export function HomeView() {
         </ul>
       </header>
 
-      <section className="vr-card vr-dropzone">
-        <span className="vr-icon-tile" aria-hidden="true">
-          ↑
-        </span>
-        <h2>{t.photoTitle}</h2>
-        <p>{t.photoText}</p>
-        <div className="vr-actions">
-          <a className="vr-btn vr-btn-primary" href={href('foto')}>
-            {t.photoButton}
-          </a>
-        </div>
-        <p className="vr-dropzone-help">
-          {t.noForm} <DownloadFormButton label={t.noFormLink} variant="link" />
-        </p>
-      </section>
+      <div className="vr-home-options">
+        <section className="vr-card vr-dropzone">
+          <span className="vr-icon-tile" aria-hidden="true">
+            ↑
+          </span>
+          <h2>{t.photoTitle}</h2>
+          <p>{t.photoText}</p>
+          <div className="vr-actions">
+            <a className="vr-btn vr-btn-primary" href={href('foto')}>
+              {t.photoButton}
+            </a>
+          </div>
+          <p className="vr-dropzone-help">
+            {t.noForm} <DownloadFormButton label={t.noFormLink} variant="link" />
+          </p>
+        </section>
+
+        <LiveStart />
+      </div>
 
       <MatchList />
 

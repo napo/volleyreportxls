@@ -11,6 +11,7 @@ import { type Route, SAMPLE_ID, TABS, type Tab, href, isSectionPage, parseRoute,
 import { AthletesView } from './views/AthletesView';
 import { HomeView } from './views/HomeView';
 import { InfoView } from './views/InfoView';
+import { LiveSheetView } from './views/LiveSheetView';
 import { MatchEditorView } from './views/MatchEditorView';
 import { AcquisitionView } from './acquisition/AcquisitionView';
 import { LANGUAGES, type Lang, setLang, useI18n } from '../i18n';
@@ -120,7 +121,7 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    if (route.param && ['partita', 'tabellino', 'grafici'].includes(route.name)) {
+    if (route.param && ['partita', 'rileva', 'tabellino', 'grafici'].includes(route.name)) {
       setLastMatch(route.param);
       writeLastMatch(route.param);
     }
@@ -136,6 +137,15 @@ export function App() {
   const { m } = useI18n();
   const tab = tabOf(route);
   const tabHref = (key: Tab) => (key === 'tabellino' || key === 'grafici' ? href(key, lastMatch ?? SAMPLE_ID) : href(key));
+
+  // Live scouting takes the whole screen: no navigation bar, no footer.
+  if (route.name === 'rileva' && route.param) {
+    return (
+      <ArchiveProvider>
+        <LiveSheetView key={route.param} id={route.param} />
+      </ArchiveProvider>
+    );
+  }
 
   return (
     <ArchiveProvider>

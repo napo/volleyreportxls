@@ -48,6 +48,20 @@ export function InfoView() {
         </ol>
       </section>
 
+      <section id="tablet" className="vr-card">
+        <div className="vr-card-head">
+          <div>
+            <h2>{t.liveTitle}</h2>
+            <p>{t.liveText}</p>
+          </div>
+        </div>
+        <ol>
+          {t.liveSteps.map((step) => (
+            <li key={step}>{step}</li>
+          ))}
+        </ol>
+      </section>
+
       <section className="vr-card">
         <div className="vr-card-head">
           <div>

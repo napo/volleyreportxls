@@ -205,6 +205,9 @@ export function MatchEditorView({ id }: { id: string }) {
           <a className="vr-btn vr-btn-secondary" href={href('grafici', record.id)}>
             {m.nav.grafici}
           </a>
+          <a className="vr-btn vr-btn-secondary" href={href('rileva', record.id)}>
+            {m.live.start}
+          </a>
           <a className="vr-btn vr-btn-secondary" href={href('foto', record.id)}>
             {t.addPhotos}
           </a>
