@@ -11,7 +11,7 @@
  */
 
 import jsQR from 'jsqr';
-import { CURRENT_FORM_LAYOUT, type FormLayout, type Rect, formLayout } from '../pdf/layout';
+import { CURRENT_FORM_LAYOUT, FORM_LAYOUTS, type FormLayout, type Rect, formLayout } from '../pdf/layout';
 import { type FormPageId, parseFormQrPayload } from '../pdf/scouting-form';
 import { type GrayImage, downscale, sample, toGray } from './gray';
 import { type Homography, type Point, project, solveHomography } from './homography';
@@ -86,14 +86,23 @@ export function warpRect(gray: GrayImage, homography: Homography, r: Rect, pxPer
   return { width, height, data };
 }
 
-function readQr(gray: GrayImage, homography: Homography, layout: FormLayout): FormPageId | null {
+/** Where the QR may be: the layouts printed so far put it in one of these places, newest first. */
+const QR_PLACES: readonly Rect[] = Object.values(FORM_LAYOUTS)
+  .reverse()
+  .map((l) => l.qr)
+  .filter((r, i, all) => all.findIndex((q) => q.x === r.x && q.y === r.y && q.width === r.width) === i);
+
+function readQr(gray: GrayImage, homography: Homography): FormPageId | null {
   const margin = 4;
-  const area = { x: layout.qr.x - margin, y: layout.qr.y - margin, width: layout.qr.width + 2 * margin, height: layout.qr.height + 2 * margin };
-  for (const pxPerMm of [8, 6, 11]) {
-    const crop = warpRect(gray, homography, area, pxPerMm);
-    const found = jsQR(crop.data, crop.width, crop.height, { inversionAttempts: 'dontInvert' });
-    const page = found ? parseFormQrPayload(found.data) : null;
-    if (page) return page;
+  for (const qr of QR_PLACES) {
+    const area = { x: qr.x - margin, y: qr.y - margin, width: qr.width + 2 * margin, height: qr.height + 2 * margin };
+    // Finer sampling for a smaller code.
+    for (const pxPerMm of [8, 6, 11].map((p) => (p * 19) / qr.width)) {
+      const crop = warpRect(gray, homography, area, pxPerMm);
+      const found = jsQR(crop.data, crop.width, crop.height, { inversionAttempts: 'dontInvert' });
+      const page = found ? parseFormQrPayload(found.data) : null;
+      if (page) return page;
+    }
   }
   return null;
 }
@@ -118,7 +127,7 @@ export function locateSheet(image: RgbaImage): LocatedSheet | LocateFailure {
   const fitted = fit(markers, layout, factor);
   if (!fitted) return { reason: 'markers', found: markers.length };
   if (fitted.error > MAX_FIT_ERROR) return { reason: 'fit', found: markers.length };
-  return { homography: fitted.homography, markers, fitError: fitted.error, page: readQr(gray, fitted.homography, layout), gray };
+  return { homography: fitted.homography, markers, fitError: fitted.error, page: readQr(gray, fitted.homography), gray };
 }
 
 export const isLocated = (r: LocatedSheet | LocateFailure): r is LocatedSheet => 'homography' in r;

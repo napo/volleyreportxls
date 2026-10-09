@@ -24,6 +24,13 @@
  * the set in the header (bubbles 1–5), and a further bubble when the sheet
  * continues a set started on another sheet. The QR carries no set.
  *
+ * Layout v6 makes the bubbles bigger and easier to read, with the same rows and
+ * capacities: a compact header (one band beside the markers, smaller QR), the
+ * two libero rows side by side on one line, bubble numbers in light grey, block
+ * - and / on two columns, and room for the name under the shirt number.
+ *
+ * Layout v5 is kept to read those sheets.
+ *
  * Layout v4 (one printed page per set, the set in the QR) is kept to read those sheets.
  *
  * Layout v3 (October 2026, already used on paper) is kept to read those sheets:
@@ -78,6 +85,8 @@ export interface FormRow {
   /** Shirt number area, two digit boxes written by hand. */
   readonly number: Rect;
   readonly numberDigits: readonly [Rect, Rect];
+  /** Name written under the shirt number (v6 on). */
+  readonly name?: Rect;
   readonly cells: readonly TallyCell[];
   /** Areas of the row with nothing to fill (the serve columns in the libero rows). */
   readonly unused: readonly Rect[];
@@ -112,6 +121,10 @@ export interface FormLayout {
   readonly legend: readonly [Rect, Rect];
   /** Inner margin to drop when cropping a box, so that the printed border is not read as ink. */
   readonly cropInset: number;
+  /** v6 on: compact header, bubble numbers in light grey, name under the shirt number. */
+  readonly compact: boolean;
+  /** Fields written by hand for the paper archive (team, opponent, competition, date); the app does not read them. */
+  readonly fields: readonly { readonly field: 'team' | 'opponent' | 'competition' | 'date'; readonly outer: Rect }[];
 }
 
 const rect = (x: number, y: number, width: number, height: number): Rect => ({ x, y, width, height });
@@ -127,6 +140,8 @@ const SERVE: Columns = [['#', 2], ['+', 3], ['!', 2], ['-', 3], ['/', 2], ['=', 
 const RECEPTION: Columns = [['#', 3], ['+', 3], ['!', 3], ['-', 3], ['/', 2], ['=', 2]]; // 8 8 8 8 5 5
 const ATTACK: Columns = [['#', 4], ['+', 3], ['!', 2], ['-', 3], ['/', 2], ['=', 3]]; // 11 8 5 8 5 8
 const BLOCK: Columns = [['#', 2], ['+', 2], ['!', 2], ['-', 1], ['/', 1], ['=', 2]]; // 5 5 5 2 2 5
+/** v6: no one-column cells, so that every bubble can be as big as the others. */
+const BLOCK_V6: Columns = [['#', 2], ['+', 2], ['!', 2], ['-', 2], ['/', 2], ['=', 2]]; // 5 5 5 5 5 5
 
 interface LayoutSpec {
   readonly version: number;
@@ -137,6 +152,8 @@ interface LayoutSpec {
   readonly liberoUnused: readonly (readonly [FormSkill, FormSkill])[];
   /** The set is marked by hand in the header instead of printed. */
   readonly setMarks?: boolean;
+  /** v6 on: compact header, liberos side by side, uniform bubbles, name under the shirt number. */
+  readonly compact?: boolean;
 }
 
 /** v4: set faults (P=) on every row; liberos with reception and set faults. */
@@ -152,6 +169,14 @@ const V4: LayoutSpec = {
 
 /** v5: the grid of v4, one sheet for every set. */
 const V5: LayoutSpec = { ...V4, version: 5, setMarks: true };
+
+/** v6: the rows of v5, bigger bubbles, room for the name. */
+const V6: LayoutSpec = {
+  ...V5,
+  version: 6,
+  compact: true,
+  player: V5.player.map(([skill, columns]) => [skill, skill === 'M' ? BLOCK_V6 : columns]),
+};
 
 /** v3 (read only): liberos with reception, then dig and graded sets where attack starts. */
 const V3: LayoutSpec = {
@@ -176,9 +201,12 @@ function buildTallyLayout(spec: LayoutSpec): FormLayout {
   const bottom = page.height - margin - marker;
   const centre = (page.width - marker) / 2;
 
+  const compact = spec.compact ?? false;
   const left = margin;
-  const numberWidth = 11;
-  const gridWidth = 272;
+  // Compact header: one band as high as the markers; the grid starts right under it.
+  const gridTop = compact ? margin + marker + quietZone + 0.5 : 29;
+  const numberWidth = compact ? 20 : 11;
+  const gridWidth = page.width - 2 * margin - numberWidth;
   const gridLeft = left + numberWidth;
   const pitch = gridWidth / spec.player.reduce((n, [, c]) => n + columnsOf(c), 0);
 
@@ -187,9 +215,11 @@ function buildTallyLayout(spec: LayoutSpec): FormLayout {
   const liberoHeader = 6;
   const playerRows = 12;
   const liberoRows = 2;
-  const playerTop = 29 + skillBand + evaluationBand;
+  // v6: the two libero rows side by side, on the height of one row.
+  const liberoLines = compact ? 1 : liberoRows;
+  const playerTop = gridTop + skillBand + evaluationBand;
   const rowsBottom = bottom - quietZone - 0.5;
-  const rowHeight = (rowsBottom - playerTop - liberoHeader) / (playerRows + liberoRows);
+  const rowHeight = (rowsBottom - playerTop - liberoHeader) / (playerRows + liberoLines);
   const liberoTop = playerTop + playerRows * rowHeight + liberoHeader;
 
   // x of every skill block: players in order; libero blocks under a player block or after the previous one.
@@ -209,8 +239,8 @@ function buildTallyLayout(spec: LayoutSpec): FormLayout {
   const gridRight = gridLeft + gridWidth;
   const playerX = (skill: FormSkill) => blocks.get(`player:${skill}`) ?? gridRight;
 
-  const header = (kind: RowKind, skill: FormSkill, columns: Columns, top: number, height: number): SkillHeader => {
-    const x0 = blocks.get(`${kind}:${skill}`)!;
+  const header = (kind: RowKind, skill: FormSkill, columns: Columns, top: number, height: number, at?: number): SkillHeader => {
+    const x0 = at ?? blocks.get(`${kind}:${skill}`)!;
     const evaluations = [];
     let cx = x0;
     for (const [evaluation, c] of columns) {
@@ -221,10 +251,14 @@ function buildTallyLayout(spec: LayoutSpec): FormLayout {
   };
 
   const pad = 0.3;
+  // v6: every bubble as big as the narrowest cell allows, so they all look the same; without
+  // numbers inside, less room between them.
+  const narrowest = Math.min(...spec.player.flatMap(([, columns]) => columns.map(([, c]) => c)));
+  const uniform = Math.min((narrowest * pitch - 2 * pad) / narrowest, (rowHeight - 2 * pad) / BUBBLE_ROWS) * 0.86;
   const cell = (skill: FormSkill, evaluation: Evaluation, outer: Rect, columns: number): TallyCell => {
     const pitchX = (outer.width - 2 * pad) / columns;
     const pitchY = (outer.height - 2 * pad) / BUBBLE_ROWS;
-    const d = Math.min(pitchX, pitchY) * 0.82;
+    const d = compact ? uniform : Math.min(pitchX, pitchY) * 0.82;
     const slot = (i: number): Rect => {
       const cx = outer.x + pad + pitchX * ((i % columns) + 0.5);
       const cy = outer.y + pad + pitchY * (Math.floor(i / columns) + 0.5);
@@ -240,35 +274,88 @@ function buildTallyLayout(spec: LayoutSpec): FormLayout {
     };
   };
 
-  const row = (index: number, kind: RowKind, y: number): FormRow => {
+  /** v6 libero blocks: shirt number and name, then the libero skills one after the other; the second block starts under attack. */
+  const liberoBlocks = [left, playerX('A')];
+  const liberoStart = (block: number, skill: FormSkill) => {
+    let cx = liberoBlocks[block]! + numberWidth;
+    for (const [s, columns] of liberoSkills) {
+      if (s === skill) return cx;
+      cx += columnsOf(columns) * pitch;
+    }
+    return cx;
+  };
+  const liberoEnd = (block: number) => liberoBlocks[block]! + numberWidth + liberoSkills.reduce((n, [, c]) => n + columnsOf(c), 0) * pitch;
+
+  const row = (index: number, kind: RowKind, y: number, block?: number): FormRow => {
     const half = numberWidth / 2;
     const skills = kind === 'player' ? spec.player : liberoSkills;
+    const x0 = block === undefined ? left : liberoBlocks[block]!;
     const cells = skills.flatMap(([skill, columns]) => {
-      let cx = blocks.get(`${kind}:${skill}`)!;
+      let cx = block === undefined ? blocks.get(`${kind}:${skill}`)! : liberoStart(block, skill);
       return columns.map(([evaluation, c]) => {
         const result = cell(skill, evaluation, rect(cx, y, c * pitch, rowHeight), c);
         cx += c * pitch;
         return result;
       });
     });
+    // v6: two digit boxes at the top, the name on the line under them.
+    const digitWidth = 6.5;
+    const digitHeight = rowHeight * 0.55;
+    const digitsLeft = x0 + (numberWidth - 2 * digitWidth) / 2;
+    const numbering = compact
+      ? {
+          numberDigits: [rect(digitsLeft, y, digitWidth, digitHeight), rect(digitsLeft + digitWidth, y, digitWidth, digitHeight)] as const,
+          name: rect(x0, y + digitHeight, numberWidth, rowHeight - digitHeight),
+        }
+      : { numberDigits: [rect(left, y, half, rowHeight), rect(left + half, y, half, rowHeight)] as const };
+    const end = block === undefined ? left + numberWidth + gridWidth : liberoEnd(block);
+    // Side by side, the first block hatches up to the second one, the second up to the end of the grid.
+    const unused =
+      kind === 'player'
+        ? []
+        : block === undefined
+          ? spec.liberoUnused.map(([from, to]) => rect(playerX(from), y, playerX(to) - playerX(from), rowHeight))
+          : [rect(end, y, (block === 0 ? liberoBlocks[1]! : gridRight) - end, rowHeight)];
     return {
       index,
       kind,
-      outer: rect(left, y, numberWidth + gridWidth, rowHeight),
-      number: rect(left, y, numberWidth, rowHeight),
-      numberDigits: [rect(left, y, half, rowHeight), rect(left + half, y, half, rowHeight)],
+      outer: rect(x0, y, end - x0, rowHeight),
+      number: rect(x0, y, numberWidth, rowHeight),
+      ...numbering,
       cells,
-      unused: kind === 'libero' ? spec.liberoUnused.map(([from, to]) => rect(playerX(from), y, playerX(to) - playerX(from), rowHeight)) : [],
+      unused,
     };
   };
 
   const rows = [
     ...Array.from({ length: playerRows }, (_, i) => row(i, 'player', playerTop + i * rowHeight)),
-    ...Array.from({ length: liberoRows }, (_, i) => row(playerRows + i, 'libero', liberoTop + i * rowHeight)),
+    ...Array.from({ length: liberoRows }, (_, i) =>
+      compact ? row(playerRows + i, 'libero', liberoTop, i) : row(playerRows + i, 'libero', liberoTop + i * rowHeight),
+    ),
   ];
 
-  const digit = (dx: number): Rect => rect(dx, 13, 7, 9.5);
-  const title = rect(margin + marker + 4, margin, centre - (margin + marker + 4) - 4, 20);
+  // Compact header: left of the centre marker the set and team, opponent; right of it competition, date and score.
+  const headerLeft = margin + marker + 4;
+  const headerRight = centre + marker + 4;
+  const qrSide = compact ? marker : 19;
+  const qr = rect(right - 4 - qrSide, margin, qrSide, qrSide);
+  const digit = compact ? (dx: number): Rect => rect(dx, margin + 6, 5.5, 6.5) : (dx: number): Rect => rect(dx, 13, 7, 9.5);
+  const title = rect(headerLeft, margin, centre - headerLeft - 4, compact ? marker : 20);
+  const half = (from: number, to: number, baseline: number) => {
+    const width = to - from;
+    return [rect(from, baseline - 4, width * 0.55 - 3, 4.6), rect(from + width * 0.55, baseline - 4, width * 0.45, 4.6)] as const;
+  };
+  // v4 (set printed): the fields beside the big "Set n"; v5: under the set marks.
+  const fieldsLeft = spec.setMarks ? title.x : title.x + 30;
+  const [first, second] = spec.setMarks ? [title.y + 11, title.y + 16.5] : [title.y + 4.5, title.y + 11];
+  const [team, opponent] = compact ? half(title.x, title.x + title.width, margin + 11.5) : half(fieldsLeft, title.x + title.width, first);
+  const [competition, date] = compact ? half(headerRight, qr.x - 4, margin + 4.6) : half(fieldsLeft, title.x + title.width, second);
+  const fields = [
+    { field: 'team' as const, outer: team },
+    { field: 'opponent' as const, outer: opponent },
+    { field: 'competition' as const, outer: competition },
+    { field: 'date' as const, outer: date },
+  ];
   // Set bubbles after the "Set" label, then the "extra sheet" bubble.
   const setBubble = 5;
   const setMarks = spec.setMarks
@@ -289,20 +376,24 @@ function buildTallyLayout(spec: LayoutSpec): FormLayout {
       { id: 5, ...rect(centre, bottom, marker, marker) },
     ],
     markerQuietZone: quietZone,
-    qr: rect(right - 4 - 19, margin, 19, 19),
+    qr,
     title,
     ...(setMarks && { setMarks }),
-    score: {
-      team: [digit(178), digit(185)],
-      opponent: [digit(214), digit(221)],
-    },
+    score: compact
+      ? { team: [digit(195), digit(200.5)], opponent: [digit(227), digit(232.5)] }
+      : { team: [digit(178), digit(185)], opponent: [digit(214), digit(221)] },
+    fields,
     numberHeaders: [
-      { kind: 'player', outer: rect(left, 29, numberWidth, skillBand + evaluationBand) },
-      { kind: 'libero', outer: rect(left, liberoTop - liberoHeader, numberWidth, liberoHeader) },
+      { kind: 'player', outer: rect(left, gridTop, numberWidth, skillBand + evaluationBand) },
+      ...(compact ? liberoBlocks : [left]).map((x0) => ({ kind: 'libero' as const, outer: rect(x0, liberoTop - liberoHeader, numberWidth, liberoHeader) })),
     ],
     skills: [
-      ...spec.player.map(([skill, columns]) => header('player', skill, columns, 29, skillBand + evaluationBand)),
-      ...liberoSkills.map(([skill, columns]) => header('libero', skill, columns, liberoTop - liberoHeader, liberoHeader)),
+      ...spec.player.map(([skill, columns]) => header('player', skill, columns, gridTop, skillBand + evaluationBand)),
+      ...(compact
+        ? liberoBlocks.flatMap((_, block) =>
+            liberoSkills.map(([skill, columns]) => header('libero', skill, columns, liberoTop - liberoHeader, liberoHeader, liberoStart(block, skill))),
+          )
+        : liberoSkills.map(([skill, columns]) => header('libero', skill, columns, liberoTop - liberoHeader, liberoHeader))),
     ],
     rows,
     legend: [
@@ -310,6 +401,7 @@ function buildTallyLayout(spec: LayoutSpec): FormLayout {
       rect(centre + marker + 4, bottom + 1, right - 4 - (centre + marker + 4), marker - 2),
     ],
     cropInset: 0.8,
+    compact,
   };
 }
 
@@ -318,8 +410,9 @@ export const FORM_LAYOUTS: Readonly<Record<number, FormLayout>> = {
   3: buildTallyLayout(V3),
   4: buildTallyLayout(V4),
   5: buildTallyLayout(V5),
+  6: buildTallyLayout(V6),
 };
-export const CURRENT_FORM_LAYOUT = FORM_LAYOUTS[5]!;
+export const CURRENT_FORM_LAYOUT = FORM_LAYOUTS[6]!;
 
 /** The code a cell counts, or null for cells of an old layout the app no longer records (v3 dig and graded sets). */
 export function cellCode(cell: TallyCell): ScoutCodeString | null {

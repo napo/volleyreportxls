@@ -20,6 +20,8 @@ import type { RgbaImage } from './synthetic';
 
 /** Resolution of the crops shown to the user. */
 const CROP_PX_PER_MM = 8;
+/** v6: cell border left out of the reading, past the heavy rules between skills (half a 1.6 pt rule is 0.28 mm). */
+export const COMPACT_CELL_INSET = 0.5;
 /** Ink share of a digit box that means something is written in it. */
 const WRITTEN = 0.01;
 
@@ -151,7 +153,7 @@ export function readSheetImage(image: RgbaImage): SheetResult | SheetFailure {
       numberWritten: row.numberDigits.some((d) => inkInRect(gray, homography, d, paper) >= WRITTEN),
       numberCrop: crop(grow(row.number, 0.5)),
       cells: row.cells.map((cell) => {
-        const reading = readCell(gray, homography, cell);
+        const reading = readCell(gray, homography, cell, layout.compact ? COMPACT_CELL_INSET : undefined);
         return {
           code: cellCode(cell),
           skill: cell.skill,

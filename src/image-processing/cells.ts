@@ -70,10 +70,13 @@ function inkBlobs(mask: Uint8Array, width: number, height: number, minArea: numb
   return result;
 }
 
-export function readCell(gray: GrayImage, homography: Homography, cell: TallyCell): CellReading {
+/**
+ * `inset`: border of the cell left out (mm), wider on v6 sheets, whose heavy rules between
+ * skills reach into the cells next to them.
+ */
+export function readCell(gray: GrayImage, homography: Homography, cell: TallyCell, inset = 0.25): CellReading {
   const paper = paperLevel(gray, homography, cell.outer);
   // The cell without its printed border.
-  const inset = 0.25;
   const area = { x: cell.outer.x + inset, y: cell.outer.y + inset, width: cell.outer.width - 2 * inset, height: cell.outer.height - 2 * inset };
   const crop = warpRect(gray, homography, area, PX_PER_MM);
   const mask = new Uint8Array(crop.width * crop.height);

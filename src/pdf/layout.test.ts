@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import { COMPACT_CELL_INSET } from '../image-processing/read-sheet';
 import { CURRENT_FORM_LAYOUT as layout, type Rect, cellCode, formLayout, inset, overlaps } from './layout';
 
 const inside = (r: Rect) => r.x >= 0 && r.y >= 0 && r.x + r.width <= layout.page.width && r.y + r.height <= layout.page.height;
@@ -10,12 +11,13 @@ const cells = layout.rows.flatMap((row) => row.cells);
 const capacities = (kind: 'player' | 'libero') =>
   Object.fromEntries(layout.rows.find((r) => r.kind === kind)!.cells.map((c) => [`${c.skill}${c.evaluation}`, c.bubbles.length]));
 
-test('tally sheet v5: A4 landscape, 12 player rows and 2 libero rows', () => {
-  expect(layout.version).toBe(5);
-  expect(formLayout(5)).toBe(layout);
+test('tally sheet v6: A4 landscape, 12 player rows and 2 libero rows', () => {
+  expect(layout.version).toBe(6);
+  expect(formLayout(6)).toBe(layout);
   expect(() => formLayout(2)).toThrow();
   expect(layout.page).toEqual({ width: 297, height: 210 });
   expect(layout.rows.map((r) => r.kind)).toEqual([...Array(12).fill('player'), 'libero', 'libero']);
+  expect(formLayout(5).rows.map((r) => r.kind)).toEqual([...Array(12).fill('player'), 'libero', 'libero']);
 });
 
 test('player rows: bubbles per evaluation sized on DataVolley statistics', () => {
@@ -23,27 +25,46 @@ test('player rows: bubbles per evaluation sized on DataVolley statistics', () =>
     'B#': 5, 'B+': 8, 'B!': 5, 'B-': 8, 'B/': 5, 'B=': 5,
     'R#': 8, 'R+': 8, 'R!': 8, 'R-': 8, 'R/': 5, 'R=': 5,
     'A#': 11, 'A+': 8, 'A!': 5, 'A-': 8, 'A/': 5, 'A=': 8,
-    'M#': 5, 'M+': 5, 'M!': 5, 'M-': 2, 'M/': 2, 'M=': 5,
+    'M#': 5, 'M+': 5, 'M!': 5, 'M-': 5, 'M/': 5, 'M=': 5,
     'P=': 5,
   });
+  // v5 and earlier: two bubbles for block - and /.
+  const v5 = formLayout(5).rows[0]!.cells.filter((c) => c.skill === 'M').map((c) => c.bubbles.length);
+  expect(v5).toEqual([5, 5, 5, 2, 2, 5]);
 });
 
-test('libero rows: reception and set faults, aligned with the players', () => {
+test('libero rows: reception and set faults, the two side by side on one line', () => {
   expect(capacities('libero')).toEqual({
     'R#': 8, 'R+': 8, 'R!': 8, 'R-': 8, 'R/': 5, 'R=': 5,
     'P=': 5,
   });
-  const xs = (row: number) => layout.rows[row]!.cells.filter((c) => c.skill === 'R' || c.skill === 'P').map((c) => c.outer.x);
-  expect(xs(12)).toEqual(xs(0));
-  expect(layout.rows[12]!.unused).toHaveLength(2);
+  const [first, second] = [layout.rows[12]!, layout.rows[13]!];
+  expect(second.outer.y).toBe(first.outer.y);
+  expect(first.outer.height).toBe(layout.rows[0]!.outer.height);
+  // Each block: number and name, then reception and set faults; the second one starts under attack.
+  for (const row of [first, second]) {
+    expect(row.cells[0]!.outer.x).toBeCloseTo(row.number.x + row.number.width, 6);
+    expect(row.cells.map((c) => c.skill)).toEqual(['R', 'R', 'R', 'R', 'R', 'R', 'P']);
+  }
+  expect(second.number.x).toBe(layout.rows[0]!.cells.find((c) => c.skill === 'A')!.outer.x);
+  expect(overlaps(first.outer, second.outer)).toBe(false);
+  // Hatched: from the end of each block to the next block, or to the end of the grid.
+  expect(first.unused).toEqual([{ ...first.unused[0]!, x: first.outer.x + first.outer.width, width: second.number.x - (first.outer.x + first.outer.width) }]);
+  expect(second.unused[0]!.x + second.unused[0]!.width).toBeCloseTo(layout.rows[0]!.outer.x + layout.rows[0]!.outer.width, 6);
 });
 
-test('bubbles are big enough to mark by hand (≥ 2.5 mm) and never touch each other', () => {
+test('v6 bubbles are all the same size, bigger than v5 (3.2 mm against 2.7), and never touch each other', () => {
+  expect(new Set(cells.flatMap((c) => [...c.bubbles, c.overflow].map((b) => b.width.toFixed(6))))).toHaveLength(1);
+  expect(formLayout(5).rows[0]!.cells[0]!.bubbles[0]!.width).toBeLessThan(2.7);
   for (const cell of cells) {
     const all = [...cell.bubbles, cell.overflow];
     for (const b of all) {
-      expect(b.width).toBeGreaterThanOrEqual(2.5);
-      expect(overlaps(b, inset(cell.outer, 0.2))).toBe(true);
+      expect(b.width).toBeGreaterThanOrEqual(3.2);
+      // Clear of the cell border that the reading leaves out (the heavy rules between skills reach into it).
+      expect(b.x - cell.outer.x).toBeGreaterThan(COMPACT_CELL_INSET);
+      expect(b.y - cell.outer.y).toBeGreaterThan(COMPACT_CELL_INSET);
+      expect(cell.outer.x + cell.outer.width - b.x - b.width).toBeGreaterThan(COMPACT_CELL_INSET);
+      expect(cell.outer.y + cell.outer.height - b.y - b.height).toBeGreaterThan(COMPACT_CELL_INSET);
     }
     for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) expect(overlaps(all[i]!, all[j]!)).toBe(false);
   }
@@ -51,8 +72,15 @@ test('bubbles are big enough to mark by hand (≥ 2.5 mm) and never touch each o
 
 test('v5: the grid of v4, plus the set marked by hand in the header', () => {
   const v4 = formLayout(4);
-  expect(layout.rows).toEqual(v4.rows);
+  expect(formLayout(5).rows).toEqual(v4.rows);
   expect(v4.setMarks).toBeUndefined();
+});
+
+test('v6 keeps the set marks of v5; markers in the same places, QR in the compact header', () => {
+  const v5 = formLayout(5);
+  expect(layout.setMarks).toEqual(v5.setMarks);
+  expect(layout.markers).toEqual(v5.markers);
+  expect(layout.qr.height).toBe(layout.markers[0]!.height);
   const { sets, extra } = layout.setMarks!;
   expect(sets.map((b) => b.number)).toEqual([1, 2, 3, 4, 5]);
   const all = [...sets, extra];
@@ -65,8 +93,15 @@ test('v5: the grid of v4, plus the set marked by hand in the header', () => {
 });
 
 test('every element lies inside the page, cells do not overlap', () => {
-  const all = [...layout.markers, layout.qr, layout.title, ...layout.score.team, ...layout.score.opponent, ...layout.legend, ...layout.rows.map((r) => r.outer)];
+  const header = [layout.qr, layout.title, ...layout.score.team, ...layout.score.opponent, ...layout.fields.map((f) => f.outer)];
+  const all = [...layout.markers, ...header, ...layout.legend, ...layout.rows.map((r) => r.outer)];
   expect(all.filter((r) => !inside(r))).toEqual([]);
+  // The compact header stays above the grid and its parts do not overlap.
+  const gridTop = Math.min(...layout.skills.map((s) => s.outer.y));
+  expect(header.filter((r) => r.y + r.height > gridTop)).toEqual([]);
+  for (let i = 0; i < header.length; i++) for (let j = i + 1; j < header.length; j++) {
+    if (header[i] !== layout.title && header[j] !== layout.title) expect(overlaps(header[i]!, header[j]!)).toBe(false);
+  }
   for (let i = 0; i < cells.length; i++) {
     for (let j = i + 1; j < cells.length; j++) expect(overlaps(cells[i]!.outer, cells[j]!.outer)).toBe(false);
   }
@@ -78,6 +113,7 @@ test('markers keep their quiet zone free from every other element', () => {
     ...layout.setMarks!.sets,
     layout.setMarks!.extra,
     layout.title,
+    ...layout.fields.map((f) => f.outer),
     ...layout.score.team,
     ...layout.score.opponent,
     ...layout.legend,
@@ -90,10 +126,15 @@ test('markers keep their quiet zone free from every other element', () => {
   }
 });
 
-test('digit boxes for the shirt number are big enough to write in (≥ 5 × 8 mm)', () => {
-  for (const box of layout.rows[0]!.numberDigits) {
-    expect(box.width).toBeGreaterThanOrEqual(5);
-    expect(box.height).toBeGreaterThanOrEqual(8);
+test('digit boxes for the shirt number (≥ 6 × 6 mm), and a line for the name under them', () => {
+  for (const row of layout.rows) {
+    for (const box of row.numberDigits) {
+      expect(box.width).toBeGreaterThanOrEqual(6);
+      expect(box.height).toBeGreaterThanOrEqual(6);
+      expect(overlaps(box, row.name!)).toBe(false);
+    }
+    expect(row.name!.width).toBeGreaterThanOrEqual(18);
+    expect(row.name!.height).toBeGreaterThanOrEqual(5);
   }
 });
 

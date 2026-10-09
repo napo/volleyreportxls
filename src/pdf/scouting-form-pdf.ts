@@ -27,7 +27,16 @@ const GUIDE = rgb(0.62, 0.62, 0.62);
 const LABEL = rgb(0.45, 0.45, 0.45);
 const NUMBER = rgb(0.4, 0.4, 0.4);
 const BUBBLE = rgb(0.6, 0.6, 0.6);
-const BAND = rgb(0.95, 0.95, 0.95);
+/**
+ * v6: numbers inside the bubbles, lighter than the outline so that the bubble stays easy to see,
+ * with the same contrast on white and on the grey bands.
+ */
+const FAINT_CONTRAST = 0.22;
+const faintNumber = (background: number) => rgb(background - FAINT_CONTRAST, background - FAINT_CONTRAST, background - FAINT_CONTRAST);
+/** v6: rules between skills, heavier so that each skill reads as a block. */
+const SKILL_RULE_V6 = { thickness: 1.6, color: rgb(0.15, 0.15, 0.15) };
+const BAND_LEVEL = 0.95;
+const BAND = rgb(BAND_LEVEL, BAND_LEVEL, BAND_LEVEL);
 const SKILL_RULE = rgb(0.3, 0.3, 0.3);
 
 /** Draws in layout coordinates (mm, top-left origin). */
@@ -118,7 +127,8 @@ function pointsForCapHeight(mm: number): number {
   return (mm / 0.71) * MM;
 }
 
-function drawField(s: Sheet, label: string, x: number, baseline: number, width: number) {
+function drawField(s: Sheet, label: string, { x, y, width }: Rect) {
+  const baseline = y + 4;
   s.text(label, x, baseline, 6.5, { color: LABEL });
   const start = x + s.fonts.regular.widthOfTextAtSize(label, 6.5) / MM + 1.5;
   s.page.drawLine({
@@ -130,40 +140,34 @@ function drawField(s: Sheet, label: string, x: number, baseline: number, width: 
 }
 
 /** A bubble with its number inside, as in the tally cells. */
-function numberedBubble(s: Sheet, bubble: Rect, number: number, color = BUBBLE) {
+function numberedBubble(s: Sheet, bubble: Rect, number: number, color = BUBBLE, numberColor = color) {
   s.circle(bubble, color);
   // Digits about half the bubble high, baseline set so they sit in its centre.
   const height = bubble.height * 0.5;
   s.text(String(number), bubble.x, bubble.y + (bubble.height + height) / 2, pointsForCapHeight(height), {
-    color,
+    color: numberColor,
     align: 'center',
     width: bubble.width,
   });
 }
 
 function drawHeader(s: Sheet, page: FormPageId) {
-  const { title, score, qr, setMarks } = s.layout;
+  const { title, score, qr, setMarks, fields, compact } = s.layout;
   // Handwritten notes for the paper archive; the app does not read them.
-  const fields = (x: number, width: number, first: number, second: number) => {
-    drawField(s, s.texts.form.team, x, first, width * 0.55 - 3);
-    drawField(s, s.texts.form.opponent, x + width * 0.55, first, width * 0.45);
-    drawField(s, s.texts.form.competition, x, second, width * 0.55 - 3);
-    drawField(s, s.texts.form.date, x + width * 0.55, second, width * 0.45);
-  };
+  for (const { field, outer } of fields) drawField(s, s.texts.form[field], outer);
   if (setMarks) {
     s.text(s.texts.form.setLabel, title.x, setMarks.sets[0]!.y + 4.1, 13, { heading: true });
     for (const bubble of setMarks.sets) numberedBubble(s, bubble, bubble.number);
     s.circle(setMarks.extra);
     s.text(s.texts.form.extra, setMarks.extra.x + setMarks.extra.width + 1.5, setMarks.extra.y + 2.9, 7, { bold: true });
-    fields(title.x, title.width, title.y + 11, title.y + 16.5);
-    s.text(s.texts.form.instruction, title.x, title.y + 21, 6.5, { color: LABEL });
+    if (!compact) s.text(s.texts.form.instruction, title.x, title.y + 21, 6.5, { color: LABEL });
   } else {
     s.text(s.texts.form.set(page.setNumber ?? 1), title.x, title.y + 8, 22, { heading: true });
-    fields(title.x + 30, title.width - 30, title.y + 4.5, title.y + 11);
     s.text(s.texts.form.instruction, title.x, title.y + 18.5, 6.5, { color: LABEL });
   }
 
-  s.text(s.texts.form.finalScore, score.team[0].x - 20, score.team[0].y - 1.5, 7, { color: LABEL });
+  if (compact) s.text(s.texts.form.finalScore, fields[2]!.outer.x, score.team[0].y + 4.8, 7, { color: LABEL });
+  else s.text(s.texts.form.finalScore, score.team[0].x - 20, score.team[0].y - 1.5, 7, { color: LABEL });
   // Labels end just before their boxes, whatever their length.
   const label = (text: string, box: (typeof score.team)[0]) =>
     s.text(text, box.x - 2 - s.fonts.bold.widthOfTextAtSize(text, 9) / MM, box.y + 6.5, 9, { bold: true });
@@ -200,7 +204,8 @@ function drawGrid(s: Sheet) {
   };
 
   for (const { kind, outer } of numberHeaders) {
-    s.text(kind === 'player' ? s.texts.form.shirt : s.texts.form.libero, outer.x, outer.y + outer.height - 1, kind === 'player' ? 6 : 7, {
+    const label = kind === 'libero' ? s.texts.form.libero : s.layout.compact ? s.texts.form.shirtAndName : s.texts.form.shirt;
+    s.text(label, outer.x, outer.y + outer.height - 1, kind === 'player' ? 6 : 7, {
       bold: true,
       color: kind === 'player' ? LABEL : BLACK,
       align: 'center',
@@ -208,13 +213,19 @@ function drawGrid(s: Sheet) {
     });
   }
 
+  // Grey bands and skill rules, by kind of row: v6 draws the rules over the cells.
+  const banded: { kind: RowKind; x: number; width: number }[] = [];
+  const rules: { x: number; top: number; bottom: number }[] = [];
   for (const kind of ['player', 'libero'] as const) {
     const { bottom } = extent(kind);
     const section = skills.filter((h) => h.kind === kind);
     const small = kind === 'libero';
     section.forEach((skill, i) => {
       // Alternate light bands tell the skills apart at a glance.
-      if (i % 2 === 0) s.fill({ x: skill.outer.x, y: skill.outer.y, width: skill.outer.width, height: bottom - skill.outer.y }, BAND);
+      if (i % 2 === 0) {
+        s.fill({ x: skill.outer.x, y: skill.outer.y, width: skill.outer.width, height: bottom - skill.outer.y }, BAND);
+        banded.push({ kind, x: skill.outer.x, width: skill.outer.width });
+      }
       // Narrow blocks (the set faults) drop the letter, then shrink the name to fit.
       const size = small ? 6 : 7.5;
       const fits = (text: string, at: number) => s.fonts.bold.widthOfTextAtSize(text, at) / MM <= skill.outer.width - 0.6;
@@ -232,19 +243,35 @@ function drawGrid(s: Sheet) {
         s.text(evaluation, outer.x, outer.y + outer.height - (small ? 0.4 : 0.6), small ? 7 : 9, { bold: true, align: 'center', width: outer.width });
       }
       // Heavier rules between skills.
-      s.vline(skill.outer.x, skill.outer.y, bottom, 0.9, SKILL_RULE);
-      s.vline(skill.outer.x + skill.outer.width, skill.outer.y, bottom, 0.9, SKILL_RULE);
+      for (const x of [skill.outer.x, skill.outer.x + skill.outer.width]) {
+        if (s.layout.compact) rules.push({ x, top: skill.outer.y, bottom });
+        else s.vline(x, skill.outer.y, bottom, 0.9, SKILL_RULE);
+      }
     });
   }
+  const onBand = (kind: RowKind, x: number) => banded.some((b) => b.kind === kind && x > b.x && x < b.x + b.width);
 
   for (const row of rows) {
     // The shirt-number box is drawn heavier than the tally cells, so the two are not confused.
     s.box(row.number, 1.1, NUMBER);
-    s.dashed(row.numberDigits[1].x, row.number.y + 1, row.number.y + row.number.height - 1);
+    if (row.name) {
+      // v6: two digit boxes, then a line for the name.
+      for (const digit of row.numberDigits) s.box(digit, 0.4);
+      const baseline = row.name.y + row.name.height - 1.2;
+      s.page.drawLine({
+        start: { x: (row.name.x + 1.5) * MM, y: (s.layout.page.height - baseline) * MM },
+        end: { x: (row.name.x + row.name.width - 1.5) * MM, y: (s.layout.page.height - baseline) * MM },
+        thickness: 0.4,
+        color: GUIDE,
+      });
+    } else {
+      s.dashed(row.numberDigits[1].x, row.number.y + 1, row.number.y + row.number.height - 1);
+    }
     for (const area of row.unused) hatch(s, area);
     for (const cell of row.cells) {
       s.box(cell.outer, 0.3);
-      for (const bubble of cell.bubbles) numberedBubble(s, bubble, bubble.number);
+      const numberColor = s.layout.compact ? faintNumber(onBand(row.kind, cell.outer.x + cell.outer.width / 2) ? BAND_LEVEL : 1) : BUBBLE;
+      for (const bubble of cell.bubbles) numberedBubble(s, bubble, bubble.number, BUBBLE, numberColor);
       s.circle(cell.overflow, NUMBER);
       const plus = cell.overflow.height * 0.6;
       s.text('+', cell.overflow.x, cell.overflow.y + (cell.overflow.height + plus) / 2, pointsForCapHeight(plus), {
@@ -255,6 +282,7 @@ function drawGrid(s: Sheet) {
       });
     }
   }
+  for (const rule of rules) s.vline(rule.x, rule.top, rule.bottom, SKILL_RULE_V6.thickness, SKILL_RULE_V6.color);
 }
 
 function drawLegend(s: Sheet, page: FormPageId) {

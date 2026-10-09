@@ -369,7 +369,7 @@ src/
 
 ## 12. Modulo A4 fotografabile
 
-Il modulo è **a crocette** (layout v5), generico e con un unico foglio per tutti i set: il set si segna a mano in alto. Per ogni pallone toccato si annerisce o si barra il primo pallino libero nella riga del giocatore, sotto fondamentale e valutazione. Le statistiche dipendono solo dai conteggi, quindi non si perde nulla rispetto ai codici scritti (`domain/tally.ts`). In compenso la lettura della foto diventa un riconoscimento di segni, molto più affidabile della scrittura a mano.
+Il modulo è **a crocette** (layout v6), generico e con un unico foglio per tutti i set: il set si segna a mano in alto. Per ogni pallone toccato si annerisce o si barra il primo pallino libero nella riga del giocatore, sotto fondamentale e valutazione. Le statistiche dipendono solo dai conteggi, quindi non si perde nulla rispetto ai codici scritti (`domain/tally.ts`). In compenso la lettura della foto diventa un riconoscimento di segni, molto più affidabile della scrittura a mano.
 
 Coordinate in `pdf/layout.ts`, identità della pagina (QR) in `pdf/scouting-form.ts`, disegno in `pdf/scouting-form-pdf.ts`. Il PDF si scarica da *Informazioni → Il modulo di rilevazione*.
 
@@ -395,6 +395,20 @@ I liberi non battono, non attaccano e non murano: nelle loro righe quelle zone s
 ### Layout v5 (A4 orizzontale, una pagina per tutti i set)
 
 La v5 ha la griglia della v4. Cambia solo l'intestazione: il set non è più stampato ma si segna su cinque pallini, e un sesto pallino «Foglio aggiuntivo» dice che il foglio continua un set cominciato su un altro foglio. L'app legge il set dal pallino più segnato; se non ce n'è nessuno o ce ne sono due, lo chiede. Un foglio aggiuntivo si somma agli altri fogli dello stesso set (o al set già salvato) senza chiedere. I fogli v4 già stampati (una pagina per set, set nel QR) si leggono come prima. Se il QR non si legge, la v5 e la v4 non si distinguono e il set si sceglie a mano.
+
+### Layout v6 (pallini più grandi, spazio per il nome)
+
+Chi usava la v5 trovava i pallini troppo piccoli (2,7 mm), e chi ricorda il nome ma non il numero di divisa chiedeva dove scriverlo. La v6 mantiene marker, segni del set, righe (12 di gioco + 2 libero) e capienze della v5, e cambia così:
+
+- **Intestazione compatta**: set, «Foglio aggiuntivo», squadra e avversari a sinistra del marker centrale; campionato, data e punteggio finale a destra; tutto alto quanto i marker. Il QR scende da 19 a 12 mm: l'app lo cerca prima nella posizione nuova, poi in quella dei fogli già stampati.
+- **Liberi affiancati**: le righe libero usano solo ricezione e alzata, quindi stanno su un'unica riga, in due blocchi (numero e nome, ricezione, alzata `=`); il secondo parte sotto l'attacco. Lo spazio delle righe equivale a 13 invece di 14.
+- **Pallini tutti da 3,2 mm**, con il numero in grigio chiaro che segue lo sfondo (più scuro sulle fasce grigie, sempre più chiaro del contorno). Muro `-` e `/` passano da una a due colonne (5 pallini invece di 2), così nessuna casella costringe a rimpicciolire le altre.
+- **Separatori tra i fondamentali** spessi (1,6 pt, quasi neri). Entrano per 0,28 mm nelle caselle accanto: la lettura della v6 ignora una fascia di 0,5 mm lungo il bordo delle caselle, lontana dai pallini (almeno 0,56 mm). Senza questa fascia le linee venivano contate come segni nelle caselle `=`.
+- **Numero e nome**: due caselle per le cifre e sotto una riga per il nome. L'app non legge il nome, ma lo mostra nel ritaglio accanto al campo del numero.
+
+Retrocompatibilità, verificata dai test: geometria di v3, v4 e v5 identica al millimetro, PDF v4 e v5 identici al pixel, foto reali v3 e fogli sintetici v4, v5, v6 letti come prima; con il QR illeggibile un foglio v5 viene letto con la griglia v5 (condivisa con la v4), un foglio v6 con la sua.
+
+**Foglio di esempio.** `npm run sample:sheet` genera un modulo compilato a caso (numeri, nomi, set, punteggio, tocchi plausibili per ruolo, pallini anneriti o barrati, `--full N` caselle piene con il «+») e accanto un JSON con quello che l'app deve leggere. In `docs/examples/` ci sono `modulo-compilato.pdf`, la sua immagine `modulo-compilato.jpg` (da caricare nell'app senza stamparlo) e `modulo-compilato.json`. Lo stesso foglio illustra la guida introduttiva.
 
 
 La v3 (con difesa e alzata valutata sulle righe libero) non è mai stata rilasciata ed è stata sostituita, non affiancata.
