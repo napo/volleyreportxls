@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * The 5-step guide, one step at a time, in a modal dialog, and a last page on
  * scouting on a tablet instead. It opens when the app starts unless the user

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { strToU8, zipSync } from 'fflate';
 import { emptySet, newMatchRecord, type MatchRecord } from './record';
 import { VrpError, exportVrp, importVrp, readMatchRecord, vrpFileName } from './vrp';

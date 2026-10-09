@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * Download section of the "Informazioni" page: the packages of the latest GitHub release, read from
  * the GitHub API (nothing is listed by hand, so the page follows each new release by itself).

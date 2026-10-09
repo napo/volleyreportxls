@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 // Writes latest.json for the Tauri updater from the files of a release (and their .sig signatures).
 // The app reads https://github.com/napo/volleyreportxls/releases/latest/download/latest.json and looks
 // for "<os>-<arch>-<installer>" (then "<os>-<arch>"). Only signed packages are listed.

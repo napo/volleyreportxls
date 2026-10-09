@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * The example match shipped with VolleyReportXLS (fictional players), used as
  * demo data in the app. Generated from src/oracle/volleyreportxls-oracle.json;

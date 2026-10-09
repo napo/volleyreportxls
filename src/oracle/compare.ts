@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * Pairs every result cell extracted from the reference workbook with the value
  * computed by the TypeScript logic. Test-only code.

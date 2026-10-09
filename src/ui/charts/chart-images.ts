@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * Charts drawn offscreen as PNG for the PDF: same options as on screen, with
  * the legend inside the image. The canvas renderer (loaded only here) uses

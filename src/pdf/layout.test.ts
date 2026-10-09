@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { CURRENT_FORM_LAYOUT as layout, type Rect, cellCode, formLayout, inset, overlaps } from './layout';
 
 const inside = (r: Rect) => r.x >= 0 && r.y >= 0 && r.x + r.width <= layout.page.width && r.y + r.height <= layout.page.height;

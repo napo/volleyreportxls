@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * PDF of the scouting form: a tally sheet, A4 landscape, a single page to
  * print as many times as needed (the set is marked by hand), drawn from the layout so that print and recognition share the same

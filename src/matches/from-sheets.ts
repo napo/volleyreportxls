@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * From the sheets read in photos (and checked by the user) to the sets of a
  * match: one set per sheet, one row per line used on the sheet.

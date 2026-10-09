@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * Downloads the printable scouting form (PDF, one page per set) in the current language.
  * The form is a file published with the site (src/pdf/form-files.ts): in the browser a plain

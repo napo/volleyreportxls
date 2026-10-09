@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /** The matches saved on this device: open, edit, export, delete; import from a .vrp file. */
 import { useEffect, useRef, useState } from 'react';
 import { type MatchRecord, newMatchRecord } from '../../matches/record';

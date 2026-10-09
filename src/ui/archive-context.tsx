@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /** The local archive, opened once and shared by the views. */
 import { type ReactNode, createContext, useContext, useEffect, useState } from 'react';
 import { Archive, requestPersistentStorage } from '../storage/archive';

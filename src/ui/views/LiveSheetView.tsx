@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * Live scouting on a tablet or a touch screen: the paper form as a sheet of
  * counters, full screen. A tap on a cell adds one, a long press (right click

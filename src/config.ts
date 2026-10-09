@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * Project identity and links: the single place for the URLs shown in the app
  * (Informazioni page, footer, update notice). Components import them from here.

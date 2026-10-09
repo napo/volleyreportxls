@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * The 5-step guide, in a dialog. It does not open at start unless the user
  * turns that on (a preference of this device); it can be opened at any time

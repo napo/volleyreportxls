@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /** Italian texts (reference language): en.ts must have the same shape. */
 import { type Evaluation, type Skill, SKILL_DEFINITIONS } from '../domain/codes';
 import type { Anomaly } from '../matches/checks';

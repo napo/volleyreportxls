@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * The printable scouting form is the same for every match: it is made once at build time and
  * published as a plain file, one per language. Phones download a real file far more reliably

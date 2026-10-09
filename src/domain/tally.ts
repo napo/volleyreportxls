@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * Counts from the tally sheet (one row per player, one count per code) as
  * scouting lines. Statistics depend only on how many touches of each code a

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /** Hash routes: "#tab", "#tab/param" (e.g. "#partita/k3x9…", "#tabellino/esempio"). */
 
 /** Tabs of the main navigation, in order (their names are in the i18n texts). */

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { useMemo, useState } from 'react';
 import { formatRating, formatSigned, playerLabel } from '../../report/format';
 import { activePlayers, evaluationShares, playerPoints, pointsBySkill, setTrend } from '../../report/chart-data';

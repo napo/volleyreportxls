@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # VolleyReport: analisi di VolleyReportXLS, definizioni DataVolley e progetto
 
 Questo documento ricostruisce il funzionamento di `VolleyReportXLS.xlsx` e descrive come la nuova applicazione lo sostituisce. Il workbook dà la struttura della rilevazione (il modulo cartaceo, i codici, le righe per giocatore) ed è l'oracle per i conteggi. **L'interpretazione dei dati, cioè formule, tabellino e votazioni, segue invece DataVolley 4**, come richiesto.

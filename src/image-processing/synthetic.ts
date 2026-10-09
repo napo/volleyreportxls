@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * Synthetic "scans" of the scouting form, drawn straight from the layout:
  * a white page with markers and QR code. Used to test detection and, later,

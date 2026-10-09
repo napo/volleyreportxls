@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # Social preview
 
 `public/social-preview.png` (1280 × 640) is the image shown when the site or the

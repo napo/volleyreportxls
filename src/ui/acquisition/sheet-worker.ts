@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /// <reference lib="webworker" />
 /** Reads photos of sheets off the main thread, so the page stays responsive. */
 import { type SheetFailure, type SheetResult, readSheetImage } from '../../image-processing/read-sheet';

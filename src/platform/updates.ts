@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * Update check of the installed apps (Tauri). Never in the web version, which is always the latest.
  * - Windows, macOS, Linux: Tauri updater (signed packages listed in latest.json of the latest GitHub

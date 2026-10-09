@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * Fonts embedded in every generated PDF: the app's own typefaces (Roboto for
  * text, Montserrat for titles), subset to the glyphs actually used. Nothing

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * Display conventions of the DataVolley scoresheet: a dot for zero or "not
  * applicable", whole percentages, signed balance.

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { SET_NUMBERS } from '../../domain/model';
 import { formatBracketedPercent, formatCount, formatPercent, formatRating, formatSigned } from '../../report/format';
 import type { Tabellino, TabellinoLine, TabellinoPlayerRow, TabellinoSkills } from '../../report/tabellino';

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * Athletes across matches. A shirt number identifies a player only inside a
  * team in a competition (a "roster"): the same athlete may wear other numbers

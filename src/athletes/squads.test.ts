@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { newMatchRecord, type MatchRecord } from '../matches/record';
 import { inSquad, joinTeam, separateTeam, similarTeams, squadsOf } from './squads';
 

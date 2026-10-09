@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * Squads: the names a club uses in its competitions ("Volley Trento" in the
  * under 18, "Itas Trentino" in Serie C, with the sponsor) joined by the user

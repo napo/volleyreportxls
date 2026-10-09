@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # Font per i PDF
 
 Font incorporati nei PDF generati dall'app (tabellino e modulo di rilevazione), così il documento appare identico su ogni dispositivo e non dipende dai font installati.

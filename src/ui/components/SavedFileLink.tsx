@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /** A link to the file just downloaded, for browsers that ignore a download started after a wait (mobile). */
 import { useI18n } from '../../i18n';
 import type { SavedFile } from '../../platform/save-file';

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * The tally of one set as a table, the same structure as the paper form: one
  * row per player, one cell per code holding the number of touches. Each skill

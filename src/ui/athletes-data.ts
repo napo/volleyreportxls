@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /** Matches, athletes and squads of the archive, for the history pages. */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { type Athlete, type RosterEntry, rosterEntries } from '../athletes/matching';

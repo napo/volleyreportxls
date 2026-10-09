@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /** Statistics and scoresheet of the match a view shows: a saved match, or the example. */
 import { useEffect, useState } from 'react';
 import { calculateMatchStats } from '../domain/stats/aggregate';

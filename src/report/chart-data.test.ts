@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { calculateMatchStats } from '../domain';
 import { line, match, set, team } from '../domain/testing';
 import { activePlayers, evaluationShares, playerPoints, pointsBySkill, setTrend } from './chart-data';

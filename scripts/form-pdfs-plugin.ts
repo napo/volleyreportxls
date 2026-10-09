@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 // Vite plugin: makes the printable scouting forms (src/pdf/form-files.ts) at build time,
 // and serves them from memory in the dev server.
 import { readFileSync } from 'node:fs';

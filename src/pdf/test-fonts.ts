@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /** Font files for tests and dev scripts (Node only). */
 import { readFileSync } from 'node:fs';
 import type { PdfFontFiles } from './fonts';

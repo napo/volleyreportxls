@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * A match entered or corrected by hand: game data, the tally table and the
  * score of every set, the players' names. Every change is saved on the device.

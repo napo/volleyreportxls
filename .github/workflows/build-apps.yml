@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 name: Build applicazioni
 
 # Installers for Windows, macOS, Linux, Android and iOS (unsigned IPA), built when a version tag (vX.Y.Z) is pushed;

@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 // Sets the app version everywhere it is stored (package.json is the source of truth).
 // Usage: npm run release:version -- <patch|minor|major|X.Y.Z>
 // It only edits files: commit, tag (vX.Y.Z) and push are a separate, confirmed step (docs/builds.md).

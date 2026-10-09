@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 // Collects the desktop packages of one target into desktop-dist/, with the updater files: signatures
 // (.sig) and the macOS update archive, whose name gets the architecture (Apple Silicon and Intel would
 // otherwise collide).

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * ArUco markers of the scouting form: OpenCV predefined dictionary DICT_4X4_50
  * (4×4 data bits). The codes are copied from OpenCV's predefined_dictionaries

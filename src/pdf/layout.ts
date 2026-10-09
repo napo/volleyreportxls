@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * Geometry of the scouting form, in millimetres, origin at the top-left corner
  * of the page and y growing downwards (the image convention).

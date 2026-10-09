@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * Live camera (webcam on computers, rear camera on tablets) to shoot the
  * sheets one after the other: every shot is handed over and the camera stays

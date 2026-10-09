@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * Oracle test: the TypeScript domain logic against the results stored in
  * VolleyReportXLS.xlsx (see tools/extract-oracle.py and docs/volleyreportxls-analysis.md §10).

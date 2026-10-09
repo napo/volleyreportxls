@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * The match scoresheet ("Tabellino"), with the layout and definitions of the
  * DataVolley 4 scoresheet (manual §9.7.1), built from the domain statistics.

@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # Versioni, rilasci e build
 
 VolleyReport è distribuito come versione web (https://report.volleyserve.it) e come applicazione installabile per Windows, macOS, Linux e Android, tutte prodotte da GitHub Actions a partire dallo stesso codice e dalla stessa versione.

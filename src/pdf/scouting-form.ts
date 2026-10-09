@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * Identity of a scouting-form page, encoded in its QR code so that a photo
  * can be matched to its layout (and, up to v4, to its set). The form is

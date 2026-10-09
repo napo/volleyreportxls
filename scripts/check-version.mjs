@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 // Fails unless every manifest carries the same version and, when given, the tag matches it (vX.Y.Z).
 // Usage: node scripts/check-version.mjs [tag]
 import { readFileSync, existsSync } from 'node:fs';

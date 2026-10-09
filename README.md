@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # volleyreportxls
 
 dalla carta al report della gara della propria squadra di volley
@@ -23,3 +28,9 @@ npm run desktop:dev      # app desktop (Tauri)
 ```
 
 `VolleyReportXLS.xlsx` serve solo come riferimento e oracle di test: l'applicazione non lo legge mai.
+
+## Licenza e riuso
+
+Il codice è distribuito secondo i termini della GNU Affero General Public License v3.0 o successive ([LICENSE](LICENSE)); documentazione, immagini e il foglio `VolleyReportXLS.xlsx` secondo la [CC BY 4.0](LICENSES/CC-BY-4.0.txt). I font e l'icona PayPal hanno le licenze dei loro autori. Ogni file indica titolare e licenza con un'intestazione SPDX o in [REUSE.toml](REUSE.toml), secondo lo standard [REUSE](https://reuse.software); i testi completi sono in [LICENSES/](LICENSES/).
+
+Chi riusa il codice, anche con un agente AI, trova in [AGENTS.md](AGENTS.md) le condizioni da rispettare: verificare la compatibilità delle licenze, conservare le note di copyright, informare sugli obblighi e segnalare le incompatibilità.

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * Saving a file made by the app (PDFs): the user always chooses where it goes.
  * - Installed apps (Tauri): the system "Save as" dialog.

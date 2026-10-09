@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { type ExtractedEvents, extractEvents } from '../events';
 import { type Match, type Player, type ScoutEvent, type SetNumber, type SetScore, SET_NUMBERS } from '../model';
 import { type EvaluationTables, DATAVOLLEY_TABLES } from '../tables';

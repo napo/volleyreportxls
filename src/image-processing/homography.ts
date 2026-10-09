@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * Plane-to-plane projective transform (homography) from point pairs, by
  * normalised DLT with least squares: the sheet, in millimetres, onto the photo.

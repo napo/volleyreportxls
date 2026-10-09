@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * Local archive (IndexedDB): matches, the athletes, and the names (and
  * athletes) of the players of every team in a competition, so that a new

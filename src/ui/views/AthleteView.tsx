@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * One athlete: name and note, the shirt numbers linked to it, and the history
  * of the chosen matches (totals, trend, match by match).

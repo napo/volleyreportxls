@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * A4 portrait PDF of the charts: the match header, then section titles and
  * charts one below the other, on as many pages as needed.

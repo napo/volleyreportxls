@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * The charts PDF: the same charts as the Grafici page (team, then the
  * athletes selected there), drawn as images and laid out on A4.

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 name: Versione web (GitHub Pages)
 
 # The web version follows the releases: it is published when a version tag is pushed

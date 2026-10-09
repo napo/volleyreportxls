@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * The tally of one set, one athlete at a time: made for phones. Each code has
  * − and + buttons starting from 0 (the number can also be typed); each skill

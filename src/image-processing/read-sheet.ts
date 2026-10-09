@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 /**
  * Everything the review screen needs from one photo of a sheet: which set and
  * layout, the touches counted in every cell (with the uncertain ones), and the
