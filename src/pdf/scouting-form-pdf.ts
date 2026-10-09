@@ -1,6 +1,6 @@
 /**
- * PDF of the scouting form: a tally sheet, A4 landscape, one page per set,
- * drawn from the layout so that print and recognition share the same
+ * PDF of the scouting form: a tally sheet, A4 landscape, a single page to
+ * print as many times as needed (the set is marked by hand), drawn from the layout so that print and recognition share the same
  * coordinates. It is printed before the match is known: team, opponent and
  * roster are entered in the app after the photo.
  *
@@ -126,23 +126,39 @@ function drawField(s: Sheet, label: string, x: number, baseline: number, width: 
   });
 }
 
+/** A bubble with its number inside, as in the tally cells. */
+function numberedBubble(s: Sheet, bubble: Rect, number: number, color = BUBBLE) {
+  s.circle(bubble, color);
+  // Digits about half the bubble high, baseline set so they sit in its centre.
+  const height = bubble.height * 0.5;
+  s.text(String(number), bubble.x, bubble.y + (bubble.height + height) / 2, pointsForCapHeight(height), {
+    color,
+    align: 'center',
+    width: bubble.width,
+  });
+}
+
 function drawHeader(s: Sheet, page: FormPageId) {
-  const { title, score, qr } = s.layout;
-  s.text(s.texts.form.set(page.setNumber), title.x, title.y + 8, 22, { heading: true });
+  const { title, score, qr, setMarks } = s.layout;
   // Handwritten notes for the paper archive; the app does not read them.
-  const x = title.x + 30;
-  const width = title.width - 30;
-  drawField(s, s.texts.form.team, x, title.y + 4.5, width * 0.55 - 3);
-  drawField(s, s.texts.form.opponent, x + width * 0.55, title.y + 4.5, width * 0.45);
-  drawField(s, s.texts.form.competition, x, title.y + 11, width * 0.55 - 3);
-  drawField(s, s.texts.form.date, x + width * 0.55, title.y + 11, width * 0.45);
-  s.text(
-    s.texts.form.instruction,
-    title.x,
-    title.y + 18.5,
-    6.5,
-    { color: LABEL },
-  );
+  const fields = (x: number, width: number, first: number, second: number) => {
+    drawField(s, s.texts.form.team, x, first, width * 0.55 - 3);
+    drawField(s, s.texts.form.opponent, x + width * 0.55, first, width * 0.45);
+    drawField(s, s.texts.form.competition, x, second, width * 0.55 - 3);
+    drawField(s, s.texts.form.date, x + width * 0.55, second, width * 0.45);
+  };
+  if (setMarks) {
+    s.text(s.texts.form.setLabel, title.x, setMarks.sets[0]!.y + 4.1, 13, { heading: true });
+    for (const bubble of setMarks.sets) numberedBubble(s, bubble, bubble.number);
+    s.circle(setMarks.extra);
+    s.text(s.texts.form.extra, setMarks.extra.x + setMarks.extra.width + 1.5, setMarks.extra.y + 2.9, 7, { bold: true });
+    fields(title.x, title.width, title.y + 11, title.y + 16.5);
+    s.text(s.texts.form.instruction, title.x, title.y + 21, 6.5, { color: LABEL });
+  } else {
+    s.text(s.texts.form.set(page.setNumber ?? 1), title.x, title.y + 8, 22, { heading: true });
+    fields(title.x + 30, title.width - 30, title.y + 4.5, title.y + 11);
+    s.text(s.texts.form.instruction, title.x, title.y + 18.5, 6.5, { color: LABEL });
+  }
 
   s.text(s.texts.form.finalScore, score.team[0].x - 20, score.team[0].y - 1.5, 7, { color: LABEL });
   // Labels end just before their boxes, whatever their length.
@@ -225,16 +241,7 @@ function drawGrid(s: Sheet) {
     for (const area of row.unused) hatch(s, area);
     for (const cell of row.cells) {
       s.box(cell.outer, 0.3);
-      for (const bubble of cell.bubbles) {
-        s.circle(bubble);
-        // Digits about half the bubble high, baseline set so they sit in its centre.
-        const height = bubble.height * 0.5;
-        s.text(String(bubble.number), bubble.x, bubble.y + (bubble.height + height) / 2, pointsForCapHeight(height), {
-          color: BUBBLE,
-          align: 'center',
-          width: bubble.width,
-        });
-      }
+      for (const bubble of cell.bubbles) numberedBubble(s, bubble, bubble.number);
       s.circle(cell.overflow, NUMBER);
       const plus = cell.overflow.height * 0.6;
       s.text('+', cell.overflow.x, cell.overflow.y + (cell.overflow.height + plus) / 2, pointsForCapHeight(plus), {
@@ -256,7 +263,7 @@ function drawLegend(s: Sheet, page: FormPageId) {
   // Right: ratings, where to go with the filled-in form, credits; the project logo at the end.
   s.text(s.texts.form.legend3, right.x, right.y + 3.2, 7, { bold: true });
   s.text(s.texts.form.after(WEB_APP_URL.replace(/\/$/, '')), right.x, right.y + 6.4, 6.5);
-  s.text(s.texts.form.credits(page.layoutVersion, page.setNumber, page.page), right.x, right.y + 9.4, 6, { color: LABEL });
+  s.text(s.texts.form.credits(page.layoutVersion), right.x, right.y + 9.4, 6, { color: LABEL });
   if (s.logo) {
     const height = right.height - 1;
     const width = (s.logo.width / s.logo.height) * height;
@@ -269,7 +276,7 @@ function drawMarkers(s: Sheet) {
 }
 
 export interface ScoutingFormOptions {
-  /** Sets to print, one page each (default: all five). */
+  /** Sets to print, one page each, for a layout with the set printed (default: all five). */
   readonly sets?: readonly SetNumber[];
   /** Fonts to embed (the app's bundled Roboto and Montserrat). */
   readonly fonts: PdfFontFiles;
@@ -290,7 +297,9 @@ export async function renderScoutingFormPdf(options: ScoutingFormOptions): Promi
   const fonts = await embedPdfFonts(doc, options.fonts);
   const logo = options.logoPng ? await doc.embedPng(options.logoPng) : null;
 
-  for (const setNumber of options.sets ?? SET_NUMBERS) {
+  // One sheet for every set when the set is marked by hand.
+  const sets: readonly (SetNumber | null)[] = layout.setMarks ? [null] : options.sets ?? SET_NUMBERS;
+  for (const setNumber of sets) {
     const page: FormPageId = { layoutVersion: layout.version, setNumber, page: 1 };
     const sheet = new Sheet(doc.addPage([layout.page.width * MM, layout.page.height * MM]), layout, fonts, texts, logo);
     drawMarkers(sheet);

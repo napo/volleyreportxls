@@ -17,6 +17,12 @@
  *   the referee on the second touch: every role can commit them).
  * - 2 libero rows: reception and set faults, under the players' ones.
  *
+ * Layout v5 has the grid of v4 on a single sheet for every set: the scout marks
+ * the set in the header (bubbles 1–5), and a further bubble when the sheet
+ * continues a set started on another sheet. The QR carries no set.
+ *
+ * Layout v4 (one printed page per set, the set in the QR) is kept to read those sheets.
+ *
  * Layout v3 (October 2026, already used on paper) is kept to read those sheets:
  * its libero rows also had dig and graded sets, which the app no longer records.
  * Those cells are read and reported, never counted.
@@ -91,6 +97,8 @@ export interface FormLayout {
   readonly markerQuietZone: number;
   readonly qr: Rect;
   readonly title: Rect;
+  /** Set marked by hand (v5 on): one bubble per set, plus "extra sheet of the set". Absent when the set is printed. */
+  readonly setMarks?: { readonly sets: readonly Bubble[]; readonly extra: Rect };
   /** Final score: two digit boxes for us, two for the opponent. */
   readonly score: { readonly team: readonly [Rect, Rect]; readonly opponent: readonly [Rect, Rect] };
   /** "N° divisa" label over the player rows, "Libero" over the libero rows. */
@@ -124,6 +132,8 @@ interface LayoutSpec {
   readonly libero: readonly { readonly skill: FormSkill; readonly columns: Columns; readonly under?: FormSkill }[];
   /** Player blocks hatched in the libero rows, as [from, to) ranges of player skills. */
   readonly liberoUnused: readonly (readonly [FormSkill, FormSkill])[];
+  /** The set is marked by hand in the header instead of printed. */
+  readonly setMarks?: boolean;
 }
 
 /** v4: set faults (P=) on every row; liberos with reception and set faults. */
@@ -136,6 +146,9 @@ const V4: LayoutSpec = {
   ],
   liberoUnused: [['B', 'R'], ['A', 'P']],
 };
+
+/** v5: the grid of v4, one sheet for every set. */
+const V5: LayoutSpec = { ...V4, version: 5, setMarks: true };
 
 /** v3 (read only): liberos with reception, then dig and graded sets where attack starts. */
 const V3: LayoutSpec = {
@@ -252,6 +265,15 @@ function buildTallyLayout(spec: LayoutSpec): FormLayout {
   ];
 
   const digit = (dx: number): Rect => rect(dx, 13, 7, 9.5);
+  const title = rect(margin + marker + 4, margin, centre - (margin + marker + 4) - 4, 20);
+  // Set bubbles after the "Set" label, then the "extra sheet" bubble.
+  const setBubble = 5;
+  const setMarks = spec.setMarks
+    ? {
+        sets: [1, 2, 3, 4, 5].map((n) => ({ ...rect(title.x + 12 + (n - 1) * 6.5, title.y + 0.5, setBubble, setBubble), number: n })),
+        extra: rect(title.x + 50, title.y + 1, 4, 4),
+      }
+    : undefined;
   return {
     version: spec.version,
     page,
@@ -265,7 +287,8 @@ function buildTallyLayout(spec: LayoutSpec): FormLayout {
     ],
     markerQuietZone: quietZone,
     qr: rect(right - 4 - 19, margin, 19, 19),
-    title: rect(margin + marker + 4, margin, centre - (margin + marker + 4) - 4, 20),
+    title,
+    ...(setMarks && { setMarks }),
     score: {
       team: [digit(178), digit(185)],
       opponent: [digit(214), digit(221)],
@@ -288,8 +311,12 @@ function buildTallyLayout(spec: LayoutSpec): FormLayout {
 }
 
 /** Every layout ever printed, by version; new sheets use the current one. */
-export const FORM_LAYOUTS: Readonly<Record<number, FormLayout>> = { 3: buildTallyLayout(V3), 4: buildTallyLayout(V4) };
-export const CURRENT_FORM_LAYOUT = FORM_LAYOUTS[4]!;
+export const FORM_LAYOUTS: Readonly<Record<number, FormLayout>> = {
+  3: buildTallyLayout(V3),
+  4: buildTallyLayout(V4),
+  5: buildTallyLayout(V5),
+};
+export const CURRENT_FORM_LAYOUT = FORM_LAYOUTS[5]!;
 
 /** The code a cell counts, or null for cells of an old layout the app no longer records (v3 dig and graded sets). */
 export function cellCode(cell: TallyCell): ScoutCodeString | null {

@@ -39,7 +39,7 @@ export const en: Messages = {
     local: 'Data stays on the device',
     evolution: 'Evolution of',
     photoTitle: 'Photograph the filled-in form',
-    photoText: 'One photo per set: the app counts the bubbles, reads the set from the QR code and asks you to check the shirt numbers and the doubtful cells.',
+    photoText: 'One photo per sheet: the app counts the bubbles, reads the set marked at the top and asks you to check the shirt numbers and the doubtful cells.',
     photoButton: 'Take or upload photos of the sheets',
     formButton: 'Download the form to print (PDF)',
     noForm: 'No form yet?',
@@ -56,12 +56,12 @@ export const en: Messages = {
     steps: [
       {
         title: 'Get the form',
-        text: 'Download the PDF and print one page per set, black and white is fine. The form is the same for every match.',
+        text: 'Download the PDF and print one copy per set, black and white is fine. The form is the same for every match and every set.',
         alt: 'The empty scouting form',
       },
       {
         title: 'Fill it in during the match',
-        text: 'Write the shirt numbers; for every ball touched mark the first free bubble, under skill and rating.',
+        text: 'Mark the set at the top and write the shirt numbers; for every ball touched mark the first free bubble, under skill and rating.',
         alt: 'The form filled in with a pen',
       },
       {
@@ -160,7 +160,7 @@ export const en: Messages = {
     set: 'Set',
     finalScore: 'Final score',
     us: 'Us',
-    them: 'Them',
+    them: 'Opponents',
     playersTitle: 'Players',
     playersText:
       'The shirt numbers found in the sets. Names are optional; those already used for this team and competition are suggested. The athlete is used for the history: it is usually linked on the History page, here you can change it for this match only.',
@@ -479,8 +479,8 @@ export const en: Messages = {
       ', the spreadsheet for coaches who scout the match with pen and paper. Here you find the form to print, how to scout on a tablet, the codes, the definitions of the statistics and the versions to install.',
     formTitle: 'The scouting form',
     formText:
-      'One A4 landscape sheet per set, to print in black and white. Twelve rows for the players (serve, reception, attack, block, setting faults) and two for the liberos (reception, setting faults). The form is the same for every match: team, match and player names are entered in the app afterwards.',
-    formButton: 'Download the form (PDF, 5 pages)',
+      'One A4 landscape sheet to print in black and white, one copy per set: the set is marked at the top, together with “Extra sheet” when the set goes on to a second sheet. Twelve rows for the players (serve, reception, attack, block, setting faults) and two for the liberos (reception, setting faults). The form is the same for every match: team, match and player names are entered in the app afterwards.',
+    formButton: 'Download the form (PDF, 1 page)',
     howTitle: 'How to fill it in',
     howText: 'Dark pen, one bubble for every ball touched.',
     howSteps: [
@@ -566,23 +566,24 @@ export const en: Messages = {
   form: {
     fileName: 'VolleyReport - scouting form.pdf',
     set: (n: number) => `Set ${n}`,
+    setLabel: 'Set',
+    extra: 'Extra sheet (continues the set)',
     team: 'Team',
     opponent: 'Opponent',
     competition: 'Competition',
     date: 'Date',
     instruction:
-      'One row per player: shirt number in the two boxes; for every ball touched fill or cross the first free bubble under skill and rating.',
+      'Mark the set. One row per player: shirt number in the two boxes; for every ball touched fill or cross the first free bubble under skill and rating.',
     finalScore: 'Final score',
     us: 'Us',
-    them: 'Them',
+    them: 'Opponents',
     shirt: 'Shirt no.',
     libero: 'Libero',
     legend1: 'One bubble for every ball touched: fill or cross it, always the first free one.',
     legend2: 'Cell full: mark the "+" and correct the total in the app. Setting =: fault whistled on the second touch.',
     legend3: '#  double plus     +  plus     !  exclamation     -  minus     /  slash     =  double minus',
     after: (url: string) => `After filling in the form, visit ${url} and photograph it.`,
-    credits: (version: number, set: number, page: number) =>
-      `VolleyReport · an idea of Maurizio Napolitano · form v${version} · set ${set} · page ${page}`,
+    credits: (version: number) => `VolleyReport · an idea of Maurizio Napolitano · form v${version}`,
   },
 
   language: { label: 'Language' },
@@ -618,6 +619,10 @@ export const en: Messages = {
       set: 'Set',
       chooseSet: 'Choose the set',
       qrUnread: 'The QR code cannot be read: choose the set of this sheet.',
+      noSet: 'No set is marked on the sheet: choose it.',
+      manySets: (sets: readonly number[]) => `More than one set is marked on the sheet (${sets.join(', ')}): choose the right one.`,
+      extra: 'Extra sheet: added to the other sheets of the same set',
+      extraAlone: (set: number) => `The sheet is marked as extra, but there are no other sheets of set ${set}: check the set marked.`,
       duplicate: (set: number) => `There is another photo of set ${set}: if it is the same sheet remove one, if they are different sheets you can add them up (at the bottom of the page).`,
       form: (version: number) => `form v${version}`,
       reload: 'Replace the photo',
@@ -625,7 +630,7 @@ export const en: Messages = {
       manual: 'Enter by hand',
       score: 'Final score',
       us: 'Us',
-      them: 'Them',
+      them: 'Opponents',
       scoreMissing: 'The score looks empty on the sheet: enter it here if you know it.',
       players: 'Players on the sheet',
       playersHint: 'Read the shirt number in the image and type it next to it.',
@@ -652,6 +657,7 @@ export const en: Messages = {
       sumSheets: 'They are different sheets: add them up',
       numbers: (numbers: readonly number[]) =>
         `Shirt numbers found only on some sheets: ${numbers.join(', ')}. Rows are added up by shirt number: if it is not a substitution, check the numbers.`,
+      extra: 'Extra sheet marked on the form: the counts are added up.',
       score: 'Summed sets keep the final score with more points played.',
     },
     summary: {

@@ -1,7 +1,8 @@
 /**
  * Photos of the filled-in sheets → a match. The user adds photos (camera,
  * files, drag and drop), the app reads them one by one, then the user checks
- * what the app cannot be sure of: the set when the QR is unreadable, the
+ * what the app cannot be sure of: the set when it is not marked clearly
+ * (or the QR is unreadable), the
  * shirt numbers (handwritten: read from the crop), the final score, the
  * uncertain or full cells. Problems that would give wrong data block the
  * confirmation; the rest is reported and can be fixed later in the editor.
@@ -36,6 +37,8 @@ interface Photo {
   readonly markersFound: number;
   readonly urls: Urls | null;
   readonly setNumber: SetNumber | null;
+  /** The sheet continues a set started on another sheet: its counts are added up. */
+  readonly extra: boolean;
   readonly numbers: Readonly<Record<number, string>>;
   readonly corrections: Readonly<Record<string, number>>;
   readonly score: { readonly team: string; readonly opponent: string };
@@ -73,8 +76,9 @@ export function AcquisitionView({ matchId }: { matchId: string | null }) {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [camera, setCamera] = useState(false);
   const [target, setTarget] = useState<MatchRecord | null>(null);
-  // Sets with more than one sheet (in the photos or already in the match): the user decides.
-  const [merge, setMerge] = useState<Partial<Record<SetNumber, SetMerge>>>({});
+  // Sets with more than one sheet (in the photos or already in the match): the user decides,
+  // unless the sheets marked as extra already tell (null: the user took the choice back).
+  const [merge, setMerge] = useState<Partial<Record<SetNumber, SetMerge | null>>>({});
   const [dragging, setDragging] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const cameraInput = useRef<HTMLInputElement>(null);
@@ -95,7 +99,7 @@ export function AcquisitionView({ matchId }: { matchId: string | null }) {
         update(id, (p) => ({ ...p, thumbnail: decoded.thumbnail }));
         const result = await readPhoto(decoded.image);
         if (!result.ok) return update(id, (p) => ({ ...p, status: 'failed', markersFound: result.markersFound }));
-        update(id, (p) => ({ ...p, status: 'read', result, urls: urlsOf(result), setNumber: result.page?.setNumber ?? null }));
+        update(id, (p) => ({ ...p, status: 'read', result, urls: urlsOf(result), setNumber: result.setNumber, extra: result.extraSheet }));
       } catch {
         update(id, (p) => ({ ...p, status: 'error' }));
       }
@@ -111,6 +115,7 @@ export function AcquisitionView({ matchId }: { matchId: string | null }) {
     markersFound: 0,
     urls: null,
     setNumber: null,
+    extra: false,
     numbers: {},
     corrections: {},
     score: { team: '', opponent: '' },
@@ -148,7 +153,16 @@ export function AcquisitionView({ matchId }: { matchId: string | null }) {
     return sheets > 1 || (sheets > 0 && inMatch !== null && setIsPlayed(inMatch));
   });
   const savedConflict = (n: SetNumber) => (setCounts.get(n) ?? 0) > 0 && saved(n) !== null && setIsPlayed(saved(n)!);
-  const decided = (n: SetNumber) => merge[n] !== undefined;
+  /** Sheets marked as extra: every sheet but one, or all of them on a set already saved, means they add up. */
+  const auto = (n: SetNumber): SetMerge | null => {
+    const sheets = read_.filter((p) => p.setNumber === n);
+    const extras = sheets.filter((p) => p.extra).length;
+    if (extras === 0) return null;
+    return extras >= (savedConflict(n) ? sheets.length : sheets.length - 1) ? 'sum' : null;
+  };
+  const choice = (n: SetNumber) => (merge[n] === undefined ? auto(n) : merge[n]);
+  const decided = (n: SetNumber) => choice(n) !== null;
+  const lonely = (p: Photo) => p.extra && p.setNumber !== null && (setCounts.get(p.setNumber) ?? 0) === 1 && !savedConflict(p.setNumber);
   const waiting = photos.some((p) => p.status === 'reading');
   const blocking =
     photos.some((p) => p.status === 'failed' || p.status === 'error' || (p.status === 'read' && p.setNumber === null)) ||
@@ -161,7 +175,7 @@ export function AcquisitionView({ matchId }: { matchId: string | null }) {
 
   const confirm = async () => {
     if (!archive) return;
-    const sum = new Set(conflicts.filter((n) => savedConflict(n) && merge[n] === 'sum'));
+    const sum = new Set(conflicts.filter((n) => savedConflict(n) && choice(n) === 'sum'));
     const record = await archive.saveMatch(withSets(target ?? newMatchRecord(), read_.map(setOf), sum));
     navigate('partita', record.id);
   };
@@ -169,7 +183,7 @@ export function AcquisitionView({ matchId }: { matchId: string | null }) {
   /** Shirt numbers not written on every sheet that will be summed for set n. */
   const unmatched = (n: SetNumber) => {
     const sheets = read_.filter((p) => p.setNumber === n).map(setOf);
-    return numbersNotInAll(savedConflict(n) && merge[n] === 'sum' ? [saved(n)!, ...sheets] : sheets);
+    return numbersNotInAll(savedConflict(n) && choice(n) === 'sum' ? [saved(n)!, ...sheets] : sheets);
   };
 
   const otherNumbers = (photo: Photo) =>
@@ -228,6 +242,7 @@ export function AcquisitionView({ matchId }: { matchId: string | null }) {
           key={photo.id}
           photo={photo}
           duplicate={duplicate(photo) && !decided(photo.setNumber!)}
+          lonely={lonely(photo)}
           others={otherNumbers(photo)}
           onChange={(change) => update(photo.id, change)}
           onRemove={() => {
@@ -256,24 +271,25 @@ export function AcquisitionView({ matchId }: { matchId: string | null }) {
                       {t.sheet.set} {n}
                     </legend>
                     <p className="vr-note">{savedConflict(n) ? t.merge.saved(sheets) : t.merge.sheets(sheets)}</p>
+                    {merge[n] === undefined && auto(n) && <p className="vr-note">{t.merge.extra}</p>}
                     {savedConflict(n) ? (
-                      (['sum', 'replace'] as const).map((choice) => (
-                        <label key={choice} className="vr-choice">
-                          <input type="radio" name={`merge-${n}`} checked={merge[n] === choice} onChange={() => setMerge((c) => ({ ...c, [n]: choice }))} />
-                          {t.merge[choice]}
+                      (['sum', 'replace'] as const).map((option) => (
+                        <label key={option} className="vr-choice">
+                          <input type="radio" name={`merge-${n}`} checked={choice(n) === option} onChange={() => setMerge((c) => ({ ...c, [n]: option }))} />
+                          {t.merge[option]}
                         </label>
                       ))
                     ) : (
                       <label className="vr-choice">
                         <input
                           type="checkbox"
-                          checked={merge[n] === 'sum'}
-                          onChange={(e) => setMerge((c) => ({ ...c, [n]: e.target.checked ? 'sum' : undefined }))}
+                          checked={choice(n) === 'sum'}
+                          onChange={(e) => setMerge((c) => ({ ...c, [n]: e.target.checked ? 'sum' : null }))}
                         />
                         {t.merge.sumSheets}
                       </label>
                     )}
-                    {(sheets > 1 || merge[n] === 'sum') && numbers.length > 0 && <p className="vr-message warning">{t.merge.numbers(numbers)}</p>}
+                    {(sheets > 1 || choice(n) === 'sum') && numbers.length > 0 && <p className="vr-message warning">{t.merge.numbers(numbers)}</p>}
                   </fieldset>
                 );
               })}
@@ -305,13 +321,15 @@ export function AcquisitionView({ matchId }: { matchId: string | null }) {
 interface CardProps {
   readonly photo: Photo;
   readonly duplicate: boolean;
+  /** Marked as extra, with no other sheet of its set. */
+  readonly lonely: boolean;
   readonly others: readonly Photo[];
   readonly onChange: (change: (p: Photo) => Photo) => void;
   readonly onRemove: () => void;
   readonly onReplace: () => void;
 }
 
-function SheetCard({ photo, duplicate, others, onChange, onRemove, onReplace }: CardProps) {
+function SheetCard({ photo, duplicate, lonely, others, onChange, onRemove, onReplace }: CardProps) {
   const { m } = useI18n();
   const t = m.acquisition.sheet;
   const result = photo.result;
@@ -331,9 +349,17 @@ function SheetCard({ photo, duplicate, others, onChange, onRemove, onReplace }: 
           {photo.status === 'reading' && <p>{t.reading}</p>}
           {photo.status === 'failed' && <p className="vr-message warning">{t.notFound(photo.markersFound)}</p>}
           {photo.status === 'error' && <p className="vr-message warning">{t.error}</p>}
-          {photo.status === 'read' && (result!.page === null || photo.setNumber === null) && (
+          {photo.status === 'read' && (result!.page === null || result!.setNumber === null) && (
             <label className="vr-field vr-sheet-set">
-              <span>{result!.page === null ? t.qrUnread : t.chooseSet}</span>
+              <span>
+                {result!.page === null
+                  ? t.qrUnread
+                  : result!.setsMarked.length > 1
+                    ? t.manySets(result!.setsMarked)
+                    : result!.page.setNumber === null && result!.setsMarked.length === 0
+                      ? t.noSet
+                      : t.chooseSet}
+              </span>
               <select
                 value={photo.setNumber ?? ''}
                 onChange={(e) => onChange((p) => ({ ...p, setNumber: e.target.value ? (Number(e.target.value) as SetNumber) : null }))}
@@ -347,7 +373,14 @@ function SheetCard({ photo, duplicate, others, onChange, onRemove, onReplace }: 
               </select>
             </label>
           )}
+          {photo.status === 'read' && (
+            <label className="vr-choice">
+              <input type="checkbox" checked={photo.extra} onChange={(e) => onChange((p) => ({ ...p, extra: e.target.checked }))} />
+              {t.extra}
+            </label>
+          )}
           {duplicate && <p className="vr-message warning">{t.duplicate(photo.setNumber!)}</p>}
+          {lonely && <p className="vr-message warning">{t.extraAlone(photo.setNumber!)}</p>}
           {ignored > 0 && <p className="vr-message warning">{t.ignored(ignored)}</p>}
         </div>
         <div className="vr-actions start">

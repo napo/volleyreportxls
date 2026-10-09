@@ -7,9 +7,9 @@ const cells = layout.rows.flatMap((row) => row.cells);
 const capacities = (kind: 'player' | 'libero') =>
   Object.fromEntries(layout.rows.find((r) => r.kind === kind)!.cells.map((c) => [`${c.skill}${c.evaluation}`, c.bubbles.length]));
 
-test('tally sheet v4: A4 landscape, 12 player rows and 2 libero rows', () => {
-  expect(layout.version).toBe(4);
-  expect(formLayout(4)).toBe(layout);
+test('tally sheet v5: A4 landscape, 12 player rows and 2 libero rows', () => {
+  expect(layout.version).toBe(5);
+  expect(formLayout(5)).toBe(layout);
   expect(() => formLayout(2)).toThrow();
   expect(layout.page).toEqual({ width: 297, height: 210 });
   expect(layout.rows.map((r) => r.kind)).toEqual([...Array(12).fill('player'), 'libero', 'libero']);
@@ -46,6 +46,21 @@ test('bubbles are big enough to mark by hand (≥ 2.5 mm) and never touch each o
   }
 });
 
+test('v5: the grid of v4, plus the set marked by hand in the header', () => {
+  const v4 = formLayout(4);
+  expect(layout.rows).toEqual(v4.rows);
+  expect(v4.setMarks).toBeUndefined();
+  const { sets, extra } = layout.setMarks!;
+  expect(sets.map((b) => b.number)).toEqual([1, 2, 3, 4, 5]);
+  const all = [...sets, extra];
+  for (const b of all) {
+    expect(b.width).toBeGreaterThanOrEqual(4);
+    expect(overlaps(b, layout.title)).toBe(true);
+  }
+  // At least a millimetre between bubbles, so a mark does not spill into the next one.
+  for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) expect(overlaps(grow(all[i]!, 0.5), grow(all[j]!, 0.5))).toBe(false);
+});
+
 test('every element lies inside the page, cells do not overlap', () => {
   const all = [...layout.markers, layout.qr, layout.title, ...layout.score.team, ...layout.score.opponent, ...layout.legend, ...layout.rows.map((r) => r.outer)];
   expect(all.filter((r) => !inside(r))).toEqual([]);
@@ -57,6 +72,8 @@ test('every element lies inside the page, cells do not overlap', () => {
 test('markers keep their quiet zone free from every other element', () => {
   const others = [
     layout.qr,
+    ...layout.setMarks!.sets,
+    layout.setMarks!.extra,
     layout.title,
     ...layout.score.team,
     ...layout.score.opponent,

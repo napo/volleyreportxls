@@ -39,7 +39,7 @@ export const it = {
     local: 'I dati restano sul dispositivo',
     evolution: 'Evoluzione di',
     photoTitle: 'Fotografa il modulo compilato',
-    photoText: 'Una foto per ogni set: l’app conta i pallini, legge il set dal codice QR e ti chiede di controllare i numeri di divisa e le caselle incerte.',
+    photoText: 'Una foto per ogni foglio: l’app conta i pallini, legge il set segnato in alto e ti chiede di controllare i numeri di divisa e le caselle incerte.',
     photoButton: 'Fotografa o carica i fogli',
     formButton: 'Scarica il modulo da stampare (PDF)',
     noForm: 'Non hai il modulo?',
@@ -56,12 +56,12 @@ export const it = {
     steps: [
       {
         title: 'Prendi il modulo',
-        text: 'Scarica il PDF e stampa una pagina per ogni set, anche in bianco e nero. Il modulo è lo stesso per tutte le partite.',
+        text: 'Scarica il PDF e stampane una copia per ogni set, anche in bianco e nero. Il modulo è lo stesso per tutte le partite e per tutti i set.',
         alt: 'Il modulo di rilevazione vuoto',
       },
       {
         title: 'Compilalo durante la partita',
-        text: 'Scrivi i numeri di divisa; per ogni pallone toccato fai un segno sul primo pallino libero, sotto fondamentale e valutazione.',
+        text: 'Segna il set in alto e scrivi i numeri di divisa; per ogni pallone toccato fai un segno sul primo pallino libero, sotto fondamentale e valutazione.',
         alt: 'Il modulo compilato a penna',
       },
       {
@@ -160,7 +160,7 @@ export const it = {
     set: 'Set',
     finalScore: 'Punteggio finale',
     us: 'Noi',
-    them: 'Contro',
+    them: 'Avversari',
     playersTitle: 'Rosa',
     playersText:
       'I numeri di divisa presenti nei set. I nomi sono facoltativi; quelli già usati per questa squadra e questo campionato sono proposti. Per lo storico ogni numero va abbinato all’atleta di riferimento: di solito si fa nella pagina Storico, qui puoi cambiare l’abbinamento solo per questa partita.',
@@ -443,8 +443,8 @@ export const it = {
       ', il foglio di calcolo per allenatori e allenatrici che rilevano la partita con carta e penna. Qui trovi il modulo da stampare, come rilevare sul tablet, i codici, le definizioni delle statistiche e le versioni da installare.',
     formTitle: 'Il modulo di rilevazione',
     formText:
-      'Un foglio A4 orizzontale per ogni set, da stampare in bianco e nero. Dodici righe di gioco (battuta, ricezione, attacco, muro, falli di alzata) e due per il ruolo di libero (ricezione, falli di alzata). Il modulo è lo stesso per tutte le partite: squadra, gara e nomi si inseriscono poi nell’app.',
-    formButton: 'Scarica il modulo (PDF, 5 pagine)',
+      'Un foglio A4 orizzontale da stampare in bianco e nero, una copia per ogni set: il set si segna in alto, insieme a «Foglio aggiuntivo» se il set continua su un secondo foglio. Dodici righe di gioco (battuta, ricezione, attacco, muro, falli di alzata) e due per il ruolo di libero (ricezione, falli di alzata). Il modulo è lo stesso per tutte le partite: squadra, gara e nomi si inseriscono poi nell’app.',
+    formButton: 'Scarica il modulo (PDF, 1 pagina)',
     howTitle: 'Come si compila',
     howText: 'Penna scura, un pallino per ogni pallone toccato.',
     howSteps: [
@@ -531,23 +531,24 @@ export const it = {
   form: {
     fileName: 'VolleyReport - modulo di rilevazione.pdf',
     set: (n: number) => `Set ${n}`,
+    setLabel: 'Set',
+    extra: 'Foglio aggiuntivo (continua il set)',
     team: 'Squadra',
-    opponent: 'Contro',
+    opponent: 'Avversari',
     competition: 'Campionato',
     date: 'Data',
     instruction:
-      'Una riga per atleta: numero di divisa nelle due caselle; per ogni pallone toccato annerisci o barra il primo pallino libero sotto fondamentale e valutazione.',
+      'Segna il set. Una riga per atleta: numero di divisa nelle due caselle; per ogni pallone toccato annerisci o barra il primo pallino libero sotto fondamentale e valutazione.',
     finalScore: 'Punteggio finale',
     us: 'Noi',
-    them: 'Contro',
+    them: 'Avversari',
     shirt: 'N° divisa',
     libero: 'Libero',
     legend1: 'Un pallino per ogni pallone toccato: anneriscilo o barralo, sempre il primo libero.',
     legend2: 'Casella piena: segna il "+" e correggi il totale nell’app. Alzata =: fallo fischiato sul secondo tocco.',
     legend3: '#  doppio più     +  più     !  esclamativo     -  meno     /  barra     =  doppio meno',
     after: (url: string) => `Dopo che hai compilato il modulo visita ${url} e fotografalo.`,
-    credits: (version: number, set: number, page: number) =>
-      `VolleyReport · un’idea di Maurizio Napolitano · modulo v${version} · set ${set} · pagina ${page}`,
+    credits: (version: number) => `VolleyReport · un’idea di Maurizio Napolitano · modulo v${version}`,
   },
 
   language: { label: 'Lingua' },
@@ -584,6 +585,10 @@ export const it = {
       set: 'Set',
       chooseSet: 'Scegli il set',
       qrUnread: 'Il codice QR non si legge: indica tu il set di questo foglio.',
+      noSet: 'Sul foglio non è segnato il set: indicalo tu.',
+      manySets: (sets: readonly number[]) => `Sul foglio sono segnati più set (${sets.join(', ')}): indica quello giusto.`,
+      extra: 'Foglio aggiuntivo: si somma agli altri fogli dello stesso set',
+      extraAlone: (set: number) => `Il foglio è segnato come aggiuntivo, ma non ci sono altri fogli del set ${set}: controlla il set segnato.`,
       duplicate: (set: number) => `C’è un’altra foto del set ${set}: se è lo stesso foglio togline una, se sono fogli diversi puoi sommarli (in fondo alla pagina).`,
       form: (version: number) => `modulo v${version}`,
       reload: 'Ricarica la foto',
@@ -591,7 +596,7 @@ export const it = {
       manual: 'Inserisci a mano',
       score: 'Punteggio finale',
       us: 'Noi',
-      them: 'Contro',
+      them: 'Avversari',
       scoreMissing: 'Il punteggio sembra vuoto sul foglio: scrivilo qui se lo conosci.',
       players: 'Divise del foglio',
       playersHint: 'Leggi il numero di divisa nell’immagine e scrivilo accanto.',
@@ -618,6 +623,7 @@ export const it = {
       sumSheets: 'Sono fogli diversi: sommali',
       numbers: (numbers: readonly number[]) =>
         `Divise presenti solo in alcuni fogli: ${numbers.join(', ')}. Le righe si sommano per numero di divisa: se non è un cambio, controlla i numeri.`,
+      extra: 'Foglio aggiuntivo segnato sul modulo: i conteggi si sommano.',
       score: 'Nei set sommati resta il punteggio finale con più punti giocati.',
     },
     summary: {

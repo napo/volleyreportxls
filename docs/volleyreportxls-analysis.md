@@ -364,7 +364,7 @@ src/
 
 ## 12. Modulo A4 fotografabile
 
-Il modulo è **a crocette** (layout v4), generico e con un foglio per set. Per ogni pallone toccato si annerisce o si barra il primo pallino libero nella riga del giocatore, sotto fondamentale e valutazione. Le statistiche dipendono solo dai conteggi, quindi non si perde nulla rispetto ai codici scritti (`domain/tally.ts`). In compenso la lettura della foto diventa un riconoscimento di segni, molto più affidabile della scrittura a mano.
+Il modulo è **a crocette** (layout v5), generico e con un unico foglio per tutti i set: il set si segna a mano in alto. Per ogni pallone toccato si annerisce o si barra il primo pallino libero nella riga del giocatore, sotto fondamentale e valutazione. Le statistiche dipendono solo dai conteggi, quindi non si perde nulla rispetto ai codici scritti (`domain/tally.ts`). In compenso la lettura della foto diventa un riconoscimento di segni, molto più affidabile della scrittura a mano.
 
 Coordinate in `pdf/layout.ts`, identità della pagina (QR) in `pdf/scouting-form.ts`, disegno in `pdf/scouting-form-pdf.ts`. Il PDF si scarica da *Informazioni → Il modulo di rilevazione*.
 
@@ -387,16 +387,19 @@ Il numero di pallini per valutazione è calcolato su **559 partite DataVolley** 
 
 I liberi non battono, non attaccano e non murano: nelle loro righe quelle zone sono barrate. Il fallo di alzata (`P=`) è su ogni riga, perché può commetterlo qualsiasi ruolo.
 
-### Layout v4 (A4 orizzontale, una pagina per set, 5 pagine)
+### Layout v5 (A4 orizzontale, una pagina per tutti i set)
+
+La v5 ha la griglia della v4. Cambia solo l'intestazione: il set non è più stampato ma si segna su cinque pallini, e un sesto pallino «Foglio aggiuntivo» dice che il foglio continua un set cominciato su un altro foglio. L'app legge il set dal pallino più segnato; se non ce n'è nessuno o ce ne sono due, lo chiede. Un foglio aggiuntivo si somma agli altri fogli dello stesso set (o al set già salvato) senza chiedere. I fogli v4 già stampati (una pagina per set, set nel QR) si leggono come prima. Se il QR non si legge, la v5 e la v4 non si distinguono e il set si sceglie a mano.
+
 
 La v3 (con difesa e alzata valutata sulle righe libero) non è mai stata rilasciata ed è stata sostituita, non affiancata.
 
 | Elemento | Posizione e misure |
 |---|---|
 | Marker ArUco `DICT_4X4_50`, id 0–5 | 12 × 12 mm, agli angoli a 7 mm dal bordo e al centro dei lati lunghi; zona di rispetto di 2 mm |
-| Intestazione | "Set N" stampato; righe per squadra, avversari, campionato, data (promemoria cartaceo); istruzione d'uso |
-| Punteggio finale | "Noi" e "Loro", due caselle-cifra ciascuno |
-| QR | 19 × 19 mm, in alto a destra; payload `VR\|4\|S<set>\|P<pagina>` |
+| Intestazione | "Set" con cinque pallini (1–5) e il pallino «Foglio aggiuntivo» (v4: "Set N" stampato); righe per squadra, avversari, campionato, data (promemoria cartaceo); istruzione d'uso |
+| Punteggio finale | "Noi" e "Avversari", due caselle-cifra ciascuno |
+| QR | 19 × 19 mm, in alto a destra; payload `VR\|5\|P<pagina>` (v4: `VR\|4\|S<set>\|P<pagina>`) |
 | Numero di maglia | due caselle-cifra per riga, con bordo marcato |
 | Pallini | tre file per casella, diametro circa 2,7 mm, numerati in grigio chiaro; fasce alternate e righe più marcate tra i fondamentali |
 

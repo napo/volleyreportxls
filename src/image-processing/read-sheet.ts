@@ -6,12 +6,13 @@
  */
 
 import type { ScoutCodeString } from '../domain/codes';
+import type { SetNumber } from '../domain/model';
 import { type FormLayout, type FormSkill, type Rect, type RowKind, FORM_LAYOUTS, cellCode, formLayout } from '../pdf/layout';
 import type { FormPageId } from '../pdf/scouting-form';
-import { readCell } from './cells';
+import { BUBBLE_MARKED, readCell } from './cells';
 import { type GrayImage, sample } from './gray';
 import { type Homography, project } from './homography';
-import { inkInRect, isLocated, locateSheet, paperLevel, warpRect } from './sheet';
+import { inkInCircle, inkInRect, isLocated, locateSheet, paperLevel, warpRect } from './sheet';
 import type { RgbaImage } from './synthetic';
 
 /** Resolution of the crops shown to the user. */
@@ -47,6 +48,12 @@ export interface SheetResult {
   readonly page: FormPageId | null;
   /** From the QR, or recognised from the printed grid when the QR is unreadable. */
   readonly layoutVersion: number;
+  /** Printed in the QR (up to v4) or marked on the sheet (v5 on); null when unknown or ambiguous. */
+  readonly setNumber: SetNumber | null;
+  /** Set bubbles marked on the sheet (v5 on): empty or several when the set must be chosen. */
+  readonly setsMarked: readonly SetNumber[];
+  /** "Extra sheet" marked: the sheet continues a set started on another sheet. */
+  readonly extraSheet: boolean;
   readonly fitError: number;
   readonly rows: readonly RowResult[];
   readonly score: { readonly written: boolean; readonly team: RgbaImage; readonly opponent: RgbaImage };
@@ -101,6 +108,26 @@ export function guessLayout(gray: GrayImage, homography: Homography): FormLayout
   return best;
 }
 
+/** A bubble as marked by hand: the share of ink inside its circle, printed outline left out. */
+const inkIn = (gray: GrayImage, homography: Homography, bubble: Rect) =>
+  inkInCircle(gray, homography, bubble, paperLevel(gray, homography, grow(bubble, 1)), 0.85);
+
+/**
+ * The set marked on the sheet: the most inked bubble, unless another one is
+ * nearly as inked (two sets marked, or a mark spilling between bubbles).
+ */
+function readSetMarks(gray: GrayImage, homography: Homography, layout: FormLayout) {
+  if (!layout.setMarks) return { setsMarked: [], setNumber: null, extraSheet: false };
+  const inks = layout.setMarks.sets.map((b) => ({ set: b.number as SetNumber, ink: inkIn(gray, homography, b) }));
+  const marked = inks.filter((b) => b.ink >= BUBBLE_MARKED).sort((a, b) => b.ink - a.ink);
+  const clear = marked.length === 1 || (marked.length > 1 && marked[1]!.ink < marked[0]!.ink / 3);
+  return {
+    setsMarked: marked.map((b) => b.set).sort(),
+    setNumber: clear ? marked[0]!.set : null,
+    extraSheet: inkIn(gray, homography, layout.setMarks.extra) >= BUBBLE_MARKED,
+  };
+}
+
 export function readSheetImage(image: RgbaImage): SheetResult | SheetFailure {
   const located = locateSheet(image);
   if (!isLocated(located)) return { ok: false, markersFound: located.found };
@@ -108,6 +135,8 @@ export function readSheetImage(image: RgbaImage): SheetResult | SheetFailure {
   const known = located.page && FORM_LAYOUTS[located.page.layoutVersion];
   const layout = known ?? guessLayout(gray, homography);
   const crop = (r: Rect) => warpRect(gray, homography, r, CROP_PX_PER_MM);
+  // The set marks are read only on a layout known from the QR: v4 and v5 share the grid.
+  const marks = known ? readSetMarks(gray, homography, layout) : { setsMarked: [], setNumber: null, extraSheet: false };
 
   const rows = layout.rows.map((row): RowResult => {
     const paper = paperLevel(gray, homography, row.number);
@@ -139,6 +168,9 @@ export function readSheetImage(image: RgbaImage): SheetResult | SheetFailure {
     ok: true,
     page: located.page,
     layoutVersion: layout.version,
+    setNumber: located.page?.setNumber ?? marks.setNumber,
+    setsMarked: marks.setsMarked,
+    extraSheet: marks.extraSheet,
     fitError: located.fitError,
     rows,
     score: { written, team: crop(grow(join(t1, t2), 0.5)), opponent: crop(grow(join(o1, o2), 0.5)) },
