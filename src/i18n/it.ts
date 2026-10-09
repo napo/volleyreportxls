@@ -97,7 +97,7 @@ export const it = {
     close: 'Chiudi la guida',
     dontShow: 'Non mostrarla più all’avvio',
     infoTitle: 'Guida rapida',
-    infoText: 'I cinque passi dal modulo di carta al tabellino, e come rilevare sul tablet, in una finestra che si apre all’avvio dell’app.',
+    infoText: 'I cinque passi dal modulo di carta al tabellino, e come rilevare sul tablet, in una finestra che puoi aprire da qui o mostrare all’avvio dell’app.',
     infoShowAtStart: 'Mostra la guida all’avvio',
     infoOpen: 'Apri la guida',
   },

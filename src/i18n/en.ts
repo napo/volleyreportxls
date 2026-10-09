@@ -97,7 +97,7 @@ export const en: Messages = {
     close: 'Close the guide',
     dontShow: 'Do not show it again at start',
     infoTitle: 'Quick guide',
-    infoText: 'The five steps from the paper form to the scoresheet, and how to scout on a tablet, in a window that opens when the app starts.',
+    infoText: 'The five steps from the paper form to the scoresheet, and how to scout on a tablet, in a window you can open from here or show when the app starts.',
     infoShowAtStart: 'Show the guide at start',
     infoOpen: 'Open the guide',
   },
