@@ -24,6 +24,7 @@ npm test            # test unitari + confronto con VolleyReportXLS.xlsx (fixture
 npm run typecheck
 npm run dev
 npm run oracle:extract   # rigenera la fixture dall'XLSX (richiede python3 + openpyxl)
+npm run sample:sheet     # modulo compilato a caso (PDF + JSON atteso) per provare il riconoscimento
 npm run desktop:dev      # app desktop (Tauri)
 uvx reuse lint           # titolare e licenza di ogni file (REUSE)
 ```

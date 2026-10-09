@@ -14,6 +14,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "oracle:extract": "python3 tools/extract-oracle.py",
+    "sample:sheet": "node tools/sample-sheet/generate.mjs",
     "tauri": "tauri",
     "desktop:dev": "tauri dev",
     "desktop:build": "tauri build",

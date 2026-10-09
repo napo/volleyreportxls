@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 /**
- * The 5-step guide, in a dialog. It does not open at start unless the user
- * turns that on (a preference of this device); it can be opened at any time
- * from the About page.
+ * The 5-step guide shown in a dialog when the app starts. The user can turn
+ * it off (a preference of this device) and turn it on again, or open it at
+ * any time, from the About page.
  */
 import { useSyncExternalStore } from 'react';
 
@@ -13,9 +13,9 @@ const listeners = new Set<() => void>();
 
 function readShowAtStart(): boolean {
   try {
-    return globalThis.localStorage?.getItem(KEY) === 'on';
+    return globalThis.localStorage?.getItem(KEY) !== 'off';
   } catch {
-    return false;
+    return true;
   }
 }
 
