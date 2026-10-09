@@ -25,6 +25,7 @@ npm run typecheck
 npm run dev
 npm run oracle:extract   # rigenera la fixture dall'XLSX (richiede python3 + openpyxl)
 npm run desktop:dev      # app desktop (Tauri)
+uvx reuse lint           # titolare e licenza di ogni file (REUSE)
 ```
 
 `VolleyReportXLS.xlsx` serve solo come riferimento e oracle di test: l'applicazione non lo legge mai.
