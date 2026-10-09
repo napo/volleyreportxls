@@ -18,6 +18,12 @@ import type { RgbaImage } from './synthetic';
 /** Longer side of the image used to find the markers (full resolution is kept for reading). */
 const DETECTION_SIDE = 1600;
 
+/**
+ * Above this fit error (mm) the markers do not agree on where the sheet is:
+ * bubbles would be read in the wrong places. Good photos stay under 0.5 mm.
+ */
+export const MAX_FIT_ERROR = 2;
+
 export interface LocatedSheet {
   /** Sheet millimetres → pixels of the original image. */
   readonly homography: Homography;
@@ -29,7 +35,7 @@ export interface LocatedSheet {
   readonly gray: GrayImage;
 }
 
-export type LocateFailure = { readonly reason: 'markers'; readonly found: number };
+export type LocateFailure = { readonly reason: 'markers' | 'fit'; readonly found: number };
 
 const cornersOf = (r: Rect): Point[] => [
   { x: r.x, y: r.y },
@@ -89,7 +95,7 @@ function readQr(gray: GrayImage, homography: Homography, layout: FormLayout): Fo
   return null;
 }
 
-/** Finds the sheet in the image; fails when fewer than three markers are found. */
+/** Finds the sheet in the image; fails when fewer than three markers are found or they do not fit the layout. */
 export function locateSheet(image: RgbaImage): LocatedSheet | LocateFailure {
   const gray = toGray(image);
   const { image: small, factor } = downscale(gray, DETECTION_SIDE);
@@ -108,6 +114,7 @@ export function locateSheet(image: RgbaImage): LocatedSheet | LocateFailure {
   if (markers.length < 3) return { reason: 'markers', found: markers.length };
   const fitted = fit(markers, layout, factor);
   if (!fitted) return { reason: 'markers', found: markers.length };
+  if (fitted.error > MAX_FIT_ERROR) return { reason: 'fit', found: markers.length };
   return { homography: fitted.homography, markers, fitError: fitted.error, page: readQr(gray, fitted.homography, layout), gray };
 }
 

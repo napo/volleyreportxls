@@ -61,6 +61,8 @@ export interface SheetResult {
 
 export interface SheetFailure {
   readonly ok: false;
+  /** Too few markers, or markers that do not fit the layout. */
+  readonly reason: 'markers' | 'fit';
   readonly markersFound: number;
 }
 
@@ -130,7 +132,7 @@ function readSetMarks(gray: GrayImage, homography: Homography, layout: FormLayou
 
 export function readSheetImage(image: RgbaImage): SheetResult | SheetFailure {
   const located = locateSheet(image);
-  if (!isLocated(located)) return { ok: false, markersFound: located.found };
+  if (!isLocated(located)) return { ok: false, reason: located.reason, markersFound: located.found };
   const { gray, homography } = located;
   const known = located.page && FORM_LAYOUTS[located.page.layoutVersion];
   const layout = known ?? guessLayout(gray, homography);

@@ -161,8 +161,8 @@ function decode(image: GrayImage, quad: readonly [Point, Point, Point, Point], i
     for (const id of ids) {
       const errors = popcount(code ^ DICT_4X4_50[id]!);
       if (errors <= 1 && (!best || errors < best.errors)) {
-        // After k clockwise turns of the image grid, printed corner i sits at image corner (i + k) % 4.
-        const corners = [0, 1, 2, 3].map((i) => quad[(i + k) % 4]!) as unknown as DetectedMarker['corners'];
+        // After k clockwise turns of the image grid, printed corner i sits at image corner (i - k) mod 4.
+        const corners = [0, 1, 2, 3].map((i) => quad[(i + 4 - k) % 4]!) as unknown as DetectedMarker['corners'];
         best = { id, corners, errors };
       }
     }

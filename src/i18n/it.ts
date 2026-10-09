@@ -581,6 +581,7 @@ export const it = {
       reading: 'Lettura del foglio…',
       notFound: (found: number) =>
         `Foglio non riconosciuto: trovati ${found} quadrati neri su 6. Rifai la foto con tutto il foglio inquadrato e ben illuminato.`,
+      misaligned: 'I quadrati neri sono stati trovati ma non tornano con il modulo: il foglio potrebbe essere piegato o in parte fuori dall’inquadratura. Rifai la foto con il foglio ben disteso.',
       error: 'Non è stato possibile leggere l’immagine.',
       set: 'Set',
       chooseSet: 'Scegli il set',

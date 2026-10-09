@@ -615,6 +615,7 @@ export const en: Messages = {
       reading: 'Reading the sheet…',
       notFound: (found: number) =>
         `Sheet not recognised: ${found} of 6 black squares found. Take the photo again with the whole sheet in frame and well lit.`,
+      misaligned: 'The black squares were found but do not match the form: the sheet may be folded or partly out of frame. Take the photo again with the sheet lying flat.',
       error: 'The image could not be read.',
       set: 'Set',
       chooseSet: 'Choose the set',

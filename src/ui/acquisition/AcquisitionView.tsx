@@ -35,6 +35,8 @@ interface Photo {
   readonly status: 'reading' | 'read' | 'failed' | 'error';
   readonly result: SheetResult | null;
   readonly markersFound: number;
+  /** Why a failed photo was not read. */
+  readonly failure: 'markers' | 'fit';
   readonly urls: Urls | null;
   readonly setNumber: SetNumber | null;
   /** The sheet continues a set started on another sheet: its counts are added up. */
@@ -98,7 +100,7 @@ export function AcquisitionView({ matchId }: { matchId: string | null }) {
         const decoded = await decodePhoto(file);
         update(id, (p) => ({ ...p, thumbnail: decoded.thumbnail }));
         const result = await readPhoto(decoded.image);
-        if (!result.ok) return update(id, (p) => ({ ...p, status: 'failed', markersFound: result.markersFound }));
+        if (!result.ok) return update(id, (p) => ({ ...p, status: 'failed', markersFound: result.markersFound, failure: result.reason }));
         update(id, (p) => ({ ...p, status: 'read', result, urls: urlsOf(result), setNumber: result.setNumber, extra: result.extraSheet }));
       } catch {
         update(id, (p) => ({ ...p, status: 'error' }));
@@ -113,6 +115,7 @@ export function AcquisitionView({ matchId }: { matchId: string | null }) {
     status: 'reading',
     result: null,
     markersFound: 0,
+    failure: 'markers',
     urls: null,
     setNumber: null,
     extra: false,
@@ -347,7 +350,9 @@ function SheetCard({ photo, duplicate, lonely, others, onChange, onRemove, onRep
             {result && <span className="vr-badge">{t.form(result.layoutVersion)}</span>}
           </h2>
           {photo.status === 'reading' && <p>{t.reading}</p>}
-          {photo.status === 'failed' && <p className="vr-message warning">{t.notFound(photo.markersFound)}</p>}
+          {photo.status === 'failed' && (
+            <p className="vr-message warning">{photo.failure === 'fit' ? t.misaligned : t.notFound(photo.markersFound)}</p>
+          )}
           {photo.status === 'error' && <p className="vr-message warning">{t.error}</p>}
           {photo.status === 'read' && (result!.page === null || result!.setNumber === null) && (
             <label className="vr-field vr-sheet-set">
