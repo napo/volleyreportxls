@@ -27,16 +27,9 @@ const GUIDE = rgb(0.62, 0.62, 0.62);
 const LABEL = rgb(0.45, 0.45, 0.45);
 const NUMBER = rgb(0.4, 0.4, 0.4);
 const BUBBLE = rgb(0.6, 0.6, 0.6);
-/**
- * v6: numbers inside the bubbles, lighter than the outline so that the bubble stays easy to see,
- * with the same contrast on white and on the grey bands.
- */
-const FAINT_CONTRAST = 0.22;
-const faintNumber = (background: number) => rgb(background - FAINT_CONTRAST, background - FAINT_CONTRAST, background - FAINT_CONTRAST);
 /** v6: rules between skills, heavier so that each skill reads as a block. */
 const SKILL_RULE_V6 = { thickness: 1.6, color: rgb(0.15, 0.15, 0.15) };
-const BAND_LEVEL = 0.95;
-const BAND = rgb(BAND_LEVEL, BAND_LEVEL, BAND_LEVEL);
+const BAND = rgb(0.95, 0.95, 0.95);
 const SKILL_RULE = rgb(0.3, 0.3, 0.3);
 
 /** Draws in layout coordinates (mm, top-left origin). */
@@ -140,12 +133,12 @@ function drawField(s: Sheet, label: string, { x, y, width }: Rect) {
 }
 
 /** A bubble with its number inside, as in the tally cells. */
-function numberedBubble(s: Sheet, bubble: Rect, number: number, color = BUBBLE, numberColor = color) {
+function numberedBubble(s: Sheet, bubble: Rect, number: number, color = BUBBLE) {
   s.circle(bubble, color);
   // Digits about half the bubble high, baseline set so they sit in its centre.
   const height = bubble.height * 0.5;
   s.text(String(number), bubble.x, bubble.y + (bubble.height + height) / 2, pointsForCapHeight(height), {
-    color: numberColor,
+    color,
     align: 'center',
     width: bubble.width,
   });
@@ -214,7 +207,6 @@ function drawGrid(s: Sheet) {
   }
 
   // Grey bands and skill rules, by kind of row: v6 draws the rules over the cells.
-  const banded: { kind: RowKind; x: number; width: number }[] = [];
   const rules: { x: number; top: number; bottom: number }[] = [];
   for (const kind of ['player', 'libero'] as const) {
     const { bottom } = extent(kind);
@@ -222,10 +214,7 @@ function drawGrid(s: Sheet) {
     const small = kind === 'libero';
     section.forEach((skill, i) => {
       // Alternate light bands tell the skills apart at a glance.
-      if (i % 2 === 0) {
-        s.fill({ x: skill.outer.x, y: skill.outer.y, width: skill.outer.width, height: bottom - skill.outer.y }, BAND);
-        banded.push({ kind, x: skill.outer.x, width: skill.outer.width });
-      }
+      if (i % 2 === 0) s.fill({ x: skill.outer.x, y: skill.outer.y, width: skill.outer.width, height: bottom - skill.outer.y }, BAND);
       // Narrow blocks (the set faults) drop the letter, then shrink the name to fit.
       const size = small ? 6 : 7.5;
       const fits = (text: string, at: number) => s.fonts.bold.widthOfTextAtSize(text, at) / MM <= skill.outer.width - 0.6;
@@ -249,7 +238,6 @@ function drawGrid(s: Sheet) {
       }
     });
   }
-  const onBand = (kind: RowKind, x: number) => banded.some((b) => b.kind === kind && x > b.x && x < b.x + b.width);
 
   for (const row of rows) {
     // The shirt-number box is drawn heavier than the tally cells, so the two are not confused.
@@ -270,8 +258,11 @@ function drawGrid(s: Sheet) {
     for (const area of row.unused) hatch(s, area);
     for (const cell of row.cells) {
       s.box(cell.outer, 0.3);
-      const numberColor = s.layout.compact ? faintNumber(onBand(row.kind, cell.outer.x + cell.outer.width / 2) ? BAND_LEVEL : 1) : BUBBLE;
-      for (const bubble of cell.bubbles) numberedBubble(s, bubble, bubble.number, BUBBLE, numberColor);
+      // v6: empty bubbles; the numbers of earlier layouts are kept as printed.
+      for (const bubble of cell.bubbles) {
+        if (s.layout.compact) s.circle(bubble);
+        else numberedBubble(s, bubble, bubble.number);
+      }
       s.circle(cell.overflow, NUMBER);
       const plus = cell.overflow.height * 0.6;
       s.text('+', cell.overflow.x, cell.overflow.y + (cell.overflow.height + plus) / 2, pointsForCapHeight(plus), {

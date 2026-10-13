@@ -26,7 +26,7 @@
  *
  * Layout v6 makes the bubbles bigger and easier to read, with the same rows and
  * capacities: a compact header (one band beside the markers, smaller QR), the
- * two libero rows side by side on one line, bubble numbers in light grey, block
+ * two libero rows side by side on one line, empty bubbles (no number), block
  * - and / on two columns, and room for the name under the shirt number.
  *
  * Layout v5 is kept to read those sheets.
@@ -121,7 +121,7 @@ export interface FormLayout {
   readonly legend: readonly [Rect, Rect];
   /** Inner margin to drop when cropping a box, so that the printed border is not read as ink. */
   readonly cropInset: number;
-  /** v6 on: compact header, bubble numbers in light grey, name under the shirt number. */
+  /** v6 on: compact header, empty bubbles, name under the shirt number. */
   readonly compact: boolean;
   /** Fields written by hand for the paper archive (team, opponent, competition, date); the app does not read them. */
   readonly fields: readonly { readonly field: 'team' | 'opponent' | 'competition' | 'date'; readonly outer: Rect }[];

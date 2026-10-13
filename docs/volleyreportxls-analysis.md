@@ -402,7 +402,7 @@ Chi usava la v5 trovava i pallini troppo piccoli (2,7 mm), e chi ricorda il nome
 
 - **Intestazione compatta**: set, «Foglio aggiuntivo», squadra e avversari a sinistra del marker centrale; campionato, data e punteggio finale a destra; tutto alto quanto i marker. Il QR scende da 19 a 12 mm: l'app lo cerca prima nella posizione nuova, poi in quella dei fogli già stampati.
 - **Liberi affiancati**: le righe libero usano solo ricezione e alzata, quindi stanno su un'unica riga, in due blocchi (numero e nome, ricezione, alzata `=`); il secondo parte sotto l'attacco. Lo spazio delle righe equivale a 13 invece di 14.
-- **Pallini tutti da 3,2 mm**, con il numero in grigio chiaro che segue lo sfondo (più scuro sulle fasce grigie, sempre più chiaro del contorno). Muro `-` e `/` passano da una a due colonne (5 pallini invece di 2), così nessuna casella costringe a rimpicciolire le altre.
+- **Pallini tutti da 3,2 mm, vuoti**: senza numero dentro (le prime stampe della v6, rilasciata con l'app 0.7.0, avevano il numero in grigio chiaro; la geometria è la stessa e si leggono allo stesso modo). Muro `-` e `/` passano da una a due colonne (5 pallini invece di 2), così nessuna casella costringe a rimpicciolire le altre.
 - **Separatori tra i fondamentali** spessi (1,6 pt, quasi neri). Entrano per 0,28 mm nelle caselle accanto: la lettura della v6 ignora una fascia di 0,5 mm lungo il bordo delle caselle, lontana dai pallini (almeno 0,56 mm). Senza questa fascia le linee venivano contate come segni nelle caselle `=`.
 - **Numero e nome**: due caselle per le cifre e sotto una riga per il nome. L'app non legge il nome, ma lo mostra nel ritaglio accanto al campo del numero.
 
