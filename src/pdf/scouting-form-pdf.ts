@@ -288,6 +288,15 @@ function drawGrid(s: Sheet) {
       }
     }
   }
+  // Paint separators after every fill, so adjacent ratings remain distinct even
+  // when they share the same pastel colour or the sheet is printed in greyscale.
+  if (s.layout.evaluationCaptions) {
+    for (const skill of skills) {
+      for (const { outer } of skill.evaluations) {
+        s.vline(outer.x, outer.y, outer.y + outer.height, 0.45, SKILL_RULE);
+      }
+    }
+  }
   for (const rule of rules) s.vline(rule.x, rule.top, rule.bottom, SKILL_RULE_V6.thickness, SKILL_RULE_V6.color);
 }
 
