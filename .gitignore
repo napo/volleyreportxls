@@ -3,6 +3,7 @@
 
 node_modules/
 dist/
+output/
 *.local
 .vite/
 coverage/
@@ -10,7 +11,9 @@ __pycache__/
 src-tauri/target/
 src-tauri/gen/
 desktop-dist/
+output/
 android-dist/
+output/
 *.jks
 *.keystore
 .env

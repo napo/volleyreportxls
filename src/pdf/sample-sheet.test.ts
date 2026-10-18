@@ -4,7 +4,7 @@
 import { PDFDocument } from 'pdf-lib';
 import { readSheetImage } from '../image-processing/read-sheet';
 import { type RgbaImage, renderSyntheticForm } from '../image-processing/synthetic';
-import { CURRENT_FORM_LAYOUT as layout, type Rect } from './layout';
+import { CURRENT_FORM_LAYOUT as layout, formLayout, type Rect } from './layout';
 import { type MarkShape, randomSampleSheet, renderSampleSheetPdf } from './sample-sheet';
 import { formQrPayload } from './scouting-form';
 import { TEST_FONTS } from './test-fonts';
@@ -69,7 +69,8 @@ test.each([1, 7, 42, 2026])('a random sample (seed %i) is read back as generated
   for (const row of result.rows.filter((r) => !used.has(r.index))) expect(row.cells.every((c) => c.count === 0)).toBe(true);
 });
 
-test('a full cell, "+" marked: read with its bubbles, flagged for the total', () => {
+test.each([6, 7])('full cells in v%i: only legacy overflow marks request correction', (version) => {
+  const layout = formLayout(version);
   const sheet = randomSampleSheet(5, layout, { full: 1 });
   const [{ row, code }] = sheet.full as [(typeof sheet.full)[number]];
   const image = renderSyntheticForm(layout, formQrPayload({ layoutVersion: layout.version, setNumber: null, page: 1 }), PX_PER_MM);
@@ -77,7 +78,7 @@ test('a full cell, "+" marked: read with its bubbles, flagged for the total', ()
   const result = readSheetImage(image);
   if (!result.ok) throw new Error('not read');
   const cell = result.rows[row]!.cells.find((c) => c.code === code)!;
-  expect(cell).toMatchObject({ overflow: true, count: sheet.rows.find((r) => r.index === row)!.counts[code] });
+  expect(cell).toMatchObject({ overflow: version < 7, uncertain: version < 7, count: sheet.rows.find((r) => r.index === row)!.counts[code] });
 });
 
 test('the sample is plausible: a full team, at most two liberos, a finished set', () => {

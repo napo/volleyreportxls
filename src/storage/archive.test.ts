@@ -96,3 +96,21 @@ test('imported squads never take a name already joined', async () => {
   expect((await archive.listSquads()).map((s) => s.id).sort()).toEqual(['sq01', 'sq03']);
   archive.close();
 });
+
+
+test('remembered shirt links fill the canonical archived name and preserve manual edits', async () => {
+  const archive = await open();
+  await archive.saveAthlete({ id: 'giulia', name: 'Giulia Rossi', note: '2008' });
+  await archive.saveMatch({ ...newMatchRecord(), teamName: 'Trento', competition: 'U18',
+    players: [{ number: 7, name: '', athleteId: 'giulia' }] });
+  const record = { ...newMatchRecord(), teamName: 'Trento', competition: 'U18' };
+  const known = await archive.knownPlayers('Trento', 'U18');
+  const athletes = await archive.listAthletes();
+  expect(withKnownNames(record, known, [7], athletes).players)
+    .toEqual([{ number: 7, name: 'Giulia Rossi', athleteId: 'giulia' }]);
+  expect(withKnownNames({ ...record, players: [{ number: 7, name: 'Altra giocatrice' }] }, known, [7], athletes).players)
+    .toEqual([{ number: 7, name: 'Altra giocatrice' }]);
+  expect(withKnownNames(record, await archive.knownPlayers('Trento', 'Serie C'), [7], athletes).players)
+    .toEqual([{ number: 7, name: '' }]);
+  archive.close();
+});

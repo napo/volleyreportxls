@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { COMPACT_CELL_INSET } from '../image-processing/read-sheet';
-import { CURRENT_FORM_LAYOUT as layout, type Rect, cellCode, formLayout, inset, overlaps } from './layout';
+import { CURRENT_FORM_LAYOUT, type Rect, cellCode, formLayout, inset, overlaps } from './layout';
 
+const layout = formLayout(6);
 const inside = (r: Rect) => r.x >= 0 && r.y >= 0 && r.x + r.width <= layout.page.width && r.y + r.height <= layout.page.height;
 const grow = (r: Rect, by: number): Rect => inset(r, -by);
 const cells = layout.rows.flatMap((row) => row.cells);
@@ -54,10 +55,10 @@ test('libero rows: reception and set faults, the two side by side on one line', 
 });
 
 test('v6 bubbles are all the same size, bigger than v5 (3.2 mm against 2.7), and never touch each other', () => {
-  expect(new Set(cells.flatMap((c) => [...c.bubbles, c.overflow].map((b) => b.width.toFixed(6))))).toHaveLength(1);
+  expect(new Set(cells.flatMap((c) => [...c.bubbles, ...(c.overflow ? [c.overflow] : [])].map((b) => b.width.toFixed(6))))).toHaveLength(1);
   expect(formLayout(5).rows[0]!.cells[0]!.bubbles[0]!.width).toBeLessThan(2.7);
   for (const cell of cells) {
-    const all = [...cell.bubbles, cell.overflow];
+    const all = [...cell.bubbles, ...(cell.overflow ? [cell.overflow] : [])];
     for (const b of all) {
       expect(b.width).toBeGreaterThanOrEqual(3.2);
       // Clear of the cell border that the reading leaves out (the heavy rules between skills reach into it).
@@ -149,4 +150,33 @@ test('v3 (read only) keeps the geometry of the sheets already filled in', () => 
   expect(v3.rows[0]!.cells.map((c) => c.skill)).not.toContain('P');
   // Dig and graded sets are read but not counted.
   expect(v3.rows[12]!.cells.filter((c) => cellCode(c) !== null).map(cellCode)).toEqual(['R#', 'R+', 'R!', 'R-', 'R/', 'R=', 'P=']);
+});
+
+
+test('v7 adopts local captions and every slot counts, keeping old layouts intact', () => {
+  const current = CURRENT_FORM_LAYOUT;
+  expect(current.version).toBe(7);
+  expect(current.evaluationCaptions).toBe(true);
+  expect(formLayout(6).evaluationCaptions).toBe(false);
+  expect(current.markers).toEqual(layout.markers);
+  expect(current.rows).toHaveLength(14);
+  for (const row of current.rows) {
+    for (const cell of row.cells) {
+      const old = layout.rows[row.index]!.cells.find((c) => c.skill === cell.skill && c.evaluation === cell.evaluation)!;
+      expect(cell.overflow).toBeNull();
+      expect(cell.bubbles.length).toBe(old.bubbles.length + 1);
+      for (const b of cell.bubbles) {
+        expect(b.width).toBeGreaterThanOrEqual(3);
+        expect(b.x - cell.outer.x).toBeGreaterThan(COMPACT_CELL_INSET);
+        expect(b.y - cell.outer.y).toBeGreaterThan(COMPACT_CELL_INSET);
+        expect(cell.outer.x + cell.outer.width - b.x - b.width).toBeGreaterThan(COMPACT_CELL_INSET);
+        expect(cell.outer.y + cell.outer.height - b.y - b.height).toBeGreaterThan(COMPACT_CELL_INSET);
+      }
+      for (let i = 0; i < cell.bubbles.length; i++) for (let j = i + 1; j < cell.bubbles.length; j++)
+        expect(overlaps(cell.bubbles[i]!, cell.bubbles[j]!)).toBe(false);
+    }
+  }
+  for (const h of current.skills.filter((s) => s.kind === 'player')) {
+    for (const e of h.evaluations) expect(e.outer.y + e.outer.height).toBe(current.rows[0]!.outer.y);
+  }
 });

@@ -10,7 +10,7 @@
  * its own.
  */
 
-import { type MatchRecord, shirtNumbers, teamKey } from '../matches/record';
+import { type MatchRecord, type PlayerRecord, shirtNumbers, teamKey } from '../matches/record';
 
 export interface Athlete {
   readonly id: string;
@@ -191,4 +191,10 @@ export function linkEntry(records: readonly MatchRecord[], entry: RosterEntry, a
       const player = athlete ? { number: entry.number, name, athleteId: athlete.id } : { number: entry.number, name };
       return { ...record, players: [...record.players.filter((p) => p.number !== entry.number), player] };
     });
+}
+
+/** Selecting an archived athlete also writes their name into the roster field. */
+export function selectRosterAthlete(player: PlayerRecord, athlete: Athlete | null): PlayerRecord {
+  const { athleteId: _, ...current } = player;
+  return athlete ? { ...current, name: athlete.name.trim() || current.name, athleteId: athlete.id } : current;
 }

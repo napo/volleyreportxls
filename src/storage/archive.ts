@@ -204,12 +204,13 @@ export class Archive {
  * Fills in the missing names and athletes of the record from the archive
  * (those already set are kept).
  */
-export function withKnownNames(record: MatchRecord, known: readonly PlayerRecord[], numbers: readonly number[]): MatchRecord {
+export function withKnownNames(record: MatchRecord, known: readonly PlayerRecord[], numbers: readonly number[], athletes: readonly Athlete[] = []): MatchRecord {
   const players = numbers.map((number): PlayerRecord => {
     const typed = record.players.find((p) => p.number === number);
     const remembered = known.find((p) => p.number === number);
-    const name = typed?.name.trim() ? typed.name : remembered?.name ?? typed?.name ?? '';
-    const athleteId = typed?.athleteId ?? remembered?.athleteId;
+    const athleteId = typed?.athleteId ?? (typed?.name.trim() ? undefined : remembered?.athleteId);
+    const archivedName = athletes.find((a) => a.id === athleteId)?.name.trim();
+    const name = typed?.name.trim() ? typed.name : archivedName || remembered?.name || typed?.name || '';
     return athleteId ? { number, name, athleteId } : { number, name };
   });
   return { ...record, players };

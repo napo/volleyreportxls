@@ -230,9 +230,18 @@ jobs:
           ls -lah release-files/
       - name: Manifest degli aggiornamenti automatici (latest.json)
         run: node scripts/updater-manifest.mjs release-files "${GITHUB_REF_NAME}"
+      - name: Note di rilascio curate (se presenti)
+        id: release-notes
+        shell: bash
+        run: |
+          notes="docs/releases/${GITHUB_REF_NAME}.md"
+          if [ -f "$notes" ]; then
+            echo "path=$notes" >> "$GITHUB_OUTPUT"
+          fi
       - uses: softprops/action-gh-release@v3
         with:
           files: release-files/*
+          body_path: ${{ steps.release-notes.outputs.path }}
           generate_release_notes: true
           draft: false
           prerelease: false

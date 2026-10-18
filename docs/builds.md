@@ -18,7 +18,7 @@ VolleyReport è distribuito come versione web (https://report.volleyserve.it) e 
 
 Una nuova versione si pubblica **solo su proposta e con conferma esplicita del maintainer**:
 
-1. Si propone il tipo di versione (`patch` per correzioni, `minor` per nuove funzioni, `major` per cambi incompatibili) e il contenuto della release.
+1. Si preparano tutorial, note di rilascio in `docs/releases/vX.Y.Z.md` e controlli (REUSE, versione, TypeScript, test e build). Il workflow usa le note curate, se presenti, insieme al riepilogo automatico di GitHub. Si propone il tipo di versione (`patch` per correzioni, `minor` per nuove funzioni, `major` per cambi incompatibili) e il contenuto della release.
 2. Dopo la conferma:
    ```bash
    npm run release:version -- minor      # oppure patch / major / X.Y.Z

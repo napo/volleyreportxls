@@ -6,7 +6,7 @@
  * score of every set, the players' names. Every change is saved on the device.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { athleteLabel, rosterEntries } from '../../athletes/matching';
+import { type Athlete, athleteLabel, rosterEntries, selectRosterAthlete } from '../../athletes/matching';
 import { findAnomalies } from '../../matches/checks';
 import { useI18n } from '../../i18n';
 import { type MatchRecord, type SetRecord, liberoNumbers, matchWinner, setIsPlayed, shirtNumbers, withNumbersFromPreviousSet } from '../../matches/record';
@@ -100,7 +100,7 @@ export function MatchEditorView({ id }: { id: string }) {
   const [saved, setSaved] = useState(true);
   const [setNumber, setSetNumber] = useState(1);
   // Athletes of the archive, by label (the unnamed ones by number and roster).
-  const [athletes, setAthletes] = useState<readonly { id: string; label: string }[]>([]);
+  const [athletes, setAthletes] = useState<readonly (Athlete & { label: string })[]>([]);
   const pending = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Whether the match was over at the last check: the tabellino opens by
   // itself only when entering a score ends it.
@@ -117,7 +117,7 @@ export function MatchEditorView({ id }: { id: string }) {
     });
     Promise.all([archive.listAthletes(), archive.listMatches()]).then(([list, records]) => {
       const entries = rosterEntries(records);
-      const labelled = list.map((a) => ({ id: a.id, label: athleteLabel(a, entries) + (a.note.trim() ? ` (${a.note.trim()})` : '') }));
+      const labelled = list.map((a) => ({ ...a, label: athleteLabel(a, entries) + (a.note.trim() ? ` (${a.note.trim()})` : '') }));
       setAthletes(labelled.sort((a, b) => a.label.localeCompare(b.label)));
     });
   }, [archive, id]);
@@ -158,10 +158,12 @@ export function MatchEditorView({ id }: { id: string }) {
   useEffect(() => {
     if (!archive || !record) return;
     let active = true;
-    archive.knownPlayers(record.teamName, record.competition).then((known) => {
+    Promise.all([archive.knownPlayers(record.teamName, record.competition), archive.listAthletes()]).then(([known, archivedAthletes]) => {
       if (!active) return;
-      const filled = withKnownNames(record, known, numbers);
-      if (JSON.stringify(filled.players) !== JSON.stringify(record.players)) change(filled);
+      const current = latest.current;
+      if (!current || current.id !== record.id || current.teamName !== record.teamName || current.competition !== record.competition) return;
+      const filled = withKnownNames(current, known, shirtNumbers(current), archivedAthletes);
+      if (JSON.stringify(filled.players) !== JSON.stringify(current.players)) change(filled);
     });
     return () => {
       active = false;
@@ -302,6 +304,7 @@ export function MatchEditorView({ id }: { id: string }) {
                 {liberos.has(number) && <span className="vr-badge vr-badge-orange">L</span>}
                 <input
                   value={record.players.find((p) => p.number === number)?.name ?? ''}
+                  aria-label={`${t.namePlaceholder} ${number}`}
                   placeholder={t.namePlaceholder}
                   onChange={(e) => {
                     const current = record.players.find((p) => p.number === number);
@@ -314,8 +317,9 @@ export function MatchEditorView({ id }: { id: string }) {
                     aria-label={`${t.athlete} ${number}`}
                     value={record.players.find((p) => p.number === number)?.athleteId ?? ''}
                     onChange={(e) => {
-                      const { athleteId: _, ...current } = record.players.find((p) => p.number === number) ?? { number, name: '' };
-                      const player = e.target.value ? { ...current, athleteId: e.target.value } : current;
+                      const current = record.players.find((p) => p.number === number) ?? { number, name: '' };
+                      const athlete = athletes.find((a) => a.id === e.target.value) ?? null;
+                      const player = selectRosterAthlete(current, athlete);
                       change({ ...record, players: [...record.players.filter((p) => p.number !== number), player] });
                     }}
                   >

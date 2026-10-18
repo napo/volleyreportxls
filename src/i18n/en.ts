@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 /** English texts: same shape as it.ts. */
+import type { Evaluation } from '../domain/codes';
 import type { Anomaly } from '../matches/checks';
 import type { Messages } from './it';
 
@@ -55,26 +56,26 @@ export const en: Messages = {
   /** The 5-step guide (dialog at start). */
   guide: {
     title: 'How it works, in 5 steps',
-    text: 'From the paper sheet to the scoresheet, without typing anything in.',
+    text: 'From the paper sheet to the scoresheet, without retyping the counts.',
     steps: [
       {
         title: 'Get the form',
-        text: 'Download the PDF and print one copy per set, black and white is fine. The form is the same for every match and every set.',
-        alt: 'The empty scouting form',
+        text: 'Download the v7 form and print one copy per set, plus a few spare sheets. Descriptions below the symbols explain each rating; soft colours are an extra aid and black-and-white printing works too.',
+        alt: 'Empty v7 form: symbols with descriptions and soft-coloured headers; white counting cells.',
       },
       {
         title: 'Fill it in during the match',
-        text: 'Mark the set at the top and write the shirt numbers, with the name under them if it helps; for every ball touched mark the first free bubble, under skill and rating.',
-        alt: 'The form filled in with a pen',
+        text: 'Mark the set and shirt numbers. Every bubble counts as one touch, including the last. If a cell is full, continue on another sheet: mark the same set, “Extra sheet” and the same shirt number.',
+        alt: 'V7 form filled in with a pen: every marked bubble counts as one touch.',
       },
       {
         title: 'Upload the photo',
-        text: 'After the match take a photo of each sheet with your phone, or upload the images from a computer. Photos stay on the device.',
+        text: 'Photograph every sheet, including extra sheets, with markers and QR visible. Upload them together or add them to the match later: the app adds counts for the same set and shirt number. Photos stay on the device.',
         alt: 'The page to upload the photos of the sheets',
       },
       {
         title: 'Check what the app recognised',
-        text: 'The app counts the marks and reads the set marked at the top. You type the shirt numbers, helped by the names, and fix only the doubtful or full cells.',
+        text: 'Check the set, shirt numbers, score and uncertain cells. In the roster, choosing an archived athlete fills in their name. For the same team and competition, previously linked shirt numbers suggest the name in later matches.',
         alt: 'Checking the shirt numbers and the doubtful cells',
       },
       {
@@ -166,7 +167,7 @@ export const en: Messages = {
     them: 'Opponents',
     playersTitle: 'Players',
     playersText:
-      'The shirt numbers found in the sets. Names are optional; those already used for this team and competition are suggested. The athlete is used for the history: it is usually linked on the History page, here you can change it for this match only.',
+      'Names are optional. Choose an archived athlete to fill in their name and link their history. For this team and competition, previously linked shirt numbers suggest the name in later matches. Manually entered names are kept.',
     noNumbers: 'No shirt number entered.',
     namePlaceholder: 'Name (optional)',
     athlete: 'Athlete',
@@ -487,10 +488,11 @@ export const en: Messages = {
     howTitle: 'How to fill it in',
     howText: 'Dark pen, one bubble for every ball touched.',
     howSteps: [
+      'Read the descriptions below the symbols: soft green means favourable, yellow intermediate and pink unfavourable. Meaning depends on the skill: for example / is favourable in serving, unfavourable in reception and attack. Always use symbols and text, including in black and white.',
       'Mark the set at the top; if the set continues from another sheet, also mark “Extra sheet”.',
       'One row for every player who enters the court: write the shirt number in the two boxes on the left, one digit per box, and the name under them if it helps.',
       'For every ball touched, in the player’s row find the skill (Serve, Reception, Attack, Block) and the rating (# + ! - / =), then fill or cross the first free bubble. The filled bubbles show at a glance how many touches of that kind the player made.',
-      'If a cell is full, mark the "+" bubble: you will correct the total of that cell in the app.',
+      'Every bubble counts as one touch, including the last. If a cell is full, continue on another sheet with the same set and shirt number. The app adds the counts from the sheets.',
       'Liberos use the two "Libero" blocks at the bottom, side by side: number and name, reception and setting faults.',
       'Setting =: mark the fault the referee whistles on the second touch (double, lift), whatever the role of the player who commits it.',
       'At the end of the set write the final score in the "Us" and "Opponents" boxes: it is needed to compute the opponent errors.',
@@ -583,8 +585,17 @@ export const en: Messages = {
     shirt: 'Shirt no.',
     shirtAndName: 'No. and name',
     libero: 'Libero',
+    evaluationCaptions: {
+      B: { '#': 'Ace', '+': 'Positive', '!': 'Forcing', '-': 'Easy', '/': 'Over-|pass', '=': 'Error' },
+      R: { '#': 'Perfect', '+': 'Positive', '!': 'Forced', '-': 'Poor', '/': 'Over-|pass', '=': 'Ace|against' },
+      A: { '#': 'Kill', '+': 'Positive', '!': 'Block|covered', '-': 'Easy|dig', '/': 'Blocked', '=': 'Error' },
+      M: { '#': 'Point', '+': 'Our|replay', '!': 'Opp.|cover', '-': 'Opp.|replay', '/': 'Net|fault', '=': 'Error' },
+      P: { '=': 'Fault' },
+    } as Record<string, Partial<Record<Evaluation, string>>>,
+    colourLegend: 'Colours: green favourable · yellow intermediate · pink unfavourable. Always read the text.',
+    legacyLegend2: 'Cell full: mark the "+" and correct the total in the app. Setting =: second-touch fault.',
     legend1: 'One bubble for every ball touched: fill or cross it, always the first free one.',
-    legend2: 'Cell full: mark the "+" and correct the total in the app. Setting =: fault whistled on the second touch.',
+    legend2: 'Cell full: another sheet, same set and shirt number. Setting =: second-touch fault.',
     legend3: '#  double plus     +  plus     !  exclamation     -  minus     /  slash     =  double minus',
     after: (url: string) => `After filling in the form, visit ${url} and photograph it.`,
     credits: (version: number) => `VolleyReport · an idea of Maurizio Napolitano · form v${version}`,

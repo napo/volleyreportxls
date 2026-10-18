@@ -365,30 +365,30 @@ src/
 | evidenza | arancio `#E96E23`; testo `#B4500F` su `#FDEEE2` |
 
   I token sono in `src/ui/theme.css`.
-- **PDF del tabellino**: stessa palette, con il logo nell'intestazione; resta leggibile in bianco e nero. Il modulo di rilevazione resta volutamente in bianco, nero e grigio, perché è funzionale al riconoscimento.
+- **PDF del tabellino**: stessa palette, con il logo nell'intestazione; resta leggibile in bianco e nero. Il modulo v7 colora soltanto le intestazioni con tinte pastello e mantiene bianche le aree lette dalla foto.
 
 ## 12. Modulo A4 fotografabile
 
-Il modulo è **a crocette** (layout v6), generico e con un unico foglio per tutti i set: il set si segna a mano in alto. Per ogni pallone toccato si annerisce o si barra il primo pallino libero nella riga del giocatore, sotto fondamentale e valutazione. Le statistiche dipendono solo dai conteggi, quindi non si perde nulla rispetto ai codici scritti (`domain/tally.ts`). In compenso la lettura della foto diventa un riconoscimento di segni, molto più affidabile della scrittura a mano.
+Il modulo è **a crocette** (layout v7), generico e con un unico foglio per tutti i set: il set si segna a mano in alto. Per ogni pallone toccato si annerisce o si barra il primo pallino libero nella riga del giocatore, sotto fondamentale e valutazione. Le statistiche dipendono solo dai conteggi, quindi non si perde nulla rispetto ai codici scritti (`domain/tally.ts`). In compenso la lettura della foto diventa un riconoscimento di segni, molto più affidabile della scrittura a mano.
 
 Coordinate in `pdf/layout.ts`, identità della pagina (QR) in `pdf/scouting-form.ts`, disegno in `pdf/scouting-form-pdf.ts`. Il PDF si scarica da *Informazioni → Il modulo di rilevazione*.
 
 ### Capacità delle caselle
 
-Il numero di pallini per valutazione è calcolato su **559 partite DataVolley** (campionato italiano 2024/25, nazionali, Turchia), cioè 2.100 set e 36.643 giocatore-set. Si usa il 99° percentile del numero di tocchi di un giocatore in un set, con margine per i livelli più bassi: più attacchi `#`, `+` ed errori. A ogni casella si aggiunge un pallino **"+"** (oltre): si segna quando i pallini sono finiti e il totale si corregge nell'app.
+Il numero di pallini per valutazione è calcolato su **559 partite DataVolley** (campionato italiano 2024/25, nazionali, Turchia), cioè 2.100 set e 36.643 giocatore-set. Si usa il 99° percentile del numero di tocchi di un giocatore in un set, con margine per i livelli più bassi: più attacchi `#`, `+` ed errori. Dalla v7 anche l’ultimo pallino vale un tocco. Se la casella è piena si continua su un foglio aggiuntivo dello stesso set, riportando lo stesso numero di divisa; i conteggi si sommano. Nei fogli fino alla v6 il pallino «+» resta una segnalazione da correggere nell’app.
 
 | Righe giocatore (12) | `#` | `+` | `!` | `-` | `/` | `=` |
 |---|---|---|---|---|---|---|
-| Battuta | 5 | 8 | 5 | 8 | 5 | 5 |
-| Ricezione | 8 | 8 | 8 | 8 | 5 | 5 |
-| Attacco | 11 | 8 | 5 | 8 | 5 | 8 |
-| Muro | 5 | 5 | 5 | 2 | 2 | 5 |
-| Alzata | — | — | — | — | — | 5 |
+| Battuta | 6 | 9 | 6 | 9 | 6 | 6 |
+| Ricezione | 9 | 9 | 9 | 9 | 6 | 6 |
+| Attacco | 12 | 9 | 6 | 9 | 6 | 9 |
+| Muro | 6 | 6 | 6 | 6 | 6 | 6 |
+| Alzata | — | — | — | — | — | 6 |
 
 | Righe Libero (2) | `#` | `+` | `!` | `-` | `/` | `=` |
 |---|---|---|---|---|---|---|
-| Ricezione (sotto quella dei giocatori) | 8 | 8 | 8 | 8 | 5 | 5 |
-| Alzata (sotto quella dei giocatori) | — | — | — | — | — | 5 |
+| Ricezione (sotto quella dei giocatori) | 9 | 9 | 9 | 9 | 6 | 6 |
+| Alzata (sotto quella dei giocatori) | — | — | — | — | — | 6 |
 
 I liberi non battono, non attaccano e non murano: nelle loro righe quelle zone sono barrate. Il fallo di alzata (`P=`) è su ogni riga, perché può commetterlo qualsiasi ruolo.
 
@@ -408,7 +408,15 @@ Chi usava la v5 trovava i pallini troppo piccoli (2,7 mm), e chi ricorda il nome
 
 Retrocompatibilità, verificata dai test: geometria di v3, v4 e v5 identica al millimetro, PDF v4 e v5 identici al pixel, foto reali v3 e fogli sintetici v4, v5, v6 letti come prima; con il QR illeggibile un foglio v5 viene letto con la griglia v5 (condivisa con la v4), un foglio v6 con la sua.
 
-**Foglio di esempio.** `npm run sample:sheet` genera un modulo compilato a caso (numeri, nomi, set, punteggio, tocchi plausibili per ruolo, pallini anneriti o barrati, `--full N` caselle piene con il «+») e accanto un JSON con quello che l'app deve leggere. In `docs/examples/` ci sono `modulo-compilato.pdf`, la sua immagine `modulo-compilato.jpg` (da caricare nell'app senza stamparlo) e `modulo-compilato.json`. Lo stesso foglio illustra la guida introduttiva.
+### Layout v7 (microlegende nelle intestazioni)
+
+La bozza A diventa il modulo predefinito: descrizioni brevi sotto i simboli delle righe giocatore, intestazioni verde tenue per esiti favorevoli, giallo tenue per intermedi e rosa tenue per sfavorevoli. La mappa dipende da fondamentale e valutazione (`pdf/evaluation-style.ts`): per esempio `B/` è favorevole, `R/` e `A/` sfavorevoli, `A!` intermedio. Sono indicazioni qualitative, indipendenti dai pesi statistici. I grafici mantengono la palette esistente.
+
+Testo scuro, simboli e descrizioni trasmettono il significato anche in bianco e nero; le tinte non sono l’unico riferimento. Le descrizioni complete restano nella guida. I liberi riutilizzano simboli e colori della ricezione, con la legenda descrittiva nell’intestazione principale. I pallini hanno diametro uniforme di almeno 3 mm. La fascia descrittiva richiede 7 mm aggiuntivi; la griglia mantiene 12 righe giocatore e due liberi affiancati.
+
+Il QR identifica la nuova geometria (`VR|7|P1`). I layout precedenti restano disponibili per la lettura delle stampe esistenti; anche senza QR la v7 è distinguibile dalla griglia. Ogni pallino è contato: una casella piena non attiva richieste di totale. Prove sui PDF rasterizzati, anche compilati in scala di grigi, verificano i conteggi e il set; resta utile una prova con stampa e fotocamera reali.
+
+**Foglio di esempio.** `npm run sample:sheet` genera un modulo compilato a caso (numeri, nomi, set, punteggio, tocchi plausibili per ruolo, pallini anneriti o barrati, `--full N` caselle con tutti i pallini segnati) e accanto un JSON con quello che l'app deve leggere. In `docs/examples/` ci sono `modulo-compilato.pdf`, la sua immagine `modulo-compilato.jpg` (da caricare nell'app senza stamparlo) e `modulo-compilato.json`. Lo stesso foglio illustra la guida introduttiva.
 
 
 La v3 (con difesa e alzata valutata sulle righe libero) non è mai stata rilasciata ed è stata sostituita, non affiancata.
@@ -469,7 +477,7 @@ Con il modulo a crocette il riconoscimento è soprattutto **lettura di segni**, 
    - Pallini pieni e barrati sono entrambi segni.
 3. **Confidenza**:
    - i pallini con inchiostro vicino alla soglia sono incerti, e la casella viene evidenziata nella revisione;
-   - un "+" segnato chiede il totale all'utente.
+   - sui fogli fino alla v6, un «+» segnato chiede il totale all’utente; dalla v7 tutti i pallini contano normalmente.
 4. **Cifre**: si riconoscono ancora a mano solo il numero di maglia (due cifre per riga) e il punteggio (quattro cifre per foglio). È una classificazione 0–9, vincolata dai numeri ricorrenti nei set e dall'archivio della squadra, sempre da confermare nella revisione.
 5. Nessun modello di intelligenza artificiale è necessario per i pallini; per le cifre basta un classificatore piccolo, eseguito nel browser, oppure l'inserimento manuale.
 
@@ -478,7 +486,7 @@ Con il modulo a crocette il riconoscimento è soprattutto **lettura di segni**, 
 | Rischio | Mitigazione |
 |---|---|
 | Segni ambigui: pallino toccato appena, segno a cavallo di due pallini, correzioni a penna | soglia rispetto a un pallino vuoto della stessa foto, caselle incerte evidenziate, conteggi sempre modificabili nella revisione |
-| Caselle piene a livelli bassi (molti attacchi) | capacità calibrate su 559 partite con margine, pallino "+" per i casi oltre |
+| Caselle piene a livelli bassi (molti attacchi) | capacità calibrate su 559 partite con margine; prosecuzione su foglio aggiuntivo con lo stesso numero di divisa |
 | Ombre, riflessi, foglio curvo | 6 marker, normalizzazione per blocchi, controllo dell'errore di riproiezione |
 | Peso di OpenCV.js e ONNX su telefoni economici | pipeline leggera, worker, modelli piccoli |
 | Storage cancellato (iOS) | `storage.persist()`, PWA installata, esportazione JSON |

@@ -36,14 +36,14 @@ export interface SampleSheet {
   readonly score: { readonly team: number; readonly opponent: number };
   readonly header: { readonly team: string; readonly opponent: string; readonly competition: string; readonly date: string };
   readonly rows: readonly SampleRow[];
-  /** Cells filled up with the "+" marked: the app asks for their total. */
+  /** Cells filled to capacity (legacy layouts also mark the overflow bubble). */
   readonly full: readonly { readonly row: number; readonly code: ScoutCodeString }[];
   /** Every mark, in sheet millimetres: set, touches. */
   readonly marks: readonly MarkShape[];
 }
 
 export interface SampleOptions {
-  /** Cells to fill up, "+" included (0 by default). */
+  /** Cells to fill to capacity (0 by default). */
   readonly full?: number;
 }
 
@@ -126,7 +126,7 @@ export function randomSampleSheet(seed: number, layout: FormLayout = CURRENT_FOR
         const evaluation = EVALUATION_SHARES[skill]!.find(([, share]) => (r -= share) <= 0)?.[0] ?? EVALUATION_SHARES[skill]![0]![0];
         const cell = row.cells.find((c) => c.skill === skill && c.evaluation === evaluation);
         const code = cell && cellCode(cell);
-        // A full cell would need the "+": the sample stays within the bubbles.
+        // The sample stays within the available counting bubbles.
         if (!cell || !code || (counts[code] ?? 0) >= cell.bubbles.length) continue;
         counts[code] = (counts[code] ?? 0) + 1;
       }
@@ -150,7 +150,7 @@ export function randomSampleSheet(seed: number, layout: FormLayout = CURRENT_FOR
     ...roles.map((role, i) => fill(players[i]!, role)),
     ...liberos.slice(0, liberoRows).map((row) => fill(row, 'libero')),
   ];
-  // Full cells: the remaining bubbles and the "+"; the count is the capacity, the true total is entered in the app.
+  // Full cells: every counting bubble; only legacy layouts have an overflow marker.
   const full: { row: number; code: ScoutCodeString }[] = [];
   for (let k = 0; k < (options.full ?? 0); k++) {
     const sample = rows[rng.int(0, roles.length - 1)]!;
@@ -159,7 +159,7 @@ export function randomSampleSheet(seed: number, layout: FormLayout = CURRENT_FOR
     const code = cellCode(cell)!;
     const counts = sample.counts as Partial<Record<ScoutCodeString, number>>;
     cell.bubbles.slice(counts[code] ?? 0).forEach(mark);
-    mark(cell.overflow);
+    if (cell.overflow) mark(cell.overflow);
     counts[code] = cell.bubbles.length;
     full.push({ row: row.index, code });
   }
@@ -248,7 +248,7 @@ export function sampleSummary(sheet: SampleSheet) {
     set: sheet.set,
     score: sheet.score,
     rows: sheet.rows.map((r) => ({ row: r.index + 1, kind: r.kind, number: r.number, name: r.name, counts: r.counts })),
-    /** Cells with the "+": their count is the number of bubbles, the app asks for the total. */
+    /** Cells filled to their counting capacity. */
     full: sheet.full.map((f) => ({ row: f.row + 1, code: f.code })),
   };
 }

@@ -12,6 +12,8 @@
  */
 
 import { type PDFImage, type PDFPage, PDFDocument, rgb } from 'pdf-lib';
+import { EVALUATION_FILLS, EVALUATION_TONES } from './evaluation-style';
+import type { Skill } from '../domain/codes';
 import { WEB_APP_URL } from '../config';
 import { SET_NUMBERS, type SetNumber } from '../domain/model';
 import { arucoMatrix } from './aruco';
@@ -25,6 +27,7 @@ const MM = 72 / 25.4;
 const BLACK = rgb(0, 0, 0);
 const GUIDE = rgb(0.62, 0.62, 0.62);
 const LABEL = rgb(0.45, 0.45, 0.45);
+const READABLE_LABEL = rgb(0.25, 0.25, 0.25);
 const NUMBER = rgb(0.4, 0.4, 0.4);
 const BUBBLE = rgb(0.6, 0.6, 0.6);
 /** v6: rules between skills, heavier so that each skill reads as a block. */
@@ -101,7 +104,7 @@ class Sheet {
     const safe = drawableText(font, text);
     const width = font.widthOfTextAtSize(safe, size) / MM;
     const left = options.align === 'center' ? x + ((options.width ?? 0) - width) / 2 : x;
-    this.page.drawText(safe, { x: left * MM, y: this.y(baseline), size, font, color: options.color ?? BLACK });
+    this.page.drawText(safe, { x: left * MM, y: this.y(baseline), size, font, color: this.layout.evaluationCaptions && options.color === LABEL ? READABLE_LABEL : options.color ?? BLACK });
   }
 
   matrix(cells: boolean[][], r: Rect) {
@@ -214,7 +217,7 @@ function drawGrid(s: Sheet) {
     const small = kind === 'libero';
     section.forEach((skill, i) => {
       // Alternate light bands tell the skills apart at a glance.
-      if (i % 2 === 0) s.fill({ x: skill.outer.x, y: skill.outer.y, width: skill.outer.width, height: bottom - skill.outer.y }, BAND);
+      if (!s.layout.evaluationCaptions && i % 2 === 0) s.fill({ x: skill.outer.x, y: skill.outer.y, width: skill.outer.width, height: bottom - skill.outer.y }, BAND);
       // Narrow blocks (the set faults) drop the letter, then shrink the name to fit.
       const size = small ? 6 : 7.5;
       const fits = (text: string, at: number) => s.fonts.bold.widthOfTextAtSize(text, at) / MM <= skill.outer.width - 0.6;
@@ -229,7 +232,17 @@ function drawGrid(s: Sheet) {
         width: skill.outer.width,
       });
       for (const { evaluation, outer } of skill.evaluations) {
-        s.text(evaluation, outer.x, outer.y + outer.height - (small ? 0.4 : 0.6), small ? 7 : 9, { bold: true, align: 'center', width: outer.width });
+        const described = s.layout.evaluationCaptions;
+        const tone = EVALUATION_TONES[skill.skill as Skill]?.[evaluation];
+        if (described && tone) s.fill(outer, rgb(...EVALUATION_FILLS[tone]));
+        s.text(evaluation, outer.x, outer.y + (described && !small ? 3.4 : outer.height - (small ? 0.4 : 0.6)), small ? 7 : 9, { bold: true, align: 'center', width: outer.width });
+        if (described && !small) {
+          const caption = s.texts.form.evaluationCaptions[skill.skill]?.[evaluation] ?? '';
+          caption.split('|').forEach((line, i) => {
+            const size = 6.2;
+            s.text(line, outer.x, outer.y + 6.5 + i * 2.5, size, { align: 'center', width: outer.width });
+          });
+        }
       }
       // Heavier rules between skills.
       for (const x of [skill.outer.x, skill.outer.x + skill.outer.width]) {
@@ -263,14 +276,16 @@ function drawGrid(s: Sheet) {
         if (s.layout.compact) s.circle(bubble);
         else numberedBubble(s, bubble, bubble.number);
       }
-      s.circle(cell.overflow, NUMBER);
-      const plus = cell.overflow.height * 0.6;
-      s.text('+', cell.overflow.x, cell.overflow.y + (cell.overflow.height + plus) / 2, pointsForCapHeight(plus), {
-        bold: true,
-        color: NUMBER,
-        align: 'center',
-        width: cell.overflow.width,
-      });
+      if (cell.overflow) {
+        s.circle(cell.overflow, NUMBER);
+        const plus = cell.overflow.height * 0.6;
+        s.text('+', cell.overflow.x, cell.overflow.y + (cell.overflow.height + plus) / 2, pointsForCapHeight(plus), {
+          bold: true,
+          color: NUMBER,
+          align: 'center',
+          width: cell.overflow.width,
+        });
+      }
     }
   }
   for (const rule of rules) s.vline(rule.x, rule.top, rule.bottom, SKILL_RULE_V6.thickness, SKILL_RULE_V6.color);
@@ -279,11 +294,11 @@ function drawGrid(s: Sheet) {
 function drawLegend(s: Sheet, page: FormPageId) {
   const [left, right] = s.layout.legend;
   s.text(s.texts.form.legend1, left.x, left.y + 4, 7.5, { bold: true });
-  s.text(s.texts.form.legend2, left.x, left.y + 8.5, 6.5, {
+  s.text(s.layout.evaluationCaptions ? s.texts.form.legend2 : s.texts.form.legacyLegend2, left.x, left.y + 8.5, 6.5, {
     color: LABEL,
   });
   // Right: ratings, where to go with the filled-in form, credits; the project logo at the end.
-  s.text(s.texts.form.legend3, right.x, right.y + 3.2, 7, { bold: true });
+  s.text(s.layout.evaluationCaptions ? s.texts.form.colourLegend : s.texts.form.legend3, right.x, right.y + 3.2, s.layout.evaluationCaptions ? 6.2 : 7, { bold: true });
   s.text(s.texts.form.after(WEB_APP_URL.replace(/\/$/, '')), right.x, right.y + 6.4, 6.5);
   s.text(s.texts.form.credits(page.layoutVersion), right.x, right.y + 9.4, 6, { color: LABEL });
   if (s.logo) {

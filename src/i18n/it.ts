@@ -55,26 +55,26 @@ export const it = {
   /** The 5-step guide (dialog at start). */
   guide: {
     title: 'Come si fa, in 5 passi',
-    text: 'Dal foglio di carta al tabellino, senza ricopiare niente.',
+    text: 'Dal foglio di carta al tabellino, senza ricopiare i conteggi.',
     steps: [
       {
         title: 'Prendi il modulo',
-        text: 'Scarica il PDF e stampane una copia per ogni set, anche in bianco e nero. Il modulo è lo stesso per tutte le partite e per tutti i set.',
-        alt: 'Il modulo di rilevazione vuoto',
+        text: 'Scarica il modulo v7 e stampa una copia per set, più qualche foglio di scorta. Le descrizioni sotto i simboli spiegano le valutazioni; i colori tenui sono un aiuto e il foglio si può stampare anche in bianco e nero.',
+        alt: 'Modulo v7 vuoto: simboli con descrizioni e intestazioni dai colori tenui; caselle di conteggio bianche.',
       },
       {
         title: 'Compilalo durante la partita',
-        text: 'Segna il set in alto e scrivi i numeri di divisa, con sotto il nome se ti aiuta; per ogni pallone toccato fai un segno sul primo pallino libero, sotto fondamentale e valutazione.',
-        alt: 'Il modulo compilato a penna',
+        text: 'Segna il set e i numeri di divisa. Ogni pallino vale un tocco, compreso l’ultimo. Se una casella è piena, continua su un altro foglio: segna lo stesso set, «Foglio aggiuntivo» e lo stesso numero di divisa.',
+        alt: 'Modulo v7 compilato a penna: ogni pallino segnato vale un tocco.',
       },
       {
         title: 'Carica la foto',
-        text: 'A fine partita fotografa ogni foglio con il telefono, oppure carica le immagini dal computer. Le foto restano sul dispositivo.',
+        text: 'Fotografa tutti i fogli, compresi quelli aggiuntivi, con marker e QR visibili. Puoi caricarli insieme o aggiungerli dopo alla partita: l’app somma i conteggi dello stesso set e numero di divisa. Le foto restano sul dispositivo.',
         alt: 'La pagina per caricare le foto dei fogli',
       },
       {
         title: 'Controlla cosa riconosce l’app',
-        text: 'L’app conta i segni e legge il set segnato in alto. Tu scrivi i numeri di divisa, aiutandoti con i nomi, e correggi solo le caselle incerte o piene.',
+        text: 'Controlla set, numeri di divisa, punteggio e caselle incerte. Nella rosa, scegliendo un atleta dall’archivio il suo nome riempie il campo. Per la stessa squadra e campionato, i numeri già associati propongono il nome nelle partite successive.',
         alt: 'La verifica dei numeri di divisa e delle caselle incerte',
       },
       {
@@ -166,7 +166,7 @@ export const it = {
     them: 'Avversari',
     playersTitle: 'Rosa',
     playersText:
-      'I numeri di divisa presenti nei set. I nomi sono facoltativi; quelli già usati per questa squadra e questo campionato sono proposti. Per lo storico ogni numero va abbinato all’atleta di riferimento: di solito si fa nella pagina Storico, qui puoi cambiare l’abbinamento solo per questa partita.',
+      'I nomi sono facoltativi. Scegli un atleta dall’archivio per riportarne il nome nel campo e collegarlo allo storico. Per questa squadra e questo campionato, i numeri di divisa già associati propongono il nome nelle partite successive. I nomi inseriti a mano vengono conservati.',
     noNumbers: 'Nessun numero di divisa inserito.',
     namePlaceholder: 'Nome (facoltativo)',
     athlete: 'Abbinamento',
@@ -451,10 +451,11 @@ export const it = {
     howTitle: 'Come si compila',
     howText: 'Penna scura, un pallino per ogni pallone toccato.',
     howSteps: [
+      'Leggi le descrizioni sotto i simboli: verde tenue indica un esito favorevole, giallo intermedio e rosa sfavorevole. Il significato dipende dal fondamentale: per esempio / è favorevole in battuta, sfavorevole in ricezione e attacco. Usa sempre simboli e testo, anche in bianco e nero.',
       'Segna in alto il set; se il set continua da un altro foglio segna anche «Foglio aggiuntivo».',
       'Una riga per ogni atleta che entra in campo: scrivi il numero di divisa nelle due caselle a sinistra, una cifra per casella, e sotto, se aiuta, il nome.',
       'Per ogni pallone toccato, nella riga di quella divisa trova il fondamentale (Battuta, Ricezione, Attacco, Muro) e la valutazione (# + ! - / =), poi annerisci o barra il primo pallino libero. I pallini anneriti mostrano subito quanti tocchi di quel tipo sono stati fatti.',
-      'Se una casella è piena, segna il pallino "+": nell’app correggerai il totale di quella casella.',
+      'Ogni pallino vale un tocco, compreso l’ultimo. Se una casella è piena, continua su un altro foglio indicando lo stesso set e numero di divisa. L’app somma i conteggi dei fogli.',
       'Chi gioca da libero usa i due blocchi "Libero" in fondo, uno accanto all’altro: numero e nome, ricezione e falli di alzata.',
       'Alzata =: segna il fallo fischiato sul secondo tocco (doppia, trattenuta), qualunque sia il ruolo di chi lo commette.',
       'A fine set scrivi il punteggio finale nelle caselle "Noi" e "Avversari": serve a calcolare gli errori avversari.',
@@ -548,8 +549,17 @@ export const it = {
     shirt: 'N° divisa',
     shirtAndName: 'N° e nome',
     libero: 'Libero',
+    evaluationCaptions: {
+      B: { '#': 'Ace', '+': 'Positiva', '!': 'Forz.', '-': 'Facile', '/': 'Mezzo|punto', '=': 'Errore' },
+      R: { '#': 'Perfetta', '+': 'Positiva', '!': 'Negativa|forzata', '-': 'Insuff.', '/': 'Palla|di là', '=': 'Ace|subito' },
+      A: { '#': 'Vincente', '+': 'Positivo', '!': 'Murato|coperto', '-': 'Difeso|facile', '/': 'Murato', '=': 'Errore' },
+      M: { '#': 'Punto', '+': 'Rigioco|nostro', '!': 'Coperto|avvers.', '-': 'Rigioco|avvers.', '/': 'Fallo|invas.', '=': 'Errore' },
+      P: { '=': 'Fallo' },
+    } as Record<string, Partial<Record<Evaluation, string>>>,
+    colourLegend: 'Colori: verde favorevole · giallo intermedio · rosa sfavorevole. Leggere sempre il testo.',
+    legacyLegend2: 'Casella piena: segna il "+" e correggi il totale nell’app. Alzata =: fallo sul secondo tocco.',
     legend1: 'Un pallino per ogni pallone toccato: anneriscilo o barralo, sempre il primo libero.',
-    legend2: 'Casella piena: segna il "+" e correggi il totale nell’app. Alzata =: fallo fischiato sul secondo tocco.',
+    legend2: 'Casella piena: altro foglio, stesso set e numero di divisa. Alzata =: fallo sul secondo tocco.',
     legend3: '#  doppio più     +  più     !  esclamativo     -  meno     /  barra     =  doppio meno',
     after: (url: string) => `Dopo che hai compilato il modulo visita ${url} e fotografalo.`,
     credits: (version: number) => `VolleyReport · un’idea di Maurizio Napolitano · modulo v${version}`,

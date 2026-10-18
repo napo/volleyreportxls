@@ -91,3 +91,17 @@ test('QR unreadable: v5 sheets keep their grid (shared with v4), v6 sheets are t
   expect(formLayout(v5.layoutVersion).rows).toEqual(formLayout(5).rows);
   expect(withoutQr(6)).toMatchObject({ page: null, layoutVersion: 6 });
 });
+
+
+test('v7: the last bubble is one ordinary touch, including in libero rows', () => {
+  const layout = formLayout(7);
+  const selected = [layout.rows[0]!.cells[0]!, layout.rows[12]!.cells[0]!];
+  const result = sheet(7, null, { sets: [3], bubbles: selected.map((c) => c.bubbles.at(-1)!) });
+  expect(result.layoutVersion).toBe(7);
+  expect(result.setNumber).toBe(3);
+  for (const row of [0, 12]) expect(result.rows[row]!.cells[0]).toMatchObject({ count: 1, overflow: false, uncertain: false, crop: null });
+});
+
+test('v7 is recognised from its grid when the QR is unreadable', () => {
+  expect(withoutQr(7)).toMatchObject({ page: null, layoutVersion: 7 });
+});

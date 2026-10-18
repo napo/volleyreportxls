@@ -72,8 +72,8 @@ export interface TallyCell {
   readonly evaluation: Evaluation;
   readonly outer: Rect;
   readonly bubbles: readonly Bubble[];
-  /** "+" bubble: filled when all the bubbles are used; the total is then entered in the app. */
-  readonly overflow: Rect;
+  /** Legacy "+" bubble; null from v7, where every slot is a normal counting bubble. */
+  readonly overflow: Rect | null;
 }
 
 export type RowKind = 'player' | 'libero';
@@ -103,6 +103,8 @@ export interface SkillHeader {
 
 export interface FormLayout {
   readonly version: number;
+  /** v7: meanings under the symbols and ordinary bubbles in every slot. */
+  readonly evaluationCaptions: boolean;
   readonly page: { readonly width: number; readonly height: number };
   readonly markers: readonly MarkerPlacement[];
   /** Blank margin to keep around every marker. */
@@ -129,10 +131,10 @@ export interface FormLayout {
 
 const rect = (x: number, y: number, width: number, height: number): Rect => ({ x, y, width, height });
 
-/** Bubble rows in every cell; a cell `columns` wide holds 3 × columns − 1 bubbles plus "+". */
+/** Three rows: all slots count from v7; older sheets reserve the last for "+". */
 const BUBBLE_ROWS = 3;
 
-/** Columns per evaluation, in skill order; capacity = 3 × columns − 1 bubbles. */
+/** Columns per evaluation, in skill order; v7 capacity = 3 × columns. */
 type Columns = readonly (readonly [Evaluation, number])[];
 type SkillColumns = readonly (readonly [FormSkill, Columns])[];
 
@@ -211,7 +213,8 @@ function buildTallyLayout(spec: LayoutSpec): FormLayout {
   const pitch = gridWidth / spec.player.reduce((n, [, c]) => n + columnsOf(c), 0);
 
   const skillBand = 4;
-  const evaluationBand = 4;
+  const evaluationCaptions = spec.version >= 7;
+  const evaluationBand = evaluationCaptions ? 11 : 4;
   const liberoHeader = 6;
   const playerRows = 12;
   const liberoRows = 2;
@@ -241,13 +244,14 @@ function buildTallyLayout(spec: LayoutSpec): FormLayout {
 
   const header = (kind: RowKind, skill: FormSkill, columns: Columns, top: number, height: number, at?: number): SkillHeader => {
     const x0 = at ?? blocks.get(`${kind}:${skill}`)!;
+    const nameBand = evaluationCaptions && kind === 'player' ? skillBand : height / 2;
     const evaluations = [];
     let cx = x0;
     for (const [evaluation, c] of columns) {
-      evaluations.push({ evaluation, outer: rect(cx, top + height / 2, c * pitch, height / 2) });
+      evaluations.push({ evaluation, outer: rect(cx, top + nameBand, c * pitch, height - nameBand) });
       cx += c * pitch;
     }
-    return { kind, skill, label: FORM_SKILL_LABELS[skill], outer: rect(x0, top, columnsOf(columns) * pitch, height / 2), evaluations };
+    return { kind, skill, label: FORM_SKILL_LABELS[skill], outer: rect(x0, top, columnsOf(columns) * pitch, nameBand), evaluations };
   };
 
   const pad = 0.3;
@@ -269,8 +273,8 @@ function buildTallyLayout(spec: LayoutSpec): FormLayout {
       skill,
       evaluation,
       outer,
-      bubbles: Array.from({ length: slots - 1 }, (_, i) => ({ ...slot(i), number: i + 1 })),
-      overflow: slot(slots - 1),
+      bubbles: Array.from({ length: evaluationCaptions ? slots : slots - 1 }, (_, i) => ({ ...slot(i), number: i + 1 })),
+      overflow: evaluationCaptions ? null : slot(slots - 1),
     };
   };
 
@@ -366,6 +370,7 @@ function buildTallyLayout(spec: LayoutSpec): FormLayout {
     : undefined;
   return {
     version: spec.version,
+    evaluationCaptions,
     page,
     markers: [
       { id: 0, ...rect(margin, margin, marker, marker) },
@@ -411,8 +416,9 @@ export const FORM_LAYOUTS: Readonly<Record<number, FormLayout>> = {
   4: buildTallyLayout(V4),
   5: buildTallyLayout(V5),
   6: buildTallyLayout(V6),
+  7: buildTallyLayout({ ...V6, version: 7 }),
 };
-export const CURRENT_FORM_LAYOUT = FORM_LAYOUTS[6]!;
+export const CURRENT_FORM_LAYOUT = FORM_LAYOUTS[7]!;
 
 /** The code a cell counts, or null for cells of an old layout the app no longer records (v3 dig and graded sets). */
 export function cellCode(cell: TallyCell): ScoutCodeString | null {

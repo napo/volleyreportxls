@@ -82,19 +82,19 @@ export function readCell(gray: GrayImage, homography: Homography, cell: TallyCel
   const mask = new Uint8Array(crop.width * crop.height);
   // The "+" bubble is left out of the strokes: it is checked on its own.
   const o = cell.overflow;
-  const ox = (o.x + o.width / 2 - area.x) * PX_PER_MM;
-  const oy = (o.y + o.height / 2 - area.y) * PX_PER_MM;
-  const or = (o.width / 2) * PX_PER_MM;
+  const ox = ((o?.x ?? 0) + (o?.width ?? 0) / 2 - area.x) * PX_PER_MM;
+  const oy = ((o?.y ?? 0) + (o?.height ?? 0) / 2 - area.y) * PX_PER_MM;
+  const or = ((o?.width ?? 0) / 2) * PX_PER_MM;
   for (let i = 0; i < mask.length; i++) {
     const x = i % crop.width;
     const y = (i - x) / crop.width;
-    const inOverflow = (x + 0.5 - ox) ** 2 + (y + 0.5 - oy) ** 2 <= or * or;
+    const inOverflow = o !== null && (x + 0.5 - ox) ** 2 + (y + 0.5 - oy) ** 2 <= or * or;
     mask[i] = !inOverflow && crop.data[i * 4]! < paper * INK_LEVEL ? 1 : 0;
   }
   const blobs = inkBlobs(mask, crop.width, crop.height, MIN_STROKE_MM2 * PX_PER_MM * PX_PER_MM);
 
   const markedBubbles = cell.bubbles.filter((b) => inkInCircle(gray, homography, b, paper, 1) >= BUBBLE_MARKED).map((b) => b.number);
-  const overflow = inkInCircle(gray, homography, cell.overflow, paper, 1) >= BUBBLE_MARKED;
+  const overflow = cell.overflow !== null && inkInCircle(gray, homography, cell.overflow, paper, 1) >= BUBBLE_MARKED;
   const spill = SPILL_MM2 * PX_PER_MM * PX_PER_MM;
   const strokes = blobs.filter((b) => !(b.touchesBorder && b.area < spill)).length;
   const count = Math.max(strokes, markedBubbles.length);

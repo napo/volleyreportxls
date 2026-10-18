@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { emptySet, newMatchRecord, type MatchRecord, type PlayerRecord } from '../matches/record';
-import { type Athlete, conflicts, fullestName, linkEntry, proposals, rosterEntries, sameName } from './matching';
+import { selectRosterAthlete, type Athlete, conflicts, fullestName, linkEntry, proposals, rosterEntries, sameName } from './matching';
 
 let n = 0;
 function match(teamName: string, competition: string, date: string, players: readonly PlayerRecord[]): MatchRecord {
@@ -84,4 +84,14 @@ test('two shirts with the same name in the same match are two athletes', () => {
   expect(of(12)).toEqual({ kind: 'new', homonym: true });
   expect(of(7)).toEqual({ kind: 'ambiguous' });
   expect(of(15)).toEqual({ kind: 'ambiguous' });
+});
+
+
+test('choosing an archived athlete replaces the written name, without adding the note', () => {
+  expect(selectRosterAthlete({ number: 7, name: 'Rossi G.', athleteId: 'old' },
+    { id: 'giulia', name: 'Giulia Rossi', note: '2008' })).toEqual({ number: 7, name: 'Giulia Rossi', athleteId: 'giulia' });
+  expect(selectRosterAthlete({ number: 7, name: 'Giulia Rossi', athleteId: 'giulia' }, null))
+    .toEqual({ number: 7, name: 'Giulia Rossi' });
+  expect(selectRosterAthlete({ number: 7, name: 'Giulia' }, { id: 'unnamed', name: '', note: '' }))
+    .toEqual({ number: 7, name: 'Giulia', athleteId: 'unnamed' });
 });
