@@ -143,8 +143,9 @@ export const INK_LEVEL = 0.35;
  * Share of dark pixels inside a bubble (0 empty … 1 fully inked). The printed
  * circle and number are light grey and stay below the ink threshold, which
  * follows the paper brightness around the bubble (shadows, uneven light).
+ * `ignore` excludes detected printing, such as a displaced dark separator.
  */
-export function inkInCircle(gray: GrayImage, homography: Homography, r: Rect, paper: number, shrink = 0.9): number {
+export function inkInCircle(gray: GrayImage, homography: Homography, r: Rect, paper: number, shrink = 0.9, ignore?: (x: number, y: number) => boolean): number {
   const cx = r.x + r.width / 2;
   const cy = r.y + r.height / 2;
   const radius = (Math.min(r.width, r.height) / 2) * shrink;
@@ -159,7 +160,7 @@ export function inkInCircle(gray: GrayImage, homography: Homography, r: Rect, pa
       if (dx * dx + dy * dy > radius * radius) continue;
       const p = project(homography, { x: cx + dx, y: cy + dy });
       total++;
-      if (sample(gray, p.x, p.y) < threshold) dark++;
+      if (!ignore?.(cx + dx, cy + dy) && sample(gray, p.x, p.y) < threshold) dark++;
     }
   }
   return total ? dark / total : 0;

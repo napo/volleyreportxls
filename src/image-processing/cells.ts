@@ -80,6 +80,23 @@ export function readCell(gray: GrayImage, homography: Homography, cell: TallyCel
   const area = { x: cell.outer.x + inset, y: cell.outer.y + inset, width: cell.outer.width - 2 * inset, height: cell.outer.height - 2 * inset };
   const crop = warpRect(gray, homography, area, PX_PER_MM);
   const mask = new Uint8Array(crop.width * crop.height);
+  // A slightly curved sheet can bring a heavy skill separator inside the crop.
+  // Pen marks occupy only part of the row height; a printed vertical rule runs
+  // through most of it. Only look near the sides, allowing one pixel of slant.
+  // Use the same exclusion for strokes and bubbles: a rule can cross a bubble.
+  const rules = new Uint8Array(crop.width);
+  const edge = 1.5 * PX_PER_MM;
+  for (let x = 0; x < crop.width; x++) {
+    if (x > edge && x < crop.width - 1 - edge) continue;
+    let darkRows = 0;
+    for (let y = 0; y < crop.height; y++) {
+      if ([-1, 0, 1].some((dx) => x + dx >= 0 && x + dx < crop.width && crop.data[(y * crop.width + x + dx) * 4]! < paper * INK_LEVEL)) darkRows++;
+    }
+    if (darkRows >= crop.height * 0.85) {
+      for (let dx = -1; dx <= 1; dx++) if (x + dx >= 0 && x + dx < crop.width) rules[x + dx] = 1;
+    }
+  }
+  const ignoreRule = (x: number) => rules[Math.floor((x - area.x) * PX_PER_MM)] === 1;
   // The "+" bubble is left out of the strokes: it is checked on its own.
   const o = cell.overflow;
   const ox = ((o?.x ?? 0) + (o?.width ?? 0) / 2 - area.x) * PX_PER_MM;
@@ -89,12 +106,12 @@ export function readCell(gray: GrayImage, homography: Homography, cell: TallyCel
     const x = i % crop.width;
     const y = (i - x) / crop.width;
     const inOverflow = o !== null && (x + 0.5 - ox) ** 2 + (y + 0.5 - oy) ** 2 <= or * or;
-    mask[i] = !inOverflow && crop.data[i * 4]! < paper * INK_LEVEL ? 1 : 0;
+    mask[i] = !rules[x] && !inOverflow && crop.data[i * 4]! < paper * INK_LEVEL ? 1 : 0;
   }
   const blobs = inkBlobs(mask, crop.width, crop.height, MIN_STROKE_MM2 * PX_PER_MM * PX_PER_MM);
 
-  const markedBubbles = cell.bubbles.filter((b) => inkInCircle(gray, homography, b, paper, 1) >= BUBBLE_MARKED).map((b) => b.number);
-  const overflow = cell.overflow !== null && inkInCircle(gray, homography, cell.overflow, paper, 1) >= BUBBLE_MARKED;
+  const markedBubbles = cell.bubbles.filter((b) => inkInCircle(gray, homography, b, paper, 1, ignoreRule) >= BUBBLE_MARKED).map((b) => b.number);
+  const overflow = cell.overflow !== null && inkInCircle(gray, homography, cell.overflow, paper, 1, ignoreRule) >= BUBBLE_MARKED;
   const spill = SPILL_MM2 * PX_PER_MM * PX_PER_MM;
   const strokes = blobs.filter((b) => !(b.touchesBorder && b.area < spill)).length;
   const count = Math.max(strokes, markedBubbles.length);

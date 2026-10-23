@@ -2885,7 +2885,7 @@ dependencies = [
 
 [[package]]
 name = "volleyreport"
-version = "0.8.1"
+version = "0.8.2"
 dependencies = [
  "serde_json",
  "tauri",
