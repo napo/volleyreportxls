@@ -166,7 +166,7 @@ export const it = {
     them: 'Avversari',
     playersTitle: 'Rosa',
     playersText:
-      'I nomi sono facoltativi. Scegli un atleta dall’archivio per riportarne il nome nel campo e collegarlo allo storico. Per questa squadra e questo campionato, i numeri di divisa già associati propongono il nome nelle partite successive. I nomi inseriti a mano vengono conservati.',
+      'I nomi sono facoltativi. Inserisci squadra e campionato per scegliere tra gli atleti già abbinati in questa rosa e collegarli allo storico. I numeri di divisa già associati propongono il nome nelle partite successive. Puoi sempre scrivere un nome a mano.',
     noNumbers: 'Nessun numero di divisa inserito.',
     namePlaceholder: 'Nome (facoltativo)',
     athlete: 'Abbinamento',
@@ -614,7 +614,7 @@ export const it = {
       them: 'Avversari',
       scoreMissing: 'Il punteggio sembra vuoto sul foglio: scrivilo qui se lo conosci.',
       players: 'Divise del foglio',
-      playersHint: 'Leggi il numero di divisa nell’immagine (sotto c’è il nome, se è stato scritto) e scrivilo accanto.',
+      playersHint: 'L’app conta i pallini, ma i numeri scritti a mano vanno trascritti qui. Leggi il numero di divisa in ogni ritaglio e inseriscilo nel campo accanto; sotto il numero può esserci il nome.',
       libero: 'Libero',
       shirt: 'Divisa',
       row: 'Riga',
@@ -644,7 +644,7 @@ export const it = {
     summary: {
       waiting: 'Attendi la fine della lettura delle foto.',
       blocking: 'Prima di continuare risolvi i problemi segnalati nelle foto e qui sopra.',
-      missingNumbers: (n: number) => `${plural(n, 'riga', 'righe')} con tocchi ma senza numero di divisa.`,
+      missingNumbers: (n: number) => `Numeri di divisa da inserire per ${plural(n, 'riga', 'righe')} con tocchi: completa i campi in “Divise del foglio” usando i ritagli della foto. I numeri scritti a mano non vengono trascritti automaticamente.`,
       ready: (sets: readonly number[]) => `Pronti i set ${sets.join(', ')}.`,
       create: 'Crea la partita',
       add: 'Aggiungi alla partita',

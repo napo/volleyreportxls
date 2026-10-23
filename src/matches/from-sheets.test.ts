@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { newMatchRecord, setIsPlayed } from './record';
-import { correctionKey, ignoredTouches, numbersNotInAll, setFromSheet, sumSets, withSets } from './from-sheets';
+import { correctionKey, ignoredTouches, missingSheetNumbers, numbersNotInAll, setFromSheet, sumSets, withSets } from './from-sheets';
 
 const rows = [
   { kind: 'player' as const, numberWritten: true, cells: [{ code: 'A#' as const, count: 3 }, { code: 'B=' as const, count: 0 }] },
@@ -10,6 +10,15 @@ const rows = [
   { kind: 'player' as const, numberWritten: false, cells: [{ code: 'R+' as const, count: 2 }] },
   { kind: 'libero' as const, numberWritten: true, cells: [{ code: 'R#' as const, count: 4 }, { code: null, count: 2 }] },
 ];
+
+test('missing shirt numbers mean unassigned fields, even when ink is detected in the number boxes', () => {
+  expect(missingSheetNumbers({ rows, numbers: {}, corrections: {} })).toBe(3);
+  expect(missingSheetNumbers({ rows, numbers: { 0: 14, 2: 8, 3: 1 }, corrections: {} })).toBe(0);
+  // A false touch removed during review no longer needs a shirt number.
+  expect(missingSheetNumbers({ rows, numbers: { 0: 14, 3: 1 }, corrections: { [correctionKey(2, 'R+')]: 0 } })).toBe(0);
+  // Shirt zero is assigned; legacy touches that are ignored do not require one.
+  expect(missingSheetNumbers({ rows, numbers: { 0: 0, 2: 8 }, corrections: { [correctionKey(3, 'R#')]: 0 } })).toBe(0);
+});
 
 test('one row per line used, numbers and corrections applied, padded like the paper form', () => {
   const set = setFromSheet({

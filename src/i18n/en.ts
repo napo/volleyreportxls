@@ -167,7 +167,7 @@ export const en: Messages = {
     them: 'Opponents',
     playersTitle: 'Players',
     playersText:
-      'Names are optional. Choose an archived athlete to fill in their name and link their history. For this team and competition, previously linked shirt numbers suggest the name in later matches. Manually entered names are kept.',
+      'Names are optional. Enter the team and competition to choose athletes already linked to this roster and connect their history. Previously linked shirt numbers suggest the name in later matches. You can always type a name manually.',
     noNumbers: 'No shirt number entered.',
     namePlaceholder: 'Name (optional)',
     athlete: 'Athlete',
@@ -649,7 +649,7 @@ export const en: Messages = {
       them: 'Opponents',
       scoreMissing: 'The score looks empty on the sheet: enter it here if you know it.',
       players: 'Players on the sheet',
-      playersHint: 'Read the shirt number in the image (the name is under it, when written) and type it next to it.',
+      playersHint: 'The app counts the bubbles, but handwritten shirt numbers need to be entered here. Read the number in each crop and type it in the field beside it; a name may appear below the number.',
       libero: 'Libero',
       shirt: 'Shirt',
       row: 'Row',
@@ -679,7 +679,7 @@ export const en: Messages = {
     summary: {
       waiting: 'Wait until the photos have been read.',
       blocking: 'Solve the problems reported on the photos and above before continuing.',
-      missingNumbers: (n: number) => `${plural(n, 'row', 'rows')} with touches but no shirt number.`,
+      missingNumbers: (n: number) => `Enter shirt numbers for ${plural(n, 'row', 'rows')} with touches: fill in the fields under “Players on the sheet” using the photo crops. Handwritten numbers are not transcribed automatically.`,
       ready: (sets: readonly number[]) => `Sets ${sets.join(', ')} ready.`,
       create: 'Create the match',
       add: 'Add to the match',

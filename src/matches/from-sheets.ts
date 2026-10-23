@@ -27,6 +27,15 @@ export interface CheckedSheet {
 
 export const correctionKey = (row: number, code: ScoutCodeString) => `${row}:${code}`;
 
+/** Rows whose effective touches still need a shirt number entered by the user. */
+export function missingSheetNumbers(sheet: Pick<CheckedSheet, 'rows' | 'numbers' | 'corrections'>): number {
+  return sheet.rows.filter((row, index) =>
+    sheet.numbers[index] == null && row.cells.some((cell) =>
+      cell.code !== null && (sheet.corrections[correctionKey(index, cell.code)] ?? cell.count) > 0,
+    ),
+  ).length;
+}
+
 /** Touches marked in cells the app no longer records (v3 dig and graded sets). */
 export const ignoredTouches = (rows: readonly ReadRow[]) =>
   rows.reduce((n, r) => n + r.cells.reduce((m, c) => m + (c.code === null ? c.count : 0), 0), 0);

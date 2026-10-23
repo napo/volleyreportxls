@@ -14,7 +14,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ScoutCodeString } from '../../domain/codes';
 import { SET_NUMBERS, type SetNumber, type SetScore } from '../../domain/model';
 import type { SheetResult } from '../../image-processing/read-sheet';
-import { type SetMerge, correctionKey, ignoredTouches, numbersNotInAll, setFromSheet, withSets } from '../../matches/from-sheets';
+import { type SetMerge, correctionKey, ignoredTouches, missingSheetNumbers, numbersNotInAll, setFromSheet, withSets } from '../../matches/from-sheets';
 import { type MatchRecord, type SetRecord, newMatchRecord, newId, setIsPlayed } from '../../matches/record';
 import { mobilePlatform } from '../../platform/updates';
 import { useI18n } from '../../i18n';
@@ -58,11 +58,15 @@ function scoreOf(photo: Photo): SetScore | null {
   return { team: Number(photo.score.team), opponent: Number(photo.score.opponent) };
 }
 
+function numbersOf(photo: Photo): Record<number, number | null> {
+  return Object.fromEntries(Object.entries(photo.numbers).map(([k, v]) => [Number(k), digits(v) === '' ? null : Number(digits(v))]));
+}
+
 function setOf(photo: Photo): SetRecord {
   return setFromSheet({
     setNumber: photo.setNumber!,
     rows: photo.result!.rows,
-    numbers: Object.fromEntries(Object.entries(photo.numbers).map(([k, v]) => [Number(k), digits(v) === '' ? null : Number(digits(v))])),
+    numbers: numbersOf(photo),
     corrections: photo.corrections,
     score: scoreOf(photo),
   });
@@ -174,7 +178,7 @@ export function AcquisitionView({ matchId }: { matchId: string | null }) {
     photos.some((p) => p.status === 'failed' || p.status === 'error' || (p.status === 'read' && p.setNumber === null)) ||
     conflicts.some((n) => !decided(n));
   const missingNumbers = read_.reduce(
-    (n, p) => n + p.result!.rows.filter((r) => total(r) > 0 && digits(p.numbers[r.index] ?? '') === '').length,
+    (n, p) => n + missingSheetNumbers({ rows: p.result!.rows, numbers: numbersOf(p), corrections: p.corrections }),
     0,
   );
   const readySets = read_.map((p) => p.setNumber).filter((s): s is SetNumber => s !== null).sort();

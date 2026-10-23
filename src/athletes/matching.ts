@@ -87,6 +87,14 @@ export function rosterEntries(records: readonly MatchRecord[]): RosterEntry[] {
   );
 }
 
+/** Athletes already linked to this team and competition, independent of shirt number. */
+export function athletesForRoster<T extends Athlete>(athletes: readonly T[], entries: readonly RosterEntry[], teamName: string, competition: string): T[] {
+  if (!teamName.trim() || !competition.trim()) return [];
+  const roster = teamKey(teamName, competition);
+  const ids = new Set(entries.filter((e) => e.roster === roster && e.athleteId).map((e) => e.athleteId));
+  return athletes.filter((a) => ids.has(a.id));
+}
+
 /** Ids of the matches in which the athlete already plays (with any number). */
 function matchesOf(entries: readonly RosterEntry[], athleteId: string): Set<string> {
   return new Set(entries.filter((e) => e.athleteId === athleteId).flatMap((e) => e.matchIds));

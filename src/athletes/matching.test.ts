@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { emptySet, newMatchRecord, type MatchRecord, type PlayerRecord } from '../matches/record';
-import { selectRosterAthlete, type Athlete, conflicts, fullestName, linkEntry, proposals, rosterEntries, sameName } from './matching';
+import { athletesForRoster, selectRosterAthlete, type Athlete, conflicts, fullestName, linkEntry, proposals, rosterEntries, sameName } from './matching';
 
 let n = 0;
 function match(teamName: string, competition: string, date: string, players: readonly PlayerRecord[]): MatchRecord {
@@ -35,6 +35,31 @@ test('one entry per roster, number and athlete', () => {
     ['Serie C', 12, ['Rossi G.'], 1],
     ['U18', 7, ['Giulia Rossi'], 2],
   ]);
+});
+
+test('roster suggestions include only athletes linked to the same team and competition', () => {
+  const athletes = ['giulia', 'anna', 'other-team', 'other-competition', 'unlinked'].map((id) => ({ id, name: id, note: '' }));
+  const records = [
+    match('Trènto', 'U18', '2026-10-01', [{ number: 7, name: 'Giulia', athleteId: 'giulia' }, { number: 9, name: 'Anna', athleteId: 'anna' }]),
+    match('Trento', 'u18', '2026-10-08', [{ number: 12, name: 'Giulia', athleteId: 'giulia' }]),
+    match('Trento', 'Serie C', '2026-10-01', [{ number: 7, name: 'Altra', athleteId: 'other-competition' }]),
+    match('Rovereto', 'U18', '2026-10-01', [{ number: 7, name: 'Altra', athleteId: 'other-team' }]),
+  ];
+  const entries = rosterEntries(records);
+  expect(athletesForRoster(athletes, entries, ' TRENTO ', ' u18 ').map((a) => a.id)).toEqual(['giulia', 'anna']);
+  expect(athletesForRoster(athletes, entries, 'Trento', 'Serie C').map((a) => a.id)).toEqual(['other-competition']);
+  expect(athletesForRoster(athletes, entries, 'Rovereto', 'U18').map((a) => a.id)).toEqual(['other-team']);
+  expect(athletesForRoster(athletes, entries, 'Trento', 'U16')).toEqual([]);
+});
+
+test('incomplete match details do not suggest athletes from unnamed rosters', () => {
+  const athletes = [{ id: 'giulia', name: 'Giulia', note: '' }];
+  const entries = rosterEntries([
+    match('', 'U18', '', [{ number: 7, name: 'Giulia', athleteId: 'giulia' }]),
+    match('Trento', '', '', [{ number: 7, name: 'Giulia', athleteId: 'giulia' }]),
+  ]);
+  expect(athletesForRoster(athletes, entries, ' ', 'U18')).toEqual([]);
+  expect(athletesForRoster(athletes, entries, 'Trento', '')).toEqual([]);
 });
 
 test('proposals: same roster, then same name, then the same new athlete, never by number alone', () => {

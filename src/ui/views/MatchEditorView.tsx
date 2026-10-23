@@ -6,7 +6,7 @@
  * score of every set, the players' names. Every change is saved on the device.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { type Athlete, athleteLabel, rosterEntries, selectRosterAthlete } from '../../athletes/matching';
+import { type Athlete, type RosterEntry, athleteLabel, athletesForRoster, rosterEntries, selectRosterAthlete } from '../../athletes/matching';
 import { findAnomalies } from '../../matches/checks';
 import { useI18n } from '../../i18n';
 import { type MatchRecord, type SetRecord, liberoNumbers, matchWinner, setIsPlayed, shirtNumbers, withNumbersFromPreviousSet } from '../../matches/record';
@@ -101,6 +101,7 @@ export function MatchEditorView({ id }: { id: string }) {
   const [setNumber, setSetNumber] = useState(1);
   // Athletes of the archive, by label (the unnamed ones by number and roster).
   const [athletes, setAthletes] = useState<readonly (Athlete & { label: string })[]>([]);
+  const [entries, setEntries] = useState<readonly RosterEntry[]>([]);
   const pending = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Whether the match was over at the last check: the tabellino opens by
   // itself only when entering a score ends it.
@@ -119,6 +120,7 @@ export function MatchEditorView({ id }: { id: string }) {
       const entries = rosterEntries(records);
       const labelled = list.map((a) => ({ ...a, label: athleteLabel(a, entries) + (a.note.trim() ? ` (${a.note.trim()})` : '') }));
       setAthletes(labelled.sort((a, b) => a.label.localeCompare(b.label)));
+      setEntries(entries);
     });
   }, [archive, id]);
 
@@ -154,6 +156,10 @@ export function MatchEditorView({ id }: { id: string }) {
 
   // Names known for this team and competition fill the empty ones.
   const numbers = useMemo(() => (record ? shirtNumbers(record) : []), [record]);
+  const suggestedAthletes = useMemo(
+    () => athletesForRoster(athletes, entries, record?.teamName ?? '', record?.competition ?? ''),
+    [athletes, entries, record?.teamName, record?.competition],
+  );
   const teamKeyParts = record ? `${record.teamName}|${record.competition}|${numbers.join(',')}` : '';
   useEffect(() => {
     if (!archive || !record) return;
@@ -298,41 +304,47 @@ export function MatchEditorView({ id }: { id: string }) {
           <p className="vr-note">{t.noNumbers}</p>
         ) : (
           <div className="vr-players">
-            {numbers.map((number) => (
-              <label key={number} className="vr-player-field">
-                <span className="vr-player-number">{number}</span>
-                {liberos.has(number) && <span className="vr-badge vr-badge-orange">L</span>}
-                <input
-                  value={record.players.find((p) => p.number === number)?.name ?? ''}
-                  aria-label={`${t.namePlaceholder} ${number}`}
-                  placeholder={t.namePlaceholder}
-                  onChange={(e) => {
-                    const current = record.players.find((p) => p.number === number);
-                    const players = [...record.players.filter((p) => p.number !== number), { ...current, number, name: e.target.value }];
-                    change({ ...record, players });
-                  }}
-                />
-                {athletes.length > 0 && (
-                  <select
-                    aria-label={`${t.athlete} ${number}`}
-                    value={record.players.find((p) => p.number === number)?.athleteId ?? ''}
+            {numbers.map((number) => {
+              const selectedId = record.players.find((p) => p.number === number)?.athleteId;
+              // Keep an existing link visible when the match's team or competition changes.
+              const selected = athletes.find((a) => a.id === selectedId);
+              const options = selected && !suggestedAthletes.some((a) => a.id === selectedId) ? [...suggestedAthletes, selected] : suggestedAthletes;
+              return (
+                <label key={number} className="vr-player-field">
+                  <span className="vr-player-number">{number}</span>
+                  {liberos.has(number) && <span className="vr-badge vr-badge-orange">L</span>}
+                  <input
+                    value={record.players.find((p) => p.number === number)?.name ?? ''}
+                    aria-label={`${t.namePlaceholder} ${number}`}
+                    placeholder={t.namePlaceholder}
                     onChange={(e) => {
-                      const current = record.players.find((p) => p.number === number) ?? { number, name: '' };
-                      const athlete = athletes.find((a) => a.id === e.target.value) ?? null;
-                      const player = selectRosterAthlete(current, athlete);
-                      change({ ...record, players: [...record.players.filter((p) => p.number !== number), player] });
+                      const current = record.players.find((p) => p.number === number);
+                      const players = [...record.players.filter((p) => p.number !== number), { ...current, number, name: e.target.value }];
+                      change({ ...record, players });
                     }}
-                  >
-                    <option value="">{t.noAthlete}</option>
-                    {athletes.map((a) => (
-                      <option key={a.id} value={a.id}>
-                        {a.label}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </label>
-            ))}
+                  />
+                  {options.length > 0 && (
+                    <select
+                      aria-label={`${t.athlete} ${number}`}
+                      value={record.players.find((p) => p.number === number)?.athleteId ?? ''}
+                      onChange={(e) => {
+                        const current = record.players.find((p) => p.number === number) ?? { number, name: '' };
+                        const athlete = athletes.find((a) => a.id === e.target.value) ?? null;
+                        const player = selectRosterAthlete(current, athlete);
+                        change({ ...record, players: [...record.players.filter((p) => p.number !== number), player] });
+                      }}
+                    >
+                      <option value="">{t.noAthlete}</option>
+                      {options.map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {a.label}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </label>
+              );
+            })}
           </div>
         )}
       </section>
