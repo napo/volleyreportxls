@@ -12,8 +12,21 @@ import { type CSSProperties, type KeyboardEvent, Fragment, useCallback, useEffec
 import type { ScoutCodeString } from '../../domain/codes';
 import type { SetNumber } from '../../domain/model';
 import { useI18n } from '../../i18n';
-import { type Touch, bump, checkScore, closeSet, currentSet, reachableSets, setShirtNumber, undoTouch } from '../../matches/live';
-import { type MatchRecord, type RowKind, type SetRecord, matchWinner } from '../../matches/record';
+import {
+  type MatchDetails,
+  type Touch,
+  bump,
+  checkScore,
+  closeSet,
+  currentSet,
+  playerName,
+  reachableSets,
+  setMatchDetails,
+  setPlayerName,
+  setShirtNumber,
+  undoTouch,
+} from '../../matches/live';
+import { type MatchRecord, type PlayerRecord, type RowKind, type SetRecord, matchWinner, setIsPlayed } from '../../matches/record';
 import type { Archive } from '../../storage/archive';
 import { useArchive } from '../archive-context';
 import { codeOf, parseShirtNumber, skillColumns } from '../components/counts-columns';
@@ -210,6 +223,52 @@ function CloseSetDialog({ set, onCancel, onConfirm }: { set: SetRecord; onCancel
   );
 }
 
+/** Teams, competition and date, as in the header of the paper form. */
+function MatchDetailsDialog({ record, first, onCancel, onConfirm }: { record: MatchRecord; first: boolean; onCancel: () => void; onConfirm: (details: MatchDetails) => void }) {
+  const { m } = useI18n();
+  const t = m.live;
+  const [details, setDetails] = useState<MatchDetails>({ teamName: record.teamName, opponentName: record.opponentName, competition: record.competition, date: record.date });
+  const field = (key: keyof MatchDetails, label: string, type = 'text') => (
+    <label className="vr-live-field">
+      {label}
+      <input type={type} value={details[key]} autoFocus={key === 'teamName'} onChange={(e) => setDetails((d) => ({ ...d, [key]: e.target.value }))} />
+    </label>
+  );
+  return (
+    <div className="vr-live-overlay" onKeyDown={(e) => e.key === 'Escape' && onCancel()}>
+      <form
+        className="vr-live-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="vr-live-details-title"
+        onSubmit={(e) => {
+          e.preventDefault();
+          onConfirm({ ...details, teamName: details.teamName.trim(), opponentName: details.opponentName.trim(), competition: details.competition.trim() });
+        }}
+      >
+        <h2 id="vr-live-details-title">{t.details}</h2>
+        <p>{t.detailsText}</p>
+        <div className="vr-live-fields">
+          {field('teamName', m.editor.team)}
+          {field('opponentName', m.editor.opponent)}
+          {field('competition', m.editor.competition)}
+          {field('date', m.editor.date, 'date')}
+        </div>
+        <div className="vr-live-dialog-actions">
+          {!first && (
+            <button type="button" className="vr-btn vr-btn-secondary" onClick={onCancel}>
+              {t.back}
+            </button>
+          )}
+          <button type="submit" className="vr-btn vr-live-primary">
+            {first ? t.startScouting : t.save}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 export function LiveSheetView({ id }: { id: string }) {
   const { m } = useI18n();
   const t = m.live;
@@ -223,6 +282,10 @@ export function LiveSheetView({ id }: { id: string }) {
   const [last, setLast] = useState<string | null>(null);
   const [correcting, setCorrecting] = useState(false);
   const [closing, setClosing] = useState(false);
+  // 'first': a new match, the details are asked before scouting.
+  const [editing, setEditing] = useState<'first' | 'edit' | null>(null);
+  // Names used for the shirt numbers of this team in earlier matches.
+  const [known, setKnown] = useState<readonly PlayerRecord[]>([]);
   const saved = useAutosave(archive, record);
   useWakeLock();
 
@@ -232,8 +295,20 @@ export function LiveSheetView({ id }: { id: string }) {
       if (!found) return setMissing(true);
       setRecord(found);
       setView(currentSet(found));
+      if (!found.teamName && !found.opponentName && !found.sets.some(setIsPlayed)) setEditing('first');
     });
   }, [archive, id]);
+
+  const teamName = record?.teamName ?? '';
+  const competition = record?.competition ?? '';
+  useEffect(() => {
+    if (!archive || !teamName.trim()) return setKnown([]);
+    let active = true;
+    archive.knownPlayers(teamName, competition).then((players) => active && setKnown(players));
+    return () => {
+      active = false;
+    };
+  }, [archive, teamName, competition]);
 
   if (missing) {
     return (
@@ -302,15 +377,26 @@ export function LiveSheetView({ id }: { id: string }) {
     const alt = !libero && index % 2 === 1;
     return (
       <Fragment key={row.id}>
-        <input
-          className={`vr-live-number${libero ? ' libero' : ''}${alt ? ' alt' : ''}`}
-          inputMode="numeric"
-          placeholder="–"
-          aria-label={t.shirtOf(libero, index + 1)}
-          value={row.playerNumber ?? ''}
-          disabled={isLocked}
-          onChange={(e) => setRecord(setShirtNumber(record, view, row.id, parseShirtNumber(e.target.value)))}
-        />
+        <div className={`vr-live-player${libero ? ' libero' : ''}${alt ? ' alt' : ''}`}>
+          <input
+            className="vr-live-number"
+            inputMode="numeric"
+            placeholder="–"
+            aria-label={t.shirtOf(libero, index + 1)}
+            value={row.playerNumber ?? ''}
+            disabled={isLocked}
+            onChange={(e) => setRecord(setShirtNumber(record, view, row.id, parseShirtNumber(e.target.value), known))}
+          />
+          {/* The name belongs to the number for the whole match: it follows the number into the next sets. */}
+          <input
+            className="vr-live-name"
+            placeholder={row.playerNumber === null ? '' : t.namePlaceholder}
+            aria-label={t.nameOf(libero, index + 1)}
+            value={playerName(record, row.playerNumber)}
+            disabled={isLocked || row.playerNumber === null}
+            onChange={(e) => row.playerNumber !== null && setRecord(setPlayerName(record, row.playerNumber, e.target.value))}
+          />
+        </div>
         {CELLS.map((c) =>
           libero && !LIBERO_SKILLS.has(c.skill) ? (
             <span key={c.code} className={`vr-live-unused${c.first ? ' first' : ''}`} />
@@ -338,13 +424,15 @@ export function LiveSheetView({ id }: { id: string }) {
         <a className="vr-live-exit" href={href('partita', record.id)} aria-label={t.exitLabel}>
           ‹ {t.exit}
         </a>
-        <div className="vr-live-title">
-          <strong>{title}</strong>
+        <button type="button" className="vr-live-title" onClick={() => setEditing('edit')} aria-label={`${title}. ${t.editDetails}`}>
+          <strong>
+            {title} <span aria-hidden="true">✎</span>
+          </strong>
           <span>
             {t.setsWon(won, lost)}
             {over ? ` · ${t.matchOver}` : ''}
           </span>
-        </div>
+        </button>
         <div className="vr-live-sets" role="group" aria-label={t.sets}>
           {record.sets.map((s) => {
             const open = reachable.has(s.number) || reopened.has(s.number);
@@ -404,13 +492,13 @@ export function LiveSheetView({ id }: { id: string }) {
 
       <div className={`vr-live-sheet${isLocked ? ' locked' : ''}`}>
         <div className="vr-live-grid" style={{ gridTemplateRows: gridRows } as CSSProperties}>
-          <span className="vr-live-head">{t.number}</span>
+          <span className="vr-live-head">{t.numberAndName}</span>
           {COLUMNS.map((c) => (
             <span key={c.skill} className="vr-live-head skill" style={{ gridColumn: `span ${c.evaluations.length}` }}>
               {c.skill === 'P' ? t.setFault : m.skills[c.skill]}
             </span>
           ))}
-          <span className="vr-live-eval number">{t.shirt}</span>
+          <span className="vr-live-eval number" aria-hidden="true" />
           {CELLS.map((c) => (
             <span key={c.code} className={`vr-live-eval${c.first ? ' first' : ''}`} style={{ background: tint(c) }} title={m.codes[c.skill][c.evaluation]}>
               {c.evaluation}
@@ -429,6 +517,17 @@ export function LiveSheetView({ id }: { id: string }) {
         </span>
       </footer>
 
+      {editing && (
+        <MatchDetailsDialog
+          record={record}
+          first={editing === 'first'}
+          onCancel={() => setEditing(null)}
+          onConfirm={(details) => {
+            setRecord(setMatchDetails(record, details));
+            setEditing(null);
+          }}
+        />
+      )}
       {closing && <CloseSetDialog set={set} onCancel={() => setClosing(false)} onConfirm={confirmClose} />}
     </div>
   );

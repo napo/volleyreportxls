@@ -2251,8 +2251,25 @@ button.vr-score-teams.selected {
   display: flex;
   flex: 1 1 8rem;
   flex-direction: column;
+  align-items: flex-start;
   min-width: 0;
+  padding: 0.2rem 0.4rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: none;
+  font: inherit;
   line-height: 1.25;
+  text-align: left;
+  cursor: pointer;
+}
+
+.vr-live-title:hover {
+  background: var(--vr-blue-soft);
+}
+
+.vr-live-title strong span {
+  color: var(--vr-blue);
+  font-size: 0.85rem;
 }
 
 .vr-live-title strong {
@@ -2422,8 +2439,9 @@ button.vr-score-teams.selected {
 
 .vr-live-grid {
   display: grid;
-  grid-template-columns: 4.5rem repeat(25, minmax(0, 1fr));
-  min-width: 56rem;
+  /* Shirt number and name, then the 25 cells of the form. */
+  grid-template-columns: minmax(9rem, 11rem) repeat(25, minmax(0, 1fr));
+  min-width: 62rem;
   min-height: 100%;
 }
 
@@ -2475,14 +2493,25 @@ button.vr-score-teams.selected {
   border-left: 2px solid var(--vr-navy);
 }
 
+.vr-live-player {
+  display: flex;
+  min-width: 0;
+  border-bottom: 1px solid var(--vr-live-line);
+  background: #f7f9fb;
+}
+
+.vr-live-player.libero {
+  background: var(--vr-orange-soft);
+}
+
 .vr-live-number {
-  width: 100%;
+  flex: none;
+  width: 2.9rem;
   min-width: 0;
   height: 100%;
   padding: 0;
   border: 0;
-  border-bottom: 1px solid var(--vr-live-line);
-  background: #f7f9fb;
+  background: transparent;
   color: var(--vr-navy);
   font-family: var(--vr-font-heading);
   font-size: 1.2rem;
@@ -2490,8 +2519,24 @@ button.vr-score-teams.selected {
   text-align: center;
 }
 
-.vr-live-number.libero {
-  background: var(--vr-orange-soft);
+
+.vr-live-name {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0 0.45rem;
+  border: 0;
+  border-left: 1px solid var(--vr-live-line);
+  background: transparent;
+  color: var(--vr-navy);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+}
+
+.vr-live-name::placeholder {
+  color: #b7c2cc;
+  font-weight: 400;
 }
 
 .vr-live-number::placeholder {
@@ -2524,7 +2569,7 @@ button.vr-score-teams.selected {
 }
 
 .vr-live-cell.alt,
-.vr-live-number.alt {
+.vr-live-player.alt {
   background: #eef1f4;
 }
 
@@ -2653,6 +2698,37 @@ button.vr-score-teams.selected {
   color: #9aa7b3;
   font-size: 1.75rem;
   font-weight: 800;
+}
+
+.vr-live-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem 1rem;
+}
+
+.vr-live-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  color: var(--vr-navy);
+  font-weight: 700;
+}
+
+.vr-live-field input {
+  height: 3rem;
+  min-width: 0;
+  padding: 0 0.75rem;
+  border: 2px solid #c9d3dc;
+  border-radius: 0.6rem;
+  color: var(--vr-navy);
+  font: inherit;
+  font-weight: 600;
+}
+
+@media (max-width: 520px) {
+  .vr-live-fields {
+    grid-template-columns: 1fr;
+  }
 }
 
 .vr-live-warning {

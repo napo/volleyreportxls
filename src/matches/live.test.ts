@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { bump, checkScore, closeSet, currentSet, reachableSets, setShirtNumber, undoTouch } from './live';
+import { bump, checkScore, closeSet, currentSet, playerName, reachableSets, setMatchDetails, setPlayerName, setShirtNumber, undoTouch } from './live';
 import { type MatchRecord, newMatchRecord } from './record';
 
 const firstRow = (record: MatchRecord, set = 1) => record.sets.find((s) => s.number === set)!.rows[0]!;
@@ -60,4 +60,24 @@ test('scores: missing and tied ones block, unusual ones only warn', () => {
   expect(checkScore(25, 23, 1)).toBe('ok');
   expect(checkScore(15, 13, 5)).toBe('ok');
   expect(checkScore(28, 26, 2)).toBe('ok');
+});
+
+test('team names and players names are written on the sheet; names follow the numbers into the next set', () => {
+  let record = setMatchDetails(newMatchRecord(), { teamName: 'Volley Trento', opponentName: 'Itas', competition: 'Serie D', date: '2026-10-29' });
+  const row = firstRow(record).id;
+  // A number already known for the team gets its name (and athlete) at once.
+  record = setShirtNumber(record, 1, row, 7, [{ number: 7, name: 'Alice', athleteId: 'ath00001' }]);
+  expect(playerName(record, 7)).toBe('Alice');
+  record = setPlayerName(record, 7, 'Alice B.');
+  expect(record.players).toEqual([{ number: 7, name: 'Alice B.', athleteId: 'ath00001' }]);
+  // A name typed in this match is not replaced by the known one.
+  const second = record.sets[0]!.rows[1]!.id;
+  record = setShirtNumber(record, 1, second, 7, [{ number: 7, name: 'Other' }]);
+  expect(playerName(record, 7)).toBe('Alice B.');
+  record = bump(record, 1, row, 'B#', 1)!.record;
+  const { record: closed, next } = closeSet(record, 1, { team: 25, opponent: 20 });
+  const nextRow = closed.sets.find((s) => s.number === next)!.rows[0]!;
+  expect(nextRow.playerNumber).toBe(7);
+  expect(playerName(closed, nextRow.playerNumber)).toBe('Alice B.');
+  expect(closed.teamName).toBe('Volley Trento');
 });

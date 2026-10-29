@@ -5,13 +5,15 @@
  * Live scouting on a touch screen: the paper form as a sheet of counters.
  * A touch on a cell adds one to that row and code, a long press (or the undo
  * button) takes one away; closing a set asks for its final score and the next
- * set starts with the same shirt numbers. The result is the same MatchRecord
- * as the photographed sheets: only counts, as on paper.
+ * set starts with the same shirt numbers. Team names and the players' names
+ * are written on the sheet too: names belong to the shirt number for the whole
+ * match, so they follow the numbers into the next sets. The result is the same
+ * MatchRecord as the photographed sheets: only counts, as on paper.
  */
 
 import type { ScoutCodeString } from '../domain/codes';
 import type { SetNumber, SetScore } from '../domain/model';
-import { type MatchRecord, type SetRecord, matchWinner, setIsPlayed, setScoreIsFinal, withNumbersFromPreviousSet } from './record';
+import { type MatchRecord, type PlayerRecord, type SetRecord, matchWinner, setIsPlayed, setScoreIsFinal, withNumbersFromPreviousSet } from './record';
 
 /** One change of a count, kept to undo it. */
 export interface Touch {
@@ -49,11 +51,37 @@ export function bump(record: MatchRecord, set: SetNumber, rowId: string, code: S
 export const undoTouch = (record: MatchRecord, touch: Touch): MatchRecord =>
   bump(record, touch.set, touch.rowId, touch.code, -touch.delta)?.record ?? record;
 
-export function setShirtNumber(record: MatchRecord, set: SetNumber, rowId: string, playerNumber: number | null): MatchRecord {
+/**
+ * Writes the shirt number of a row. A number without a name in this match
+ * gets the one known for the team (`known`, from earlier matches), if any.
+ */
+export function setShirtNumber(
+  record: MatchRecord,
+  set: SetNumber,
+  rowId: string,
+  playerNumber: number | null,
+  known: readonly PlayerRecord[] = [],
+): MatchRecord {
   const target = record.sets.find((s) => s.number === set);
   if (!target) return record;
-  return replaceSet(record, { ...target, rows: target.rows.map((r) => (r.id === rowId ? { ...r, playerNumber } : r)) });
+  const numbered = replaceSet(record, { ...target, rows: target.rows.map((r) => (r.id === rowId ? { ...r, playerNumber } : r)) });
+  const remembered = known.find((p) => p.number === playerNumber);
+  if (playerNumber === null || !remembered || record.players.some((p) => p.number === playerNumber && p.name.trim())) return numbered;
+  return { ...numbered, players: [...record.players.filter((p) => p.number !== playerNumber), remembered] };
 }
+
+/** The name of a shirt number for the whole match (its link to an athlete of the archive is kept). */
+export function setPlayerName(record: MatchRecord, playerNumber: number, name: string): MatchRecord {
+  const current = record.players.find((p) => p.number === playerNumber);
+  return { ...record, players: [...record.players.filter((p) => p.number !== playerNumber), { ...current, number: playerNumber, name }] };
+}
+
+export const playerName = (record: MatchRecord, playerNumber: number | null) =>
+  playerNumber === null ? '' : (record.players.find((p) => p.number === playerNumber)?.name ?? '');
+
+export type MatchDetails = Pick<MatchRecord, 'teamName' | 'opponentName' | 'competition' | 'date'>;
+
+export const setMatchDetails = (record: MatchRecord, details: MatchDetails): MatchRecord => ({ ...record, ...details });
 
 /** A set is closed when it has its final score. */
 export const isClosed = (set: SetRecord) => set.score !== null;
