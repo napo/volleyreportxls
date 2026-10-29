@@ -24,7 +24,7 @@ function summary(m: MatchRecord) {
 export function MatchList() {
   const { m } = useI18n();
   const t = m.matches;
-  const { archive, error } = useArchive();
+  const { archive, error, revision } = useArchive();
   const [matches, setMatches] = useState<MatchRecord[] | null>(null);
   const [message, setMessage] = useState<{ text: string; warning?: boolean } | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -32,7 +32,7 @@ export function MatchList() {
   const reload = () => archive?.listMatches().then(setMatches);
   useEffect(() => {
     reload();
-  }, [archive]);
+  }, [archive, revision]);
 
   const create = async () => {
     if (!archive) return;

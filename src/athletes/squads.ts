@@ -16,6 +16,8 @@ export interface Squad {
   readonly name: string;
   /** Team names as written in the matches. */
   readonly teamNames: readonly string[];
+  /** Last change, set by the archive (absent on squads saved before synchronisation existed). */
+  readonly updatedAt?: string;
 }
 
 export interface SquadView {

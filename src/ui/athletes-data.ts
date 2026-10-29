@@ -17,14 +17,15 @@ export interface AthletesData {
 }
 
 export function useAthletesData() {
-  const { archive, error } = useArchive();
+  const { archive, error, revision } = useArchive();
   const [data, setData] = useState<{ records: MatchRecord[]; athletes: Athlete[]; stored: Squad[] } | null>(null);
 
   const reload = useCallback(async () => {
     if (!archive) return;
     const [records, athletes, stored] = await Promise.all([archive.listMatches(), archive.listAthletes(), archive.listSquads()]);
     setData({ records, athletes, stored });
-  }, [archive]);
+    // `revision`: reload when a synchronisation brings changes from other devices.
+  }, [archive, revision]);
 
   useEffect(() => {
     void reload();

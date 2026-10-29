@@ -5,13 +5,16 @@
  * Local archive (IndexedDB): matches, the athletes, and the names (and
  * athletes) of the players of every team in a competition, so that a new
  * match of the same team gets them for the shirt numbers already filled in.
- * Nothing leaves the device.
+ * Nothing leaves the device unless the user connects Google Drive: then
+ * src/sync copies the archive there. For that, every record keeps the time of
+ * its last change and every deletion is remembered (src/sync/merge.ts).
  */
 
 import { type DBSchema, type IDBPDatabase, openDB } from 'idb';
 import type { Athlete } from '../athletes/matching';
 import { type Squad, normalizeTeam } from '../athletes/squads';
 import { type MatchRecord, type PlayerRecord, newId, teamKey } from '../matches/record';
+import { type Deletion, type Entry, type Snapshot, type SyncKind, syncKey } from '../sync/merge';
 
 export interface ImportResult {
   readonly added: number;
@@ -35,10 +38,20 @@ interface ArchiveSchema extends DBSchema {
   teams: { key: string; value: TeamRecord };
   athletes: { key: string; value: Athlete };
   squads: { key: string; value: Squad };
+  /** Deleted records, by syncKey(kind, id), so that synchronisation can pass the deletion on. */
+  deletions: { key: string; value: Deletion & { readonly key: string } };
+  /** Synchronisation state (base of the last merge). */
+  meta: { key: string; value: unknown };
 }
 
 const DB_NAME = 'volleyreport';
-const DB_VERSION = 3;
+const DB_VERSION = 4;
+
+/** Who changed the archive: the user on this device, or a synchronisation bringing changes from other devices. */
+export type ChangeOrigin = 'local' | 'sync';
+
+const STORES = { match: 'matches', athlete: 'athletes', team: 'teams', squad: 'squads' } as const;
+const tombstone = (kind: SyncKind, id: string, deletedAt: string) => ({ key: syncKey(kind, id), kind, id, deletedAt });
 
 export class Archive {
   private constructor(private readonly db: IDBPDatabase<ArchiveSchema>) {}
@@ -53,9 +66,25 @@ export class Archive {
         }
         if (oldVersion < 2) database.createObjectStore('athletes', { keyPath: 'id' });
         if (oldVersion < 3) database.createObjectStore('squads', { keyPath: 'id' });
+        if (oldVersion < 4) {
+          database.createObjectStore('deletions', { keyPath: 'key' });
+          database.createObjectStore('meta');
+        }
       },
     });
     return new Archive(db);
+  }
+
+  private readonly listeners = new Set<(origin: ChangeOrigin) => void>();
+
+  /** Called after every change of the archive; returns the function that stops it. */
+  onChange(listener: (origin: ChangeOrigin) => void): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+
+  private changed(origin: ChangeOrigin = 'local') {
+    for (const listener of this.listeners) listener(origin);
   }
 
   /** Most recently changed first. */
@@ -75,10 +104,11 @@ export class Archive {
   /** Saves several matches at once (all or none). */
   async saveMatches(records: readonly MatchRecord[]): Promise<MatchRecord[]> {
     const now = new Date().toISOString();
-    const tx = this.db.transaction(['matches', 'teams'], 'readwrite');
+    const tx = this.db.transaction(['matches', 'teams', 'deletions'], 'readwrite');
     const saved = records.map((r) => ({ ...r, updatedAt: now }));
     for (const record of saved) {
       await tx.objectStore('matches').put(record);
+      await tx.objectStore('deletions').delete(syncKey('match', record.id));
       const known = record.players.filter((p) => p.name.trim() !== '' || p.athleteId);
       if (!record.teamName.trim() || known.length === 0) continue;
       const key = teamKey(record.teamName, record.competition);
@@ -87,6 +117,7 @@ export class Archive {
       await tx.objectStore('teams').put({ key, teamName: record.teamName, competition: record.competition, players, updatedAt: now });
     }
     await tx.done;
+    this.changed();
     return saved;
   }
 
@@ -105,6 +136,7 @@ export class Archive {
     const player: PlayerRecord = athleteId ? { number, name, athleteId } : { number, name };
     const players = [...before.filter((p) => p.number !== number), ...(player.name.trim() || athleteId ? [player] : [])].sort((a, b) => a.number - b.number);
     await this.db.put('teams', { key, teamName, competition, players, updatedAt: new Date().toISOString() });
+    this.changed();
   }
 
   listAthletes(): Promise<Athlete[]> {
@@ -112,15 +144,24 @@ export class Archive {
   }
 
   async saveAthlete(athlete: Athlete): Promise<Athlete> {
-    await this.db.put('athletes', athlete);
-    return athlete;
+    const saved = { ...athlete, updatedAt: new Date().toISOString() };
+    const tx = this.db.transaction(['athletes', 'deletions'], 'readwrite');
+    await tx.objectStore('athletes').put(saved);
+    await tx.objectStore('deletions').delete(syncKey('athlete', saved.id));
+    await tx.done;
+    this.changed();
+    return saved;
   }
 
   /** Deletes the athlete and unlinks it from every match and team. */
   async deleteAthlete(id: string): Promise<void> {
-    const tx = this.db.transaction(['matches', 'teams', 'athletes'], 'readwrite');
+    const now = new Date().toISOString();
+    const tx = this.db.transaction(['matches', 'teams', 'athletes', 'deletions'], 'readwrite');
+    // The unlinked matches and teams change too: synchronisation passes them on.
     const unlink = <T extends { players: readonly PlayerRecord[] }>(r: T): T | null =>
-      r.players.some((p) => p.athleteId === id) ? { ...r, players: r.players.map(({ athleteId, ...p }) => (athleteId === id ? p : { ...p, athleteId })) } : null;
+      r.players.some((p) => p.athleteId === id)
+        ? { ...r, players: r.players.map(({ athleteId, ...p }) => (athleteId === id ? p : { ...p, athleteId })), updatedAt: now }
+        : null;
     for (const match of await tx.objectStore('matches').getAll()) {
       const changed = unlink(match);
       if (changed) await tx.objectStore('matches').put(changed);
@@ -130,19 +171,34 @@ export class Archive {
       if (changed) await tx.objectStore('teams').put(changed);
     }
     await tx.objectStore('athletes').delete(id);
+    await tx.objectStore('deletions').put(tombstone('athlete', id, now));
     await tx.done;
+    this.changed();
   }
 
   listSquads(): Promise<Squad[]> {
     return this.db.getAll('squads');
   }
 
-  /** Replaces all the squads (joining or separating a name changes several of them). */
+  /**
+   * Replaces all the squads (joining or separating a name changes several of them).
+   * Only the squads that change get a new time; the ones left out are deleted.
+   */
   async saveSquads(squads: readonly Squad[]): Promise<void> {
-    const tx = this.db.transaction('squads', 'readwrite');
-    await tx.store.clear();
-    for (const squad of squads) await tx.store.put(squad);
+    const now = new Date().toISOString();
+    const tx = this.db.transaction(['squads', 'deletions'], 'readwrite');
+    const store = tx.objectStore('squads');
+    const before = new Map((await store.getAll()).map((s) => [s.id, s]));
+    const content = (s: Squad) => JSON.stringify([s.name, s.teamNames]);
+    await store.clear();
+    for (const squad of squads) {
+      const old = before.get(squad.id);
+      await store.put({ ...squad, updatedAt: old && content(old) === content(squad) ? (old.updatedAt ?? now) : now });
+      await tx.objectStore('deletions').delete(syncKey('squad', squad.id));
+    }
+    for (const id of before.keys()) if (!squads.some((s) => s.id === id)) await tx.objectStore('deletions').put(tombstone('squad', id, now));
     await tx.done;
+    this.changed();
   }
 
   /** Squads read from a file: only those whose names are not in a squad already. */
@@ -152,16 +208,18 @@ export class Archive {
     for (const squad of squads) {
       if (await tx.store.get(squad.id)) continue;
       if (squad.teamNames.some((n) => known.has(normalizeTeam(n)))) continue;
-      await tx.store.put(squad);
+      await tx.store.put({ ...squad, updatedAt: new Date().toISOString() });
     }
     await tx.done;
+    this.changed();
   }
 
   /** Athletes read from a file: those already present (same id) are kept as they are. */
   async importAthletes(athletes: readonly Athlete[]): Promise<void> {
     const tx = this.db.transaction('athletes', 'readwrite');
-    for (const athlete of athletes) if (!(await tx.store.get(athlete.id))) await tx.store.put(athlete);
+    for (const athlete of athletes) if (!(await tx.store.get(athlete.id))) await tx.store.put({ ...athlete, updatedAt: new Date().toISOString() });
     await tx.done;
+    this.changed();
   }
 
   /**
@@ -186,8 +244,65 @@ export class Archive {
     return result;
   }
 
-  deleteMatch(id: string): Promise<void> {
-    return this.db.delete('matches', id);
+  async deleteMatch(id: string): Promise<void> {
+    const tx = this.db.transaction(['matches', 'deletions'], 'readwrite');
+    await tx.objectStore('matches').delete(id);
+    await tx.objectStore('deletions').put(tombstone('match', id, new Date().toISOString()));
+    await tx.done;
+    this.changed();
+  }
+
+  /** Everything synchronisation copies, read at one moment. */
+  async snapshot(): Promise<Snapshot> {
+    const tx = this.db.transaction(['matches', 'athletes', 'teams', 'squads', 'deletions']);
+    const [matches, athletes, teams, squads, deletions] = await Promise.all([
+      tx.objectStore('matches').getAll(),
+      tx.objectStore('athletes').getAll(),
+      tx.objectStore('teams').getAll(),
+      tx.objectStore('squads').getAll(),
+      tx.objectStore('deletions').getAll(),
+    ]);
+    await tx.done;
+    return { matches, athletes, teams, squads, deletions: deletions.map(({ kind, id, deletedAt }) => ({ kind, id, deletedAt })) };
+  }
+
+  /**
+   * Writes what a synchronisation brought, as it is (times included). A record
+   * changed on this device after `read` (its time differs from the one read for
+   * the merge) is left alone: the next synchronisation passes it on.
+   * Returns how many changes were written.
+   */
+  async applySync(puts: readonly Entry[], deletions: readonly Deletion[], read: ReadonlyMap<string, string>): Promise<number> {
+    const tx = this.db.transaction(['matches', 'athletes', 'teams', 'squads', 'deletions'], 'readwrite');
+    const current = async (kind: SyncKind, id: string) => {
+      const record = (await tx.objectStore(STORES[kind]).get(id)) as { updatedAt?: string } | undefined;
+      if (record) return record.updatedAt ?? '';
+      return (await tx.objectStore('deletions').get(syncKey(kind, id)))?.deletedAt ?? null;
+    };
+    let written = 0;
+    for (const { kind, id, record } of puts) {
+      if ((await current(kind, id)) !== (read.get(syncKey(kind, id)) ?? null)) continue;
+      await tx.objectStore(STORES[kind]).put(record as never);
+      await tx.objectStore('deletions').delete(syncKey(kind, id));
+      written++;
+    }
+    for (const { kind, id, deletedAt } of deletions) {
+      if ((await current(kind, id)) !== (read.get(syncKey(kind, id)) ?? null)) continue;
+      await tx.objectStore(STORES[kind]).delete(id);
+      await tx.objectStore('deletions').put(tombstone(kind, id, deletedAt));
+      written++;
+    }
+    await tx.done;
+    if (written > 0) this.changed('sync');
+    return written;
+  }
+
+  getMeta<T>(key: string): Promise<T | undefined> {
+    return this.db.get('meta', key) as Promise<T | undefined>;
+  }
+
+  async setMeta(key: string, value: unknown): Promise<void> {
+    await this.db.put('meta', value, key);
   }
 
   /** Names known for this team in this competition. */

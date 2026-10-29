@@ -72,10 +72,10 @@ export class VrpError extends Error {
 
 const KNOWN_CODES = new Set<string>(SKILLS.flatMap((s) => EVALUATIONS.map((e) => scoutCode(s, e)).filter(isAllowed).map(formatScoutCode)));
 
-const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
-const text = (v: unknown, max = 200) => (typeof v === 'string' ? v.slice(0, max) : '');
+export const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
+export const text = (v: unknown, max = 200) => (typeof v === 'string' ? v.slice(0, max) : '');
 const count = (v: unknown) => (typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= 999 ? v : null);
-const isId = (v: unknown): v is string => typeof v === 'string' && /^[a-z0-9]{4,40}$/i.test(v);
+export const isId = (v: unknown): v is string => typeof v === 'string' && /^[a-z0-9]{4,40}$/i.test(v);
 const shirt = (v: unknown) => (typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= 99 ? v : null);
 
 function readRow(v: unknown): TallyRowRecord | null {
@@ -103,13 +103,7 @@ export function readMatchRecord(v: unknown): MatchRecord | null {
   if (!isObject(v) || !isId(v.id) || !Array.isArray(v.sets)) return null;
   const sets = v.sets.map(readSet);
   if (sets.some((s) => s === null)) return null;
-  const players: PlayerRecord[] = Array.isArray(v.players)
-    ? v.players.flatMap((p) => {
-        if (!isObject(p) || shirt(p.number) === null) return [];
-        const player = { number: shirt(p.number)!, name: text(p.name, 80) };
-        return [isId(p.athleteId) ? { ...player, athleteId: p.athleteId } : player];
-      })
-    : [];
+  const players = readPlayers(v.players);
   const date = text(v.date, 10);
   return {
     id: v.id,
@@ -125,19 +119,35 @@ export function readMatchRecord(v: unknown): MatchRecord | null {
   };
 }
 
-function readAthletes(v: unknown): Athlete[] {
+/** A time of last change (ISO 8601), kept only when it looks like one. */
+export const stamp = (v: unknown): { updatedAt?: string } =>
+  typeof v === 'string' && /^\d{4}-\d{2}-\d{2}T[\d:.]+Z$/.test(v) ? { updatedAt: v } : {};
+
+export function readAthletes(v: unknown): Athlete[] {
   if (!Array.isArray(v)) return [];
-  return v.flatMap((a) => (isObject(a) && isId(a.id) ? [{ id: a.id, name: text(a.name, 80), note: text(a.note, 200) }] : []));
+  return v.flatMap((a) => (isObject(a) && isId(a.id) ? [{ id: a.id, name: text(a.name, 80), note: text(a.note, 200), ...stamp(a.updatedAt) }] : []));
 }
 
-function readSquads(v: unknown): Squad[] {
+export function readSquads(v: unknown): Squad[] {
   if (!Array.isArray(v)) return [];
   return v.flatMap((s) => {
     if (!isObject(s) || !isId(s.id) || !Array.isArray(s.teamNames)) return [];
     const teamNames = s.teamNames.map((n) => text(n)).filter((n) => n.trim());
-    return teamNames.length > 1 ? [{ id: s.id, name: text(s.name), teamNames }] : [];
+    return teamNames.length > 1 ? [{ id: s.id, name: text(s.name), teamNames, ...stamp(s.updatedAt) }] : [];
   });
 }
+
+/** Players of a match or of a team's known names, rebuilt from untrusted JSON. */
+export function readPlayers(v: unknown): PlayerRecord[] {
+  if (!Array.isArray(v)) return [];
+  return v.flatMap((p) => {
+    if (!isObject(p) || shirt(p.number) === null) return [];
+    const player = { number: shirt(p.number)!, name: text(p.name, 80) };
+    return [isId(p.athleteId) ? { ...player, athleteId: p.athleteId } : player];
+  });
+}
+
+export { FORMAT as VRP_FORMAT, VERSION as VRP_VERSION };
 
 export interface VrpContent {
   readonly matches: MatchRecord[];

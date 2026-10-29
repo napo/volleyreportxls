@@ -30,7 +30,7 @@ export function reportOf(match: Match, recordId: string | null, anomalies: reado
 export const SAMPLE_REPORT = reportOf(SAMPLE_MATCH, null);
 
 export function useMatchReport(param: string | null): { readonly report: MatchReport | null; readonly missing: boolean } {
-  const { archive } = useArchive();
+  const { archive, revision } = useArchive();
   const sample = !param || param === SAMPLE_ID;
   const [state, setState] = useState<{ report: MatchReport | null; missing: boolean }>({ report: sample ? SAMPLE_REPORT : null, missing: false });
 
@@ -48,7 +48,7 @@ export function useMatchReport(param: string | null): { readonly report: MatchRe
     return () => {
       active = false;
     };
-  }, [archive, param, sample]);
+  }, [archive, param, sample, revision]);
 
   return state;
 }

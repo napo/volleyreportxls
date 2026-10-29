@@ -85,6 +85,8 @@ jobs:
           # Signature of the automatic updates (key kept in ~/.tauri-keys, see docs/builds.md)
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          # Google sign-in for the Drive synchronisation (src/config.ts); without it the sync stays hidden
+          VITE_GOOGLE_DESKTOP_CLIENT_SECRET: ${{ secrets.GOOGLE_DESKTOP_CLIENT_SECRET }}
       - name: Raccogli pacchetti e file di aggiornamento
         shell: bash
         run: node scripts/collect-desktop.mjs ${{ matrix.target }}

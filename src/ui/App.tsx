@@ -6,7 +6,7 @@ import logo from '../assets/volleyreportxls-logo.png';
 import { LICENSE_URL, PRIVACY_URL, SOURCE_REPOSITORY_URL, VOLLEYREPORTXLS_URL, releaseUrl } from '../config';
 import { ExternalLink } from '../platform/ExternalLink';
 import { APP_VERSION } from '../version';
-import { ArchiveProvider } from './archive-context';
+import { ArchiveProvider, useSync } from './archive-context';
 import { GuideDialog } from './components/GuideDialog';
 import { UpdateNotice } from './components/UpdateNotice';
 import { useMatchReport } from './match-report';
@@ -94,6 +94,13 @@ function Page({ route }: { route: Route }) {
     default:
       return <HomeView />;
   }
+}
+
+/** Where the data are: on the device, and on the user's Drive once it is connected. */
+function DataPlace() {
+  const { m } = useI18n();
+  const { status } = useSync();
+  return <p>{status && status.state !== 'off' ? m.sync.localAndDrive : m.footer.local}</p>;
 }
 
 function LanguageMenu() {
@@ -188,7 +195,7 @@ export function App() {
           </p>
         </div>
         <div className="right">
-          <p>{m.footer.local}</p>
+          <DataPlace />
           <p>
             <ExternalLink href={LICENSE_URL}>{m.footer.license}</ExternalLink> ·{' '}
             <ExternalLink href={SOURCE_REPOSITORY_URL}>{m.footer.source}</ExternalLink> ·{' '}

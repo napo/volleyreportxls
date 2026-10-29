@@ -9,7 +9,8 @@ import { DownloadFormButton } from '../components/DownloadFormButton';
 import { MatchList } from '../components/MatchList';
 import { Scoreboard } from '../components/Scoreboard';
 import { SAMPLE_REPORT } from '../match-report';
-import { useArchive } from '../archive-context';
+import { useArchive, useSync } from '../archive-context';
+import { SyncCard } from '../components/SyncCard';
 import { SAMPLE_ID, href, navigate } from '../routes';
 
 /** A new match scouted on the screen, as on the paper form. */
@@ -41,6 +42,8 @@ function LiveStart() {
 export function HomeView() {
   const { m } = useI18n();
   const t = m.home;
+  const { status } = useSync();
+  const onDrive = status !== null && status.state !== 'off';
   return (
     <>
       <header className="vr-hero">
@@ -51,7 +54,7 @@ export function HomeView() {
           <DownloadFormButton label={t.formButton} />
         </div>
         <ul className="vr-meta">
-          <li>{t.local}</li>
+          <li>{onDrive ? m.sync.localAndDrive : t.local}</li>
           <li>
             {t.evolution} <ExternalLink href={VOLLEYREPORTXLS_URL}>VolleyReportXLS</ExternalLink>
           </li>
@@ -79,6 +82,8 @@ export function HomeView() {
       </div>
 
       <MatchList />
+
+      <SyncCard />
 
       <section className="vr-card">
         <div className="vr-card-head">

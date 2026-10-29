@@ -2813,3 +2813,48 @@ button.vr-score-teams.selected {
   display: inline-flex;
   gap: 2px;
 }
+
+/* Synchronisation with Google Drive. */
+.vr-sync-confirm {
+  margin-top: 0.75rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--vr-border);
+  border-radius: 0.6rem;
+  background: var(--vr-blue-soft);
+}
+
+.vr-sync-confirm h3 {
+  margin: 0 0 0.4rem;
+}
+
+.vr-sync-confirm ul {
+  margin: 0 0 0.75rem;
+  padding-left: 1.2rem;
+}
+
+.vr-sync-confirm li + li {
+  margin-top: 0.3rem;
+}
+
+.vr-sync-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.6rem;
+}
+
+.vr-sync-dot {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  background: #2e9e5b;
+}
+
+.vr-sync-dot.syncing {
+  background: var(--vr-blue);
+}
+
+.vr-sync-dot.paused,
+.vr-sync-dot.error {
+  background: var(--vr-orange);
+}

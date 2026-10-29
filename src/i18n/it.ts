@@ -284,6 +284,46 @@ export const it = {
     deleteThisRow: 'Elimina questa riga',
   },
 
+  /** Synchronisation of the archive with the user's Google Drive (chosen by the user, device by device). */
+  sync: {
+    title: 'Sincronizza con Google Drive',
+    text: 'Una copia dell’archivio (partite, rose, atleti) nel tuo Google Drive, sempre aggiornata: se cambi dispositivo o ne usi più di uno, ritrovi gli stessi dati.',
+    connect: 'Collega Google Drive',
+    confirmTitle: 'Prima di collegare',
+    confirmPoints: [
+      'L’app crea nel tuo Drive la cartella «VolleyReport» con il file «VolleyReport.vrp»: lo vedi e puoi scaricarlo e importarlo a mano.',
+      'L’app vede solo i file che crea lei, non il resto del tuo Drive.',
+      'I dati vanno direttamente dal dispositivo al tuo Drive: nessun server del progetto li riceve.',
+      'Collega lo stesso account Google su ogni dispositivo: all’avvio e dopo ogni modifica l’app tiene allineati i dati.',
+      'Se modifichi la stessa partita su due dispositivi, l’app tiene entrambe le versioni.',
+    ],
+    confirmButton: 'Continua con Google',
+    cancel: 'Annulla',
+    signInFailed: 'Accesso a Google non riuscito o annullato. Puoi riprovare.',
+    connected: 'Collegato a Google Drive',
+    syncing: 'Sincronizzazione in corso…',
+    last: (when: string) => `Ultima sincronizzazione: ${when}`,
+    never: 'Non ancora sincronizzato',
+    paused: 'Accesso a Google scaduto: tocca «Sincronizza ora» per riprendere.',
+    problems: {
+      offline: 'Nessuna connessione: l’app riprova appena la rete torna.',
+      drive: 'Google Drive non ha accettato la richiesta: riprova più tardi.',
+      file: 'Il file su Drive è di una versione più recente dell’app: aggiorna l’app per sincronizzare. Il file non viene toccato.',
+      'sign-in': 'Accesso a Google scaduto: tocca «Sincronizza ora» per riprendere.',
+    },
+    conflicts: (n: number) =>
+      n === 1
+        ? 'Una partita era stata modificata su due dispositivi: trovi entrambe le versioni nell’elenco.'
+        : `${n} partite erano state modificate su due dispositivi: trovi entrambe le versioni nell’elenco.`,
+    syncNow: 'Sincronizza ora',
+    disconnect: 'Scollega',
+    disconnectTitle: 'Scollegare Google Drive?',
+    disconnectText: 'Su questo dispositivo i dati restano tutti; smettono solo di essere copiati su Drive.',
+    disconnectDelete: 'Sposta anche il file «VolleyReport.vrp» nel cestino di Drive (gli altri dispositivi collegati lo ricreano alla prossima sincronizzazione)',
+    disconnectButton: 'Scollega',
+    localAndDrive: 'I dati restano sul dispositivo e nel tuo Google Drive',
+  },
+
   /** Live scouting on a tablet or a touch screen (the form as a sheet of counters). */
   live: {
     homeTitle: 'Rileva sul tablet o sul computer',

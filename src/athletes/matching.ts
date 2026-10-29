@@ -18,6 +18,8 @@ export interface Athlete {
   readonly name: string;
   /** Free text to tell apart athletes with the same name (e.g. the year of birth). */
   readonly note: string;
+  /** Last change, set by the archive (absent on athletes saved before synchronisation existed). */
+  readonly updatedAt?: string;
 }
 
 /**

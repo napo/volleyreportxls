@@ -41,3 +41,30 @@ export function externalUrl(value: string | undefined): string | null {
     return null;
   }
 }
+
+/**
+ * OAuth clients of the project on Google Cloud, for the synchronisation with
+ * the user's Google Drive (scope drive.file). One client per platform, as
+ * Google requires; an empty id hides the synchronisation on that platform.
+ * None of these is a secret: an installed app cannot keep one (RFC 8252), and
+ * Google treats the desktop "secret" as public, but it stays out of the
+ * repository (see below). See docs/google-drive.md.
+ */
+export const GOOGLE_OAUTH = {
+  /** "Web application" client, origin https://report.volleyserve.it. */
+  web: '836651097648-f1opjhtgrd4n09s7v1jvt1r4k84uq9tv.apps.googleusercontent.com',
+  /**
+   * "Desktop app" client (Windows, macOS, Linux): sign-in in the system browser, back to 127.0.0.1.
+   * The secret is read at build time (.env.local, GitHub secret GOOGLE_DESKTOP_CLIENT_SECRET), not kept in
+   * the repository, where secret scanning would report it; it ends up in the installed app anyway.
+   */
+  desktop: {
+    clientId: '836651097648-nbmn1kmon080aapervqfdvs0migkg88u.apps.googleusercontent.com',
+    // import.meta.env is missing when vite.config.ts loads this file (form PDFs).
+    clientSecret: import.meta.env?.VITE_GOOGLE_DESKTOP_CLIENT_SECRET ?? '',
+  },
+  /** "Android" client: package it.napolitano.volleyreport and SHA-1 of the signing certificate. */
+  android: '',
+  /** "iOS" client: bundle id it.napolitano.volleyreport; Google redirects to its reversed id. */
+  ios: '',
+} as const;

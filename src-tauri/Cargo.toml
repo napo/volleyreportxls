@@ -28,6 +28,11 @@ tauri-plugin-opener = "~2.5.5"
 # (exact versions: the newer ones need tauri 2.12)
 tauri-plugin-dialog = "=2.7.0"
 tauri-plugin-fs = "=2.5.1"
+# Google sign-in and Drive requests for the synchronisation, from Rust: no CORS
+# limits on the app's own origin (exact version: the newer ones need tauri 2.12)
+tauri-plugin-http = "=2.5.9"
+# Google sign-in on Android (Kotlin, Authorization API of Google Play services)
+tauri-plugin-google-auth = { path = "plugins/google-auth" }
 
 # Automatic updates with user confirmation: desktop only (the Tauri updater does not support mobile)
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]

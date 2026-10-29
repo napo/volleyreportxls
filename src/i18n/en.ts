@@ -286,6 +286,45 @@ export const en: Messages = {
   },
 
   /** Live scouting on a tablet or a touch screen (the form as a sheet of counters). */
+  sync: {
+    title: 'Sync with Google Drive',
+    text: 'A copy of the archive (matches, rosters, athletes) in your Google Drive, always up to date: if you change device or use more than one, you find the same data.',
+    connect: 'Connect Google Drive',
+    confirmTitle: 'Before connecting',
+    confirmPoints: [
+      'The app creates a “VolleyReport” folder with a “VolleyReport.vrp” file in your Drive: you can see it, download it and import it by hand.',
+      'The app sees only the files it creates, not the rest of your Drive.',
+      'Data go straight from the device to your Drive: no server of the project receives them.',
+      'Connect the same Google account on every device: at start and after every change the app keeps the data aligned.',
+      'If you change the same match on two devices, the app keeps both versions.',
+    ],
+    confirmButton: 'Continue with Google',
+    cancel: 'Cancel',
+    signInFailed: 'Google sign-in failed or was cancelled. You can try again.',
+    connected: 'Connected to Google Drive',
+    syncing: 'Syncing…',
+    last: (when: string) => `Last sync: ${when}`,
+    never: 'Not synced yet',
+    paused: 'Google access expired: tap “Sync now” to resume.',
+    problems: {
+      offline: 'No connection: the app tries again as soon as the network is back.',
+      drive: 'Google Drive did not accept the request: try again later.',
+      file: 'The file on Drive comes from a newer version of the app: update the app to sync. The file is left untouched.',
+      'sign-in': 'Google access expired: tap “Sync now” to resume.',
+    },
+    conflicts: (n: number) =>
+      n === 1
+        ? 'A match had been changed on two devices: you find both versions in the list.'
+        : `${n} matches had been changed on two devices: you find both versions in the list.`,
+    syncNow: 'Sync now',
+    disconnect: 'Disconnect',
+    disconnectTitle: 'Disconnect Google Drive?',
+    disconnectText: 'All the data stay on this device; they are just no longer copied to Drive.',
+    disconnectDelete: 'Also move the “VolleyReport.vrp” file to the Drive bin (the other connected devices write it again at their next sync)',
+    disconnectButton: 'Disconnect',
+    localAndDrive: 'Data stay on the device and in your Google Drive',
+  },
+
   live: {
     homeTitle: 'Scout on a tablet or a computer',
     homeText: 'The scouting sheet on the screen: tap a cell and its count goes up by one, enter the score at the end of each set. Best on a tablet in landscape or a computer with a touch screen.',
