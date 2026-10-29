@@ -9,7 +9,6 @@
  */
 
 import { PDFDocument } from 'pdf-lib';
-import { SET_NUMBERS } from '../domain/model';
 import {
   formatBracketedPercent,
   formatCount,
@@ -17,7 +16,7 @@ import {
   formatRating,
   formatSigned,
 } from '../report/format';
-import type { Tabellino, TabellinoPlayerRow, TabellinoSetRow, TabellinoSkills } from '../report/tabellino';
+import { type Tabellino, type TabellinoPlayerRow, type TabellinoSetRow, type TabellinoSkills, playedSets, setsCell } from '../report/tabellino';
 import type { Messages } from '../i18n/it';
 import { it } from '../i18n/it';
 import { type PdfFontFiles, embedPdfFonts } from './fonts';
@@ -76,7 +75,8 @@ function skillGroups<T extends TabellinoSkills>(t: Texts): Group<T>[] {
 
 type PlayerOrTotal = TabellinoPlayerRow | (Omit<TabellinoPlayerRow, 'player' | 'setsPlayed' | 'rating'> & { total: true });
 
-function playerGroups(showNames: boolean, t: Texts): Group<PlayerOrTotal>[] {
+function playerGroups(tabellino: Tabellino, t: Texts): Group<PlayerOrTotal>[] {
+  const { showNames } = tabellino;
   const isPlayer = (r: PlayerOrTotal): r is TabellinoPlayerRow => 'player' in r;
   const libero = (r: TabellinoPlayerRow) => (r.player.role === 'L' ? ' (L)' : '');
   // Without names the shirt number column also carries the libero mark and the totals label.
@@ -92,10 +92,10 @@ function playerGroups(showNames: boolean, t: Texts): Group<PlayerOrTotal>[] {
       title: t.set,
       columns: [
         {
-          header: SET_NUMBERS.join(' '),
+          header: playedSets(tabellino).join(' '),
           width: 14,
           align: 'center',
-          value: (r) => (isPlayer(r) ? SET_NUMBERS.map((n) => (r.setsPlayed.includes(n) ? String(n) : '·')).join(' ') : ''),
+          value: (r) => (isPlayer(r) ? setsCell(tabellino, r) : ''),
         },
       ],
     },
@@ -210,7 +210,7 @@ export async function renderTabellinoPdf(tabellino: Tabellino, options: Tabellin
   w.text(tabellino.teamName, MARGIN, y, 11, { heading: true, color: NAVY });
   y -= 2 * MM;
   const rows: PlayerOrTotal[] = [...tabellino.players, { ...tabellino.totals, total: true }];
-  y = drawTable(w, y, playerGroups(tabellino.showNames, t), rows, (r) => 'total' in r);
+  y = drawTable(w, y, playerGroups(tabellino, t), rows, (r) => 'total' in r);
 
   y -= 6 * MM;
   w.text(tabellino.set ? t.oneSetStats : t.setStats, MARGIN, y, 9, { heading: true, color: NAVY });

@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { EVALUATIONS, SKILLS } from '../../domain/codes';
+import { SHEET_SKILLS, skillEvaluations } from '../../domain/codes';
 import { useI18n } from '../../i18n';
 
-// Free ball is in the vocabulary but neither on the form nor in the manual entry.
-const SHOWN = SKILLS.filter((skill) => skill !== 'F');
+// In the order of the form; free ball is in the vocabulary but neither on the form nor in the manual entry.
+const SHOWN = SHEET_SKILLS;
 
 export function CodeLegend() {
   const { m } = useI18n();
@@ -20,7 +20,7 @@ export function CodeLegend() {
               {m.skills[skill]}
             </h3>
             <dl>
-              {EVALUATIONS.filter((e) => meanings[e]).map((e) => (
+              {skillEvaluations(skill).filter((e) => meanings[e]).map((e) => (
                 <div key={e} style={{ display: 'contents' }}>
                   <dt>
                     {skill}

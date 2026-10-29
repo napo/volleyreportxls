@@ -17,6 +17,7 @@ import { type MatchRecord, type RowKind, type SetRecord, matchWinner } from '../
 import type { Archive } from '../../storage/archive';
 import { useArchive } from '../archive-context';
 import { codeOf, parseShirtNumber, skillColumns } from '../components/counts-columns';
+import { evaluationTint } from '../../report/evaluation-colors';
 import { href } from '../routes';
 
 const LONG_PRESS = 500;
@@ -25,6 +26,8 @@ const LONG_PRESS = 500;
 const COLUMNS = skillColumns('player');
 const LIBERO_SKILLS = new Set(skillColumns('libero').map((c) => c.skill));
 const CELLS = COLUMNS.flatMap((c) => c.evaluations.map((e, i) => ({ skill: c.skill, code: codeOf(c.skill, e), evaluation: e, first: i === 0 })));
+/** Evaluation headers in the colours of the charts and of the printed form. */
+const tint = (c: (typeof CELLS)[number]) => `rgb(${evaluationTint(c.skill, c.evaluation).map((v) => Math.round(v * 255)).join(' ')})`;
 
 /** Saves every change at once, one write at a time, the latest record last. */
 function useAutosave(archive: Archive | null, record: MatchRecord | null): boolean {
@@ -97,12 +100,14 @@ interface CellProps {
   readonly locked: boolean;
   readonly last: boolean;
   readonly first: boolean;
+  /** On the light band of every other player row. */
+  readonly alt: boolean;
   /** A tap: +1, or −1 while correcting. */
   readonly onTap: () => void;
   readonly onRemove: () => void;
 }
 
-function Cell({ count, label, locked, last, first, onTap, onRemove }: CellProps) {
+function Cell({ count, label, locked, last, first, alt, onTap, onRemove }: CellProps) {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pointer = useRef('');
   // The long press already removed one: the click that follows does nothing.
@@ -114,7 +119,7 @@ function Cell({ count, label, locked, last, first, onTap, onRemove }: CellProps)
   return (
     <button
       type="button"
-      className={`vr-live-cell${count > 0 ? ' counted' : ''}${last ? ' last' : ''}${first ? ' first' : ''}`}
+      className={`vr-live-cell${count > 0 ? ' counted' : ''}${last ? ' last' : ''}${first ? ' first' : ''}${alt ? ' alt' : ''}`}
       disabled={locked}
       aria-label={label}
       onPointerDown={(e) => {
@@ -293,10 +298,12 @@ export function LiveSheetView({ id }: { id: string }) {
 
   const renderRow = (row: SetRecord['rows'][number], index: number) => {
     const libero = row.kind === 'libero';
+    // Every other player row on a light band, as on the printed form, to follow a row across the sheet.
+    const alt = !libero && index % 2 === 1;
     return (
       <Fragment key={row.id}>
         <input
-          className={`vr-live-number${libero ? ' libero' : ''}`}
+          className={`vr-live-number${libero ? ' libero' : ''}${alt ? ' alt' : ''}`}
           inputMode="numeric"
           placeholder="–"
           aria-label={t.shirtOf(libero, index + 1)}
@@ -314,6 +321,7 @@ export function LiveSheetView({ id }: { id: string }) {
               label={t.cell(c.code, row.playerNumber, row.counts[c.code] ?? 0)}
               locked={isLocked}
               first={c.first}
+              alt={alt}
               last={!isLocked && last === `${row.id}:${c.code}`}
               onTap={() => touch(row.id, c.code, correcting ? -1 : 1)}
               onRemove={() => touch(row.id, c.code, -1)}
@@ -404,7 +412,7 @@ export function LiveSheetView({ id }: { id: string }) {
           ))}
           <span className="vr-live-eval number">{t.shirt}</span>
           {CELLS.map((c) => (
-            <span key={c.code} className={`vr-live-eval${c.first ? ' first' : ''}`} title={m.codes[c.skill][c.evaluation]}>
+            <span key={c.code} className={`vr-live-eval${c.first ? ' first' : ''}`} style={{ background: tint(c) }} title={m.codes[c.skill][c.evaluation]}>
               {c.evaluation}
             </span>
           ))}

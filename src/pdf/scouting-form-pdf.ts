@@ -12,8 +12,8 @@
  */
 
 import { type PDFImage, type PDFPage, PDFDocument, rgb } from 'pdf-lib';
-import { EVALUATION_FILLS, EVALUATION_TONES } from './evaluation-style';
 import type { Skill } from '../domain/codes';
+import { evaluationTint } from '../report/evaluation-colors';
 import { WEB_APP_URL } from '../config';
 import { SET_NUMBERS, type SetNumber } from '../domain/model';
 import { arucoMatrix } from './aruco';
@@ -32,6 +32,13 @@ const NUMBER = rgb(0.4, 0.4, 0.4);
 const BUBBLE = rgb(0.6, 0.6, 0.6);
 /** v6: rules between skills, heavier so that each skill reads as a block. */
 const SKILL_RULE_V6 = { thickness: 1.6, color: rgb(0.15, 0.15, 0.15) };
+/**
+ * v8: the same rules in light grey. A photo is read by comparing each pixel with
+ * the paper around it (ink is darker than 35% of it): these rules, the row bands
+ * and the bubbles stay well above that, so only pen marks count.
+ */
+const SKILL_RULE_V8 = { thickness: 1.4, color: rgb(0.55, 0.55, 0.55) };
+const ROW_BAND = rgb(0.92, 0.92, 0.92);
 const BAND = rgb(0.95, 0.95, 0.95);
 const SKILL_RULE = rgb(0.3, 0.3, 0.3);
 
@@ -233,8 +240,8 @@ function drawGrid(s: Sheet) {
       });
       for (const { evaluation, outer } of skill.evaluations) {
         const described = s.layout.evaluationCaptions;
-        const tone = EVALUATION_TONES[skill.skill as Skill]?.[evaluation];
-        if (described && tone) s.fill(outer, rgb(...EVALUATION_FILLS[tone]));
+        // The colours of the charts, lightened so that the text stays readable in black and white too.
+        if (described) s.fill(outer, rgb(...evaluationTint(skill.skill as Skill, evaluation)));
         s.text(evaluation, outer.x, outer.y + (described && !small ? 3.4 : outer.height - (small ? 0.4 : 0.6)), small ? 7 : 9, { bold: true, align: 'center', width: outer.width });
         if (described && !small) {
           const caption = s.texts.form.evaluationCaptions[skill.skill]?.[evaluation] ?? '';
@@ -253,6 +260,8 @@ function drawGrid(s: Sheet) {
   }
 
   for (const row of rows) {
+    // v8: every other player row on a light band, to follow a row across the sheet.
+    if (s.layout.rowBands && row.kind === 'player' && row.index % 2 === 1) s.fill(row.outer, ROW_BAND);
     // The shirt-number box is drawn heavier than the tally cells, so the two are not confused.
     s.box(row.number, 1.1, NUMBER);
     if (row.name) {
@@ -297,7 +306,8 @@ function drawGrid(s: Sheet) {
       }
     }
   }
-  for (const rule of rules) s.vline(rule.x, rule.top, rule.bottom, SKILL_RULE_V6.thickness, SKILL_RULE_V6.color);
+  const rule = s.layout.rowBands ? SKILL_RULE_V8 : SKILL_RULE_V6;
+  for (const { x, top, bottom } of rules) s.vline(x, top, bottom, rule.thickness, rule.color);
 }
 
 function drawLegend(s: Sheet, page: FormPageId) {

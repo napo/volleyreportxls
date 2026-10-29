@@ -13,7 +13,7 @@ const stats = calculateMatchStats(game);
 
 test('evaluation shares per skill, only for skills performed', () => {
   const rows = evaluationShares(stats.team.match);
-  expect(rows.map((r) => r.skill)).toEqual(['B', 'R', 'A', 'M']);
+  expect(rows.map((r) => r.skill)).toEqual(['B', 'M', 'A', 'R']);
   const attack = rows.find((r) => r.skill === 'A')!;
   expect(attack.total).toBe(4);
   expect(attack.shares['#']).toBe(0.5);
@@ -23,9 +23,9 @@ test('evaluation shares per skill, only for skills performed', () => {
 test('points won and lost by skill, with opponent errors as a won-only row', () => {
   expect(pointsBySkill(stats.team.match, stats.opponentErrors)).toEqual([
     { label: 'Battuta', won: 1, lost: 1 },
-    { label: 'Ricezione', won: 0, lost: 1 },
-    { label: 'Attacco', won: 2, lost: 2 },
     { label: 'Muro', won: 1, lost: 0 },
+    { label: 'Attacco', won: 2, lost: 2 },
+    { label: 'Ricezione', won: 0, lost: 1 },
     { label: 'Errori avversari', won: 21 + 20, lost: 0 },
   ]);
 });

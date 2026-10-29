@@ -59,13 +59,13 @@ export const it = {
     steps: [
       {
         title: 'Prendi il modulo',
-        text: 'Scarica il modulo v7 e stampa una copia per set, più qualche foglio di scorta. Le descrizioni sotto i simboli spiegano le valutazioni; i colori tenui sono un aiuto e il foglio si può stampare anche in bianco e nero.',
-        alt: 'Modulo v7 vuoto: simboli con descrizioni e intestazioni dai colori tenui; caselle di conteggio bianche.',
+        text: 'Scarica il modulo v8 e stampa una copia per set, più qualche foglio di scorta. Le descrizioni sotto i simboli spiegano le valutazioni; i colori, gli stessi dei grafici, sono un aiuto e il foglio si può stampare anche in bianco e nero.',
+        alt: 'Modulo v8 vuoto: battuta, muro, attacco, ricezione e falli di alzata; simboli con descrizioni e intestazioni colorate dalla più favorevole alla meno favorevole; righe alternate bianche e grigie.',
       },
       {
         title: 'Compilalo durante la partita',
         text: 'Segna il set e i numeri di divisa. Ogni pallino vale un tocco, compreso l’ultimo. Se una casella è piena, continua su un altro foglio: segna lo stesso set, «Foglio aggiuntivo» e lo stesso numero di divisa.',
-        alt: 'Modulo v7 compilato a penna: ogni pallino segnato vale un tocco.',
+        alt: 'Modulo v8 compilato a penna: ogni pallino segnato vale un tocco.',
       },
       {
         title: 'Carica la foto',
@@ -75,7 +75,7 @@ export const it = {
       {
         title: 'Controlla cosa riconosce l’app',
         text: 'Controlla set, numeri di divisa, punteggio e caselle incerte. Nella rosa, scegliendo un atleta dall’archivio il suo nome riempie il campo. Per la stessa squadra e campionato, i numeri già associati propongono il nome nelle partite successive.',
-        alt: 'La verifica dei numeri di divisa e delle caselle incerte',
+        alt: 'La verifica del foglio letto dalla foto: set, punteggio finale e numeri di divisa trascritti accanto ai ritagli',
       },
       {
         title: 'Ottieni il tabellino',
@@ -398,7 +398,10 @@ export const it = {
     attackPt: 'Attacco Pt%',
     attacks: (n: number) => `${n} attacchi`,
     evaluationsTitle: 'Valutazioni per fondamentale',
-    evaluationsText: 'Quota di ogni valutazione sul totale dei tocchi, dal migliore (#) al peggiore (=).',
+    evaluationsText: 'Quota di ogni valutazione sul totale dei tocchi, dalla più favorevole alla meno favorevole per ogni fondamentale (in battuta # / + ! - =, negli altri # + ! - / =).',
+    scalePlace: (place: number) => `${place}ª`,
+    scaleBest: 'Più favorevole',
+    scaleWorst: 'Meno favorevole',
     teamEvaluations: 'Valutazioni della squadra per fondamentale',
     wonLostTitle: 'Punti vinti e persi',
     wonLostText: 'Per fondamentale; gli errori avversari sono punti vinti senza un nostro tocco vincente.',
@@ -446,15 +449,15 @@ export const it = {
       ', il foglio di calcolo per allenatori e allenatrici che rilevano la partita con carta e penna. Qui trovi il modulo da stampare, come rilevare sul tablet, i codici, le definizioni delle statistiche e le versioni da installare.',
     formTitle: 'Il modulo di rilevazione',
     formText:
-      'Un foglio A4 orizzontale da stampare in bianco e nero, una copia per ogni set: il set si segna in alto, insieme a «Foglio aggiuntivo» se il set continua su un secondo foglio. Dodici righe di gioco (battuta, ricezione, attacco, muro, falli di alzata) e, in fondo, due blocchi affiancati per il ruolo di libero (ricezione, falli di alzata). Il modulo è lo stesso per tutte le partite: squadra, campionato, data e nomi scritti sul foglio servono all’archivio cartaceo, nell’app si inseriscono dopo la foto.',
+      'Un foglio A4 orizzontale da stampare in bianco e nero, una copia per ogni set: il set si segna in alto, insieme a «Foglio aggiuntivo» se il set continua su un secondo foglio. Dodici righe di gioco (battuta, muro, attacco, ricezione, falli di alzata), alternate bianche e grigie per seguirle meglio e, in fondo, due blocchi affiancati per il ruolo di libero (ricezione, falli di alzata). Il modulo è lo stesso per tutte le partite: squadra, campionato, data e nomi scritti sul foglio servono all’archivio cartaceo, nell’app si inseriscono dopo la foto.',
     formButton: 'Scarica il modulo (PDF, 1 pagina)',
     howTitle: 'Come si compila',
     howText: 'Penna scura, un pallino per ogni pallone toccato.',
     howSteps: [
-      'Leggi le descrizioni sotto i simboli: verde tenue indica un esito favorevole, giallo intermedio e rosa sfavorevole. Il significato dipende dal fondamentale: per esempio / è favorevole in battuta, sfavorevole in ricezione e attacco. Usa sempre simboli e testo, anche in bianco e nero.',
+      'Leggi le descrizioni sotto i simboli: in ogni fondamentale le valutazioni vanno da sinistra a destra dalla più favorevole (verde) alla meno favorevole (rosso), con gli stessi colori dei grafici. L’ordine dipende dal fondamentale: in battuta è # / + ! - =, negli altri # + ! - / =. Usa sempre simboli e testo, anche in bianco e nero.',
       'Segna in alto il set; se il set continua da un altro foglio segna anche «Foglio aggiuntivo».',
       'Una riga per ogni atleta che entra in campo: scrivi il numero di divisa nelle due caselle a sinistra, una cifra per casella, e sotto, se aiuta, il nome.',
-      'Per ogni pallone toccato, nella riga di quella divisa trova il fondamentale (Battuta, Ricezione, Attacco, Muro) e la valutazione (# + ! - / =), poi annerisci o barra il primo pallino libero. I pallini anneriti mostrano subito quanti tocchi di quel tipo sono stati fatti.',
+      'Per ogni pallone toccato, nella riga di quella divisa trova il fondamentale (Battuta, Muro, Attacco, Ricezione) e la valutazione, poi annerisci o barra il primo pallino libero. I pallini anneriti mostrano subito quanti tocchi di quel tipo sono stati fatti.',
       'Ogni pallino vale un tocco, compreso l’ultimo. Se una casella è piena, continua su un altro foglio indicando lo stesso set e numero di divisa. L’app somma i conteggi dei fogli.',
       'Chi gioca da libero usa i due blocchi "Libero" in fondo, uno accanto all’altro: numero e nome, ricezione e falli di alzata.',
       'Alzata =: segna il fallo fischiato sul secondo tocco (doppia, trattenuta), qualunque sia il ruolo di chi lo commette.',
@@ -556,7 +559,7 @@ export const it = {
       M: { '#': 'Punto', '+': 'Rigioco|nostro', '!': 'Coperto|avvers.', '-': 'Rigioco|avvers.', '/': 'Fallo|invas.', '=': 'Errore' },
       P: { '=': 'Fallo' },
     } as Record<string, Partial<Record<Evaluation, string>>>,
-    colourLegend: 'Colori: verde favorevole · giallo intermedio · rosa sfavorevole. Leggere sempre il testo.',
+    colourLegend: 'Colori come nei grafici: dal verde (più favorevole) al rosso (meno favorevole). Leggere sempre il testo.',
     legacyLegend2: 'Casella piena: segna il "+" e correggi il totale nell’app. Alzata =: fallo sul secondo tocco.',
     legend1: 'Un pallino per ogni pallone toccato: anneriscilo o barralo, sempre il primo libero.',
     legend2: 'Casella piena: altro foglio, stesso set e numero di divisa. Alzata =: fallo sul secondo tocco.',

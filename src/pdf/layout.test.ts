@@ -154,7 +154,7 @@ test('v3 (read only) keeps the geometry of the sheets already filled in', () => 
 
 
 test('v7 adopts local captions and every slot counts, keeping old layouts intact', () => {
-  const current = CURRENT_FORM_LAYOUT;
+  const current = formLayout(7);
   expect(current.version).toBe(7);
   expect(current.evaluationCaptions).toBe(true);
   expect(formLayout(6).evaluationCaptions).toBe(false);
@@ -179,4 +179,38 @@ test('v7 adopts local captions and every slot counts, keeping old layouts intact
   for (const h of current.skills.filter((s) => s.kind === 'player')) {
     for (const e of h.evaluations) expect(e.outer.y + e.outer.height).toBe(current.rows[0]!.outer.y);
   }
+});
+
+test('v8: skills in the order of a rally, evaluations from the most to the least favourable', () => {
+  const v8 = CURRENT_FORM_LAYOUT;
+  const v7 = formLayout(7);
+  expect(v8.version).toBe(8);
+  expect(v8.rowBands).toBe(true);
+  expect(v7.rowBands).toBe(false);
+  expect(v8.markers).toEqual(v7.markers);
+  const order = (l: typeof v8, kind: 'player' | 'libero') => l.skills.filter((h) => h.kind === kind).map((h) => `${h.skill}:${h.evaluations.map((e) => e.evaluation).join('')}`);
+  expect(order(v8, 'player')).toEqual(['B:#/+!-=', 'M:#+!-/=', 'A:#+!-/=', 'R:#+!-/=', 'P:=']);
+  // v7 keeps the order it was printed with.
+  expect(order(v7, 'player')).toEqual(['B:#+!-/=', 'R:#+!-/=', 'A:#+!-/=', 'M:#+!-/=', 'P:=']);
+  // Same codes and capacities as v7: only the places change.
+  const capacity = (l: typeof v8) =>
+    Object.fromEntries(l.rows.flatMap((r) => r.cells.map((c) => [`${r.index}:${c.skill}${c.evaluation}`, c.bubbles.length])));
+  expect(capacity(v8)).toEqual(capacity(v7));
+  for (let i = 0; i < v8.rows.length; i++) for (let j = i + 1; j < v8.rows.length; j++) {
+    for (const a of v8.rows[i]!.cells) for (const b of v8.rows[j]!.cells) expect(overlaps(a.outer, b.outer)).toBe(false);
+  }
+});
+
+test('v8: the second libero block lies under the players reception and set faults', () => {
+  const v8 = CURRENT_FORM_LAYOUT;
+  const player = v8.rows[0]!;
+  const [first, second] = [v8.rows[12]!, v8.rows[13]!];
+  for (const cell of second.cells) {
+    const above = player.cells.find((c) => c.skill === cell.skill && c.evaluation === cell.evaluation)!;
+    expect(cell.outer.x).toBeCloseTo(above.outer.x, 6);
+    expect(cell.outer.width).toBeCloseTo(above.outer.width, 6);
+  }
+  expect(first.outer.x + first.outer.width).toBeLessThan(second.number.x);
+  expect(first.unused[0]!.x + first.unused[0]!.width).toBeCloseTo(second.number.x, 6);
+  expect(second.unused[0]!.width).toBeCloseTo(0, 6);
 });

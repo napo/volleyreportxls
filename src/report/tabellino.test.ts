@@ -4,7 +4,7 @@
 import { calculateMatchStats } from '../domain';
 import { line, match, set, team } from '../domain/testing';
 import { formatBracketedPercent, formatCount, formatPercent, formatRating, formatSigned, playerLabel } from './format';
-import { buildSetTabellino, buildTabellino } from './tabellino';
+import { buildSetTabellino, buildTabellino, playedSets, setsCell } from './tabellino';
 
 const game = match(team([[7, 'Alice'], [9, 'Bea']]), [
   set(1, { team: 25, opponent: 23 }, [line(7, 'B# A# A= R= R#'), line(9, 'B= B= A# A# A/ M= M#')]),
@@ -57,4 +57,15 @@ test('the scoresheet of one set keeps the match result and only that set\'s stat
   expect(second.totals.attack).toMatchObject({ total: 3, points: 2, errors: 1 });
   expect(second.sets.map((s) => s.setNumber)).toEqual([2]);
   expect(second.opponentErrors).toBe(20 - 2);
+});
+
+test('the Set column lists only the sets played in the match', () => {
+  const threeSets = match(team([[7, 'Alice'], [9, 'Bea']]), [
+    set(1, { team: 25, opponent: 20 }, [line(7, 'B#'), line(9, 'B=')]),
+    set(2, { team: 25, opponent: 18 }, [line(7, 'A#')]),
+    set(3, { team: 25, opponent: 22 }, [line(7, 'R#'), line(9, 'A#')]),
+  ]);
+  const t = buildTabellino(threeSets, calculateMatchStats(threeSets));
+  expect(playedSets(t)).toEqual([1, 2, 3]);
+  expect(t.players.map((p) => setsCell(t, p))).toEqual(['1 2 3', '1 · 3']);
 });

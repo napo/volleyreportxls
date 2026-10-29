@@ -1,9 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { SET_NUMBERS } from '../../domain/model';
 import { formatBracketedPercent, formatCount, formatPercent, formatRating, formatSigned } from '../../report/format';
-import type { Tabellino, TabellinoLine, TabellinoPlayerRow, TabellinoSkills } from '../../report/tabellino';
+import { type Tabellino, type TabellinoLine, type TabellinoPlayerRow, type TabellinoSkills, playedSets, setsCell } from '../../report/tabellino';
 import { useI18n } from '../../i18n';
 
 export function SkillCells({ row }: { row: TabellinoSkills }) {
@@ -63,7 +62,7 @@ export function PointsCells({ line }: { line: TabellinoLine }) {
   );
 }
 
-function PlayerRow({ row, showNames }: { row: TabellinoPlayerRow; showNames: boolean }) {
+function PlayerRow({ row, showNames, sets }: { row: TabellinoPlayerRow; showNames: boolean; sets: string }) {
   const libero = row.player.role === 'L' && <span className="libero">L</span>;
   return (
     <tr>
@@ -77,7 +76,7 @@ function PlayerRow({ row, showNames }: { row: TabellinoPlayerRow; showNames: boo
           {libero}
         </td>
       )}
-      <td className="sets">{SET_NUMBERS.map((n) => (row.setsPlayed.includes(n) ? n : '·')).join(' ')}</td>
+      <td className="sets">{sets}</td>
       <td className="num">{formatRating(row.rating)}</td>
       <PointsCells line={row} />
       <SkillCells row={row} />
@@ -102,7 +101,7 @@ export function TabellinoTable({ tabellino }: { tabellino: Tabellino }) {
           <tr>
             <th className="num">{t.number}</th>
             {showNames && <th>{t.player}</th>}
-            <th>1 2 3 4 5</th>
+            <th>{playedSets(tabellino).join(' ')}</th>
             <th className="num">{t.rating}</th>
             <th className="num group-start">{t.tot}</th>
             <th className="num">{t.balance}</th>
@@ -111,7 +110,7 @@ export function TabellinoTable({ tabellino }: { tabellino: Tabellino }) {
         </thead>
         <tbody>
           {tabellino.players.map((row) => (
-            <PlayerRow key={row.player.id} row={row} showNames={showNames} />
+            <PlayerRow key={row.player.id} row={row} showNames={showNames} sets={setsCell(tabellino, row)} />
           ))}
           <tr className="total">
             <td colSpan={showNames ? 2 : 1}>{t.teamTotals}</td>

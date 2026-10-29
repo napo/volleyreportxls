@@ -60,13 +60,13 @@ export const en: Messages = {
     steps: [
       {
         title: 'Get the form',
-        text: 'Download the v7 form and print one copy per set, plus a few spare sheets. Descriptions below the symbols explain each rating; soft colours are an extra aid and black-and-white printing works too.',
-        alt: 'Empty v7 form: symbols with descriptions and soft-coloured headers; white counting cells.',
+        text: 'Download the v8 form and print one copy per set, plus a few spare sheets. Descriptions below the symbols explain each rating; the colours, the same as in the charts, are an extra aid and black-and-white printing works too.',
+        alt: 'Empty v8 form: serve, block, attack, reception and setting faults; symbols with descriptions and headers coloured from the most to the least favourable; rows alternately white and grey.',
       },
       {
         title: 'Fill it in during the match',
         text: 'Mark the set and shirt numbers. Every bubble counts as one touch, including the last. If a cell is full, continue on another sheet: mark the same set, “Extra sheet” and the same shirt number.',
-        alt: 'V7 form filled in with a pen: every marked bubble counts as one touch.',
+        alt: 'V8 form filled in with a pen: every marked bubble counts as one touch.',
       },
       {
         title: 'Upload the photo',
@@ -76,7 +76,7 @@ export const en: Messages = {
       {
         title: 'Check what the app recognised',
         text: 'Check the set, shirt numbers, score and uncertain cells. In the roster, choosing an archived athlete fills in their name. For the same team and competition, previously linked shirt numbers suggest the name in later matches.',
-        alt: 'Checking the shirt numbers and the doubtful cells',
+        alt: 'Checking the sheet read from the photo: set, final score and shirt numbers typed next to the crops',
       },
       {
         title: 'Get the scoresheet',
@@ -435,7 +435,10 @@ export const en: Messages = {
     attackPt: 'Attack Pts%',
     attacks: (n: number) => `${n} attacks`,
     evaluationsTitle: 'Ratings by skill',
-    evaluationsText: 'Share of each rating over all touches, from the best (#) to the worst (=).',
+    evaluationsText: 'Share of each rating over all touches, from the most to the least favourable for each skill (serve # / + ! - =, the others # + ! - / =).',
+    scalePlace: (place: number) => `${place}${['st', 'nd', 'rd'][place - 1] ?? 'th'}`,
+    scaleBest: 'Most favourable',
+    scaleWorst: 'Least favourable',
     teamEvaluations: 'Team ratings by skill',
     wonLostTitle: 'Points won and lost',
     wonLostText: 'By skill; opponent errors are points won without a winning touch of ours.',
@@ -483,15 +486,15 @@ export const en: Messages = {
       ', the spreadsheet for coaches who scout the match with pen and paper. Here you find the form to print, how to scout on a tablet, the codes, the definitions of the statistics and the versions to install.',
     formTitle: 'The scouting form',
     formText:
-      'One A4 landscape sheet to print in black and white, one copy per set: the set is marked at the top, together with “Extra sheet” when the set goes on to a second sheet. Twelve rows for the players (serve, reception, attack, block, setting faults) and, at the bottom, two blocks side by side for the liberos (reception, setting faults). The form is the same for every match: team, competition, date and names written on the sheet are for the paper archive; in the app they are entered after the photo.',
+      'One A4 landscape sheet to print in black and white, one copy per set: the set is marked at the top, together with “Extra sheet” when the set goes on to a second sheet. Twelve rows for the players (serve, block, attack, reception, setting faults), alternately white and grey to follow them more easily and, at the bottom, two blocks side by side for the liberos (reception, setting faults). The form is the same for every match: team, competition, date and names written on the sheet are for the paper archive; in the app they are entered after the photo.',
     formButton: 'Download the form (PDF, 1 page)',
     howTitle: 'How to fill it in',
     howText: 'Dark pen, one bubble for every ball touched.',
     howSteps: [
-      'Read the descriptions below the symbols: soft green means favourable, yellow intermediate and pink unfavourable. Meaning depends on the skill: for example / is favourable in serving, unfavourable in reception and attack. Always use symbols and text, including in black and white.',
+      'Read the descriptions below the symbols: in every skill the ratings go from left to right from the most favourable (green) to the least favourable (red), with the same colours as the charts. The order depends on the skill: serve # / + ! - =, the others # + ! - / =. Always use symbols and text, including in black and white.',
       'Mark the set at the top; if the set continues from another sheet, also mark “Extra sheet”.',
       'One row for every player who enters the court: write the shirt number in the two boxes on the left, one digit per box, and the name under them if it helps.',
-      'For every ball touched, in the player’s row find the skill (Serve, Reception, Attack, Block) and the rating (# + ! - / =), then fill or cross the first free bubble. The filled bubbles show at a glance how many touches of that kind the player made.',
+      'For every ball touched, in the player’s row find the skill (Serve, Block, Attack, Reception) and the rating, then fill or cross the first free bubble. The filled bubbles show at a glance how many touches of that kind the player made.',
       'Every bubble counts as one touch, including the last. If a cell is full, continue on another sheet with the same set and shirt number. The app adds the counts from the sheets.',
       'Liberos use the two "Libero" blocks at the bottom, side by side: number and name, reception and setting faults.',
       'Setting =: mark the fault the referee whistles on the second touch (double, lift), whatever the role of the player who commits it.',
@@ -592,7 +595,7 @@ export const en: Messages = {
       M: { '#': 'Point', '+': 'Our|replay', '!': 'Opp.|cover', '-': 'Opp.|replay', '/': 'Net|fault', '=': 'Error' },
       P: { '=': 'Fault' },
     } as Record<string, Partial<Record<Evaluation, string>>>,
-    colourLegend: 'Colours: green favourable · yellow intermediate · pink unfavourable. Always read the text.',
+    colourLegend: 'Colours as in the charts: from green (most favourable) to red (least favourable). Always read the text.',
     legacyLegend2: 'Cell full: mark the "+" and correct the total in the app. Setting =: second-touch fault.',
     legend1: 'One bubble for every ball touched: fill or cross it, always the first free one.',
     legend2: 'Cell full: another sheet, same set and shirt number. Setting =: second-touch fault.',

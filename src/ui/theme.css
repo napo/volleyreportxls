@@ -2037,8 +2037,9 @@ button.vr-score-teams.selected {
 }
 
 .vr-sheet-touches {
-  min-width: 6rem;
+  min-width: 4.5rem;
   color: var(--vr-muted);
+  white-space: nowrap;
 }
 
 .vr-crop-field {
@@ -2182,7 +2183,8 @@ button.vr-score-teams.selected {
 
 .vr-sheet-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  /* Crop, shirt field and touches side by side: about 18rem, or the touches get cut. */
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
   gap: 0 1.25rem;
 }
 
@@ -2521,6 +2523,11 @@ button.vr-score-teams.selected {
     transform 0.08s;
 }
 
+.vr-live-cell.alt,
+.vr-live-number.alt {
+  background: #eef1f4;
+}
+
 .vr-live-cell.counted {
   background: var(--vr-blue-soft);
   color: var(--vr-navy);
@@ -2719,4 +2726,14 @@ button.vr-score-teams.selected {
   .vr-live-hint {
     display: none;
   }
+}
+
+/* Evaluation chart: one colour scale for every skill, the symbols are on the bars. */
+.vr-scale-legend {
+  align-items: center;
+}
+
+.vr-scale-keys {
+  display: inline-flex;
+  gap: 2px;
 }

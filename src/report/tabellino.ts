@@ -125,6 +125,13 @@ export function tabellinoLine(s: StatLine): TabellinoLine {
   return { ...skills(s), points: { total: s.summary.pointsWon, balance: s.summary.balance } };
 }
 
+/** Sets of the "Set" column: only the ones played (a three-set match has no 4 and 5). */
+export const playedSets = (tabellino: Tabellino): SetNumber[] => tabellino.sets.map((s) => s.setNumber);
+
+/** A player's "Set" cell: the number of every set played by the player, a dot for the other sets of the match. */
+export const setsCell = (tabellino: Tabellino, row: TabellinoPlayerRow) =>
+  playedSets(tabellino).map((n) => (row.setsPlayed.includes(n) ? String(n) : '·')).join(' ');
+
 export function buildTabellino(match: Match, stats: MatchStats): Tabellino {
   const team = stats.team.match;
   return {

@@ -12,11 +12,12 @@ import type { MatchStats, StatLine } from '../domain/stats/aggregate';
 import type { SkillStats } from '../domain/stats/skills';
 import { playerLabel } from './format';
 
+/** In the order of the form: serve, block, attack, reception, set faults. */
 const SKILL_FIELDS = [
   ['B', 'serve'],
-  ['R', 'reception'],
-  ['A', 'attack'],
   ['M', 'block'],
+  ['A', 'attack'],
+  ['R', 'reception'],
   ['P', 'setting'],
   ['F', 'freeBall'],
 ] as const satisfies readonly (readonly [Skill, keyof StatLine])[];

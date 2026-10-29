@@ -17,6 +17,25 @@ export type Skill = (typeof SKILLS)[number];
 export const EVALUATIONS = ['#', '+', '!', '-', '/', '='] as const;
 export type Evaluation = (typeof EVALUATIONS)[number];
 
+/**
+ * Scale of each skill from the most to the least favourable, over all six
+ * symbols (the ones a skill does not use keep their place, so that "=" is
+ * always last). Serve differs: "/" (the reception comes straight back) is
+ * second, then "+" and "!", mirroring the reception left to the opponent
+ * ("+" leaves a reception "-", "!" a reception "!").
+ */
+export const EVALUATION_SCALES: Readonly<Record<Skill, readonly Evaluation[]>> = {
+  B: ['#', '/', '+', '!', '-', '='],
+  R: EVALUATIONS,
+  A: EVALUATIONS,
+  M: EVALUATIONS,
+  P: EVALUATIONS,
+  F: EVALUATIONS,
+};
+
+/** Order of the skills on the form, the live sheet and the counts editor (set faults last). */
+export const SHEET_SKILLS = ['B', 'M', 'A', 'R', 'P'] as const satisfies readonly Skill[];
+
 export type ScoutCodeString = `${Skill}${Evaluation}`;
 
 export interface ScoutCode {
@@ -120,6 +139,11 @@ export function isEvaluation(value: string): value is Evaluation {
 
 export function isAllowed(code: ScoutCode): boolean {
   return SKILL_DEFINITIONS[code.skill].evaluations[code.evaluation] !== undefined;
+}
+
+/** The evaluations a skill uses, from the most to the least favourable. */
+export function skillEvaluations(skill: Skill): Evaluation[] {
+  return EVALUATION_SCALES[skill].filter((evaluation) => SKILL_DEFINITIONS[skill].evaluations[evaluation] !== undefined);
 }
 
 export function scoutCode(skill: Skill, evaluation: Evaluation): ScoutCode {

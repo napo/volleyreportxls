@@ -29,6 +29,14 @@
  * two libero rows side by side on one line, empty bubbles (no number), block
  * - and / on two columns, and room for the name under the shirt number.
  *
+ * Layout v8 puts the skills in the order of a rally, serve, block, attack,
+ * reception, with the set faults last; the evaluations of each skill go from
+ * the most to the least favourable (serve: # / + ! - =). Every other player row
+ * lies on a light grey band, and the rules between skills are light grey: the
+ * dark rules of v6–v7 could be read as pen strokes. The second libero block is
+ * under the players' reception. Cells are found by skill and evaluation, so
+ * v6 and v7 sheets are read as before.
+ *
  * Layout v5 is kept to read those sheets.
  *
  * Layout v4 (one printed page per set, the set in the QR) is kept to read those sheets.
@@ -125,6 +133,8 @@ export interface FormLayout {
   readonly cropInset: number;
   /** v6 on: compact header, empty bubbles, name under the shirt number. */
   readonly compact: boolean;
+  /** v8: every other player row on a light band, light rules between skills. */
+  readonly rowBands: boolean;
   /** Fields written by hand for the paper archive (team, opponent, competition, date); the app does not read them. */
   readonly fields: readonly { readonly field: 'team' | 'opponent' | 'competition' | 'date'; readonly outer: Rect }[];
 }
@@ -144,6 +154,8 @@ const ATTACK: Columns = [['#', 4], ['+', 3], ['!', 2], ['-', 3], ['/', 2], ['=',
 const BLOCK: Columns = [['#', 2], ['+', 2], ['!', 2], ['-', 1], ['/', 1], ['=', 2]]; // 5 5 5 2 2 5
 /** v6: no one-column cells, so that every bubble can be as big as the others. */
 const BLOCK_V6: Columns = [['#', 2], ['+', 2], ['!', 2], ['-', 2], ['/', 2], ['=', 2]]; // 5 5 5 5 5 5
+/** v8: the serve from the most to the least favourable, same capacities. */
+const SERVE_V8: Columns = [['#', 2], ['/', 2], ['+', 3], ['!', 2], ['-', 3], ['=', 2]];
 
 interface LayoutSpec {
   readonly version: number;
@@ -156,6 +168,9 @@ interface LayoutSpec {
   readonly setMarks?: boolean;
   /** v6 on: compact header, liberos side by side, uniform bubbles, name under the shirt number. */
   readonly compact?: boolean;
+  /** Compact: the second libero block ends with the grid, its skills under the players' ones (v8); otherwise it starts under attack. */
+  readonly liberoUnderPlayers?: boolean;
+  readonly rowBands?: boolean;
 }
 
 /** v4: set faults (P=) on every row; liberos with reception and set faults. */
@@ -178,6 +193,15 @@ const V6: LayoutSpec = {
   version: 6,
   compact: true,
   player: V5.player.map(([skill, columns]) => [skill, skill === 'M' ? BLOCK_V6 : columns]),
+};
+
+/** v8: skills in the order of a rally, evaluations from the most to the least favourable. */
+const V8: LayoutSpec = {
+  ...V6,
+  version: 8,
+  player: [['B', SERVE_V8], ['M', BLOCK_V6], ['A', ATTACK], ['R', RECEPTION], ['P', [['=', 2]]]],
+  liberoUnderPlayers: true,
+  rowBands: true,
 };
 
 /** v3 (read only): liberos with reception, then dig and graded sets where attack starts. */
@@ -279,7 +303,8 @@ function buildTallyLayout(spec: LayoutSpec): FormLayout {
   };
 
   /** v6 libero blocks: shirt number and name, then the libero skills one after the other; the second block starts under attack. */
-  const liberoBlocks = [left, playerX('A')];
+  const liberoWidth = numberWidth + liberoSkills.reduce((n, [, c]) => n + columnsOf(c), 0) * pitch;
+  const liberoBlocks = [left, spec.liberoUnderPlayers ? gridRight - liberoWidth : playerX('A')];
   const liberoStart = (block: number, skill: FormSkill) => {
     let cx = liberoBlocks[block]! + numberWidth;
     for (const [s, columns] of liberoSkills) {
@@ -288,7 +313,7 @@ function buildTallyLayout(spec: LayoutSpec): FormLayout {
     }
     return cx;
   };
-  const liberoEnd = (block: number) => liberoBlocks[block]! + numberWidth + liberoSkills.reduce((n, [, c]) => n + columnsOf(c), 0) * pitch;
+  const liberoEnd = (block: number) => liberoBlocks[block]! + liberoWidth;
 
   const row = (index: number, kind: RowKind, y: number, block?: number): FormRow => {
     const half = numberWidth / 2;
@@ -407,6 +432,7 @@ function buildTallyLayout(spec: LayoutSpec): FormLayout {
     ],
     cropInset: 0.8,
     compact,
+    rowBands: spec.rowBands ?? false,
   };
 }
 
@@ -417,8 +443,9 @@ export const FORM_LAYOUTS: Readonly<Record<number, FormLayout>> = {
   5: buildTallyLayout(V5),
   6: buildTallyLayout(V6),
   7: buildTallyLayout({ ...V6, version: 7 }),
+  8: buildTallyLayout(V8),
 };
-export const CURRENT_FORM_LAYOUT = FORM_LAYOUTS[7]!;
+export const CURRENT_FORM_LAYOUT = FORM_LAYOUTS[8]!;
 
 /** The code a cell counts, or null for cells of an old layout the app no longer records (v3 dig and graded sets). */
 export function cellCode(cell: TallyCell): ScoutCodeString | null {

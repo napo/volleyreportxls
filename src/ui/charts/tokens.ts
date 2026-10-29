@@ -11,8 +11,6 @@
  * segments, legend, tooltip and the "Mostra i dati" table.
  * Lines that do not mean good/bad (set trend) use the logo blue/orange pair, which passes all checks.
  */
-import type { Evaluation } from '../../domain/codes';
-
 export const SURFACE = '#ffffff';
 export const TEXT_PRIMARY = '#383838';
 export const TEXT_SECONDARY = '#7d7d7d';
@@ -27,25 +25,8 @@ export const SERIES = ['#1876a1', '#e96e23'] as const;
 export const WON = '#00ff00';
 export const LOST = '#ff0000';
 
-/** Evaluations from best (#) to worst (=): the VolleyReportXLS palette. */
-export const EVALUATION_COLORS: Readonly<Record<Evaluation, string>> = {
-  '#': '#00ff00',
-  '+': '#90ee90',
-  '!': '#adff2f',
-  '-': '#ffff99',
-  '/': '#f79646',
-  '=': '#ff0000',
-};
-
-/** Ink for a label drawn inside a fill: text colour on the light fills, white on red. */
-export const EVALUATION_LABEL: Readonly<Record<Evaluation, string>> = {
-  '#': TEXT_PRIMARY,
-  '+': TEXT_PRIMARY,
-  '!': TEXT_PRIMARY,
-  '-': TEXT_PRIMARY,
-  '/': TEXT_PRIMARY,
-  '=': '#ffffff',
-};
+/** Evaluations, by place on the scale of their skill: the VolleyReportXLS palette. */
+export { SCALE_COLORS, SCALE_LABELS, evaluationColor } from '../../report/evaluation-colors';
 
 /** Shared chrome: recessive hairline axes and grid, text in text tokens. */
 export const BASE_OPTION = {

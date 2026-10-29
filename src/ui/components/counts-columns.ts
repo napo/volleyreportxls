@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 /**
- * Columns of the manual entry, as on the paper form: players have serve,
- * reception, attack, block and set faults (P=); liberos reception and set faults.
+ * Columns of the manual entry and the live sheet, as on the paper form: players
+ * have serve, block, attack, reception and set faults (P=); liberos reception
+ * and set faults. Evaluations from the most to the least favourable.
  */
-import { type Evaluation, EVALUATIONS, type ScoutCodeString, type Skill, SKILL_DEFINITIONS } from '../../domain/codes';
+import { type Evaluation, type ScoutCodeString, SHEET_SKILLS, type Skill, skillEvaluations } from '../../domain/codes';
 import type { RowKind, TallyRowRecord } from '../../matches/record';
 
 export interface SkillColumns {
@@ -13,13 +14,10 @@ export interface SkillColumns {
   readonly evaluations: readonly Evaluation[];
 }
 
-const columns = (skill: Skill): SkillColumns => ({
-  skill,
-  evaluations: EVALUATIONS.filter((e) => SKILL_DEFINITIONS[skill].evaluations[e] !== undefined),
-});
+const columns = (skill: Skill): SkillColumns => ({ skill, evaluations: skillEvaluations(skill) });
 
 const SKILLS: Readonly<Record<RowKind, readonly SkillColumns[]>> = {
-  player: (['B', 'R', 'A', 'M', 'P'] as const).map(columns),
+  player: SHEET_SKILLS.map(columns),
   libero: (['R', 'P'] as const).map(columns),
 };
 

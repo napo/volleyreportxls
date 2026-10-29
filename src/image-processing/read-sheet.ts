@@ -10,7 +10,7 @@
 
 import type { ScoutCodeString } from '../domain/codes';
 import type { SetNumber } from '../domain/model';
-import { type FormLayout, type FormSkill, type Rect, type RowKind, FORM_LAYOUTS, cellCode, formLayout } from '../pdf/layout';
+import { type FormLayout, type FormSkill, type Rect, type RowKind, CURRENT_FORM_LAYOUT, FORM_LAYOUTS, cellCode, formLayout } from '../pdf/layout';
 import type { FormPageId } from '../pdf/scouting-form';
 import { BUBBLE_MARKED, readCell } from './cells';
 import { type GrayImage, sample } from './gray';
@@ -78,41 +78,60 @@ const join = (a: Rect, b: Rect): Rect => {
   return { x, y, width: Math.max(a.x + a.width, b.x + b.width) - x, height: Math.max(a.y + a.height, b.y + b.height) - y };
 };
 
+/** Paper inside the bubbles of a row (median of their centres, so a few pen marks do not count). */
+function rowPaper(gray: GrayImage, homography: Homography, row: FormLayout['rows'][number]): number {
+  const values = row.cells.flatMap((cell) =>
+    cell.bubbles.map((b) => {
+      const p = project(homography, { x: b.x + b.width / 2, y: b.y + b.height / 2 });
+      return sample(gray, p.x, p.y);
+    }),
+  );
+  values.sort((a, b) => a - b);
+  return values[Math.floor(values.length / 2)] ?? 255;
+}
+
+/** v8 prints every other player row on a light grey band: the second row is darker than the first and the third. */
+function looksBanded(gray: GrayImage, homography: Homography, layout: FormLayout): boolean {
+  const [first, second, third] = layout.rows.map((row) => rowPaper(gray, homography, row));
+  return second! < Math.min(first!, third!) * 0.97;
+}
+
 /**
  * Which printed layout is in the photo, when the QR cannot tell: the printed
  * bubble outlines are darker than their centres only where the layout puts them.
+ * The median over the bubbles of the first rows leaves out the ones filled in
+ * by hand (dark centre and outline alike). v7 and v8 have nearly the same
+ * bubbles with different meanings: only a layout whose grey row bands (v8)
+ * match the photo is taken, when there is one.
  */
 export function guessLayout(gray: GrayImage, homography: Homography): FormLayout {
-  let best = formLayout(Math.max(...Object.keys(FORM_LAYOUTS).map(Number)));
-  let bestScore = -Infinity;
-  for (const layout of Object.values(FORM_LAYOUTS)) {
-    let ring = 0;
-    let centre = 0;
-    let n = 0;
+  const scored = Object.values(FORM_LAYOUTS).map((layout) => {
+    const contrasts: number[] = [];
     for (const row of layout.rows.slice(0, 3)) {
       for (const cell of row.cells) {
         for (const b of cell.bubbles) {
           const cx = b.x + b.width / 2;
           const cy = b.y + b.height / 2;
           const r = b.width / 2;
+          let ring = 0;
           for (let k = 0; k < 8; k++) {
             const a = (k / 8) * 2 * Math.PI;
-            const p = project(homography, { x: cx + r * 0.97 * Math.cos(a), y: cy + r * 0.97 * Math.sin(a) });
+            const p = project(homography, { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) });
             ring += 255 - sample(gray, p.x, p.y);
           }
-          const c = project(homography, { x: cx + r * 0.6, y: cy - r * 0.6 });
-          centre += (255 - sample(gray, c.x, c.y)) * 8;
-          n++;
+          // The centre, well clear of the outline: blank on an empty bubble.
+          const c = project(homography, { x: cx, y: cy });
+          contrasts.push(ring / 8 - (255 - sample(gray, c.x, c.y)));
         }
       }
     }
-    const score = (ring - centre) / n;
-    if (score > bestScore) {
-      bestScore = score;
-      best = layout;
-    }
-  }
-  return best;
+    contrasts.sort((a, b) => a - b);
+    return { layout, score: contrasts[Math.floor(contrasts.length / 2)]! };
+  });
+  const banded = looksBanded(gray, homography, CURRENT_FORM_LAYOUT);
+  const fitting = scored.filter((s) => s.layout.rowBands === banded);
+  // The oldest on a tie, as before: v4 and v5 share the grid, and the set marks are not read without the QR.
+  return (fitting.length > 0 ? fitting : scored).reduce((a, b) => (b.score > a.score ? b : a)).layout;
 }
 
 /** A bubble as marked by hand: the share of ink inside its circle, printed outline left out. */
