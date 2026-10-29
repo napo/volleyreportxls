@@ -16,6 +16,8 @@ export const SOURCE_REPOSITORY_URL = `https://github.com/${SOURCE_REPOSITORY}`;
 /** Web version (GitHub Pages with the custom domain in public/CNAME, see .github/workflows/deploy-pages.yml). */
 export const WEB_APP_URL = 'https://report.volleyserve.it/';
 export const LICENSE_URL = `${SOURCE_REPOSITORY_URL}/blob/main/LICENSE`;
+/** Privacy policy (public/privacy.html), linked from the footer as Google requires for its sign-in. */
+export const PRIVACY_URL = `${WEB_APP_URL}privacy.html`;
 export const LICENSE_NAME = 'GNU Affero General Public License v3.0 or later';
 export const LICENSE_SPDX = 'AGPL-3.0-or-later';
 export const RELEASES_URL = `${SOURCE_REPOSITORY_URL}/releases/latest`;

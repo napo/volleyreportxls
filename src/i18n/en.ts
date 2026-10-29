@@ -34,6 +34,7 @@ export const en: Messages = {
     local: 'Data stays on the device',
     license: 'License AGPL-3.0-or-later',
     source: 'Source code',
+    privacy: 'Privacy',
     version: 'ver',
   },
 

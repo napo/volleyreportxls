@@ -33,6 +33,7 @@ export const it = {
     local: 'I dati restano sul dispositivo',
     license: 'Licenza AGPL-3.0-or-later',
     source: 'Codice sorgente',
+    privacy: 'Privacy',
     version: 'ver',
   },
 

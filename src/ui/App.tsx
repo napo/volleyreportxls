@@ -3,7 +3,7 @@
 
 import { Suspense, lazy, useEffect, useState } from 'react';
 import logo from '../assets/volleyreportxls-logo.png';
-import { LICENSE_URL, SOURCE_REPOSITORY_URL, VOLLEYREPORTXLS_URL, releaseUrl } from '../config';
+import { LICENSE_URL, PRIVACY_URL, SOURCE_REPOSITORY_URL, VOLLEYREPORTXLS_URL, releaseUrl } from '../config';
 import { ExternalLink } from '../platform/ExternalLink';
 import { APP_VERSION } from '../version';
 import { ArchiveProvider } from './archive-context';
@@ -191,7 +191,8 @@ export function App() {
           <p>{m.footer.local}</p>
           <p>
             <ExternalLink href={LICENSE_URL}>{m.footer.license}</ExternalLink> ·{' '}
-            <ExternalLink href={SOURCE_REPOSITORY_URL}>{m.footer.source}</ExternalLink>
+            <ExternalLink href={SOURCE_REPOSITORY_URL}>{m.footer.source}</ExternalLink> ·{' '}
+            <ExternalLink href={PRIVACY_URL}>{m.footer.privacy}</ExternalLink>
           </p>
           <p>
             <ExternalLink href={releaseUrl(APP_VERSION)}>
