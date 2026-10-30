@@ -830,9 +830,10 @@ a {
     padding-bottom: 0;
   }
 
+  /* All the items in sight: they wrap instead of scrolling out of the screen. */
   .vr-nav-tabs {
-    gap: 0.5rem;
-    overflow-x: auto;
+    flex-wrap: wrap;
+    gap: 0 0.75rem;
     max-width: 100%;
     padding-bottom: 0.85rem;
   }
@@ -2880,4 +2881,9 @@ button.vr-score-teams.selected {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem 1.25rem;
+  margin-bottom: 0.7rem;
+}
+
+.vr-faq-actions .vr-codes {
+  width: 100%;
 }

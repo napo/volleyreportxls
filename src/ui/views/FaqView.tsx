@@ -1,12 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-/** Frequent questions: one closed answer per question, with the links that answer needs. */
+/** Frequent questions by topic: one closed answer per question, with the links that answer needs. */
 import { type ReactNode, useState } from 'react';
 import { PAYPAL_DONATION_URL, RELEASES_URL, SOURCE_REPOSITORY_URL, WEB_APP_URL, contactEmail, externalUrl } from '../../config';
 import { useI18n } from '../../i18n';
 import { ExternalLink } from '../../platform/ExternalLink';
-import { DownloadFormButton } from './DownloadFormButton';
+import { CodeLegend } from '../components/CodeLegend';
+import { DownloadFormButton } from '../components/DownloadFormButton';
 
 /** The address appears only after a tap, so that it is not on the page for those who collect addresses. */
 function ContactEmail() {
@@ -22,7 +23,7 @@ function ContactEmail() {
   return <ExternalLink href={`mailto:${address}`}>{address}</ExternalLink>;
 }
 
-export function FaqSection() {
+export function FaqView() {
   const { m } = useI18n();
   const t = m.faq;
   const donation = externalUrl(PAYPAL_DONATION_URL);
@@ -39,6 +40,7 @@ export function FaqSection() {
         <ExternalLink href={RELEASES_URL}>{t.releases}</ExternalLink>
       </>
     ),
+    evaluations: <CodeLegend />,
     form: <DownloadFormButton variant="link" label={m.home.formButton} />,
     languages: <ExternalLink href={`${SOURCE_REPOSITORY_URL}/blob/main/CONTRIBUTING.md`}>{t.translate}</ExternalLink>,
     request: (
@@ -49,22 +51,26 @@ export function FaqSection() {
     ),
   };
   return (
-    <section id="faq" className="vr-card">
-      <div className="vr-card-head">
-        <div>
-          <h2>{t.title}</h2>
-          <p>{t.text}</p>
-        </div>
-      </div>
-      {t.items.map(({ id, q, a }) => (
-        <details key={id} className="vr-faq">
-          <summary>{q}</summary>
-          {a.map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
+    <>
+      <header className="vr-hero">
+        <p className="vr-eyebrow">{t.eyebrow}</p>
+        <h1>{t.title}</h1>
+        <p className="vr-lead">{t.text}</p>
+      </header>
+      {t.groups.map((group) => (
+        <section key={group.title} className="vr-card">
+          <h2>{group.title}</h2>
+          {group.items.map(({ id, q, a }) => (
+            <details key={id} className="vr-faq">
+              <summary>{q}</summary>
+              {a.map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
+              {actions[id] && <div className="vr-faq-actions">{actions[id]}</div>}
+            </details>
           ))}
-          {actions[id] && <p className="vr-faq-actions">{actions[id]}</p>}
-        </details>
+        </section>
       ))}
-    </section>
+    </>
   );
 }

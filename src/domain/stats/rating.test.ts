@@ -16,6 +16,13 @@ describe('scoresheet rating (DataVolley §9.7.1.1)', () => {
     expect(calculatePlayerRating(weak, weak, 1).serve).toBe(5.5);
   });
 
+  test('"!" fits the scale of the skill (project choice)', () => {
+    const vote = (codes: string) => { const p = statLine(codes); return calculatePlayerRating(p, p, 1); };
+    expect(vote('B! B! B# B#').serve).toBeCloseTo((5.5 * 2 + 20) / 4);
+    expect(vote('A! A! A# A#').attack).toBeCloseTo((5 * 2 + 20) / 4);
+    expect(vote('R! R# R# R#').reception).toBeCloseTo(30 / 4);
+  });
+
   test('a skill is rated only above the participation threshold', () => {
     const team = statLine(`${'R# '.repeat(100)}`);
     expect(calculatePlayerRating(statLine('R# R# R# R# R# R# R# R# R# R# R#'), team, 1).reception).toBeNull(); // 11%

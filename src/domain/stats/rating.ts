@@ -6,6 +6,9 @@
  *
  * Each skill gets a vote only when the player performed a sufficient share of
  * the team's touches; the final vote is the mean of the votes obtained.
+ * Project choice: the manual leaves "!" out of the formulas (it is customisable,
+ * so it counts 0). Here it has a weight that fits the scale of the skill: between
+ * "+" and "-" in serve and attack. In reception 0 already fits (7 and −1).
  * The setter's extra vote (attacks after positive reception while on court)
  * needs rally-level data that the paper sheet does not record, so it is not
  * computed.
@@ -31,9 +34,9 @@ export interface RatingRules {
 export const DATAVOLLEY_RATING_RULES: RatingRules = {
   minimum: 5.5,
   weights: {
-    serve: { '=': 0, '/': 8, '-': 4, '!': 0, '+': 7, '#': 10 },
+    serve: { '=': 0, '/': 8, '-': 4, '!': 5.5, '+': 7, '#': 10 },
     reception: { '=': -3, '/': -3, '-': -1, '!': 0, '+': 7, '#': 10 },
-    attack: { '=': 0, '/': 0, '-': 5, '!': 0, '+': 5, '#': 10 },
+    attack: { '=': 0, '/': 0, '-': 5, '!': 5, '+': 5, '#': 10 },
   },
   participation: { serve: 0.05, reception: 0.12, attack: 0.07 },
   block: [

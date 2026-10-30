@@ -12,6 +12,7 @@ import { UpdateNotice } from './components/UpdateNotice';
 import { useMatchReport } from './match-report';
 import { type Route, SAMPLE_ID, TABS, type Tab, href, isSectionPage, parseRoute, tabOf } from './routes';
 import { AthletesView } from './views/AthletesView';
+import { FaqView } from './views/FaqView';
 import { HomeView } from './views/HomeView';
 import { InfoView } from './views/InfoView';
 import { LiveSheetView } from './views/LiveSheetView';
@@ -90,8 +91,9 @@ function Page({ route }: { route: Route }) {
       return route.param ? <AthleteRoute key={route.param} id={route.param} /> : <AthletesView squadId={null} />;
     case 'informazioni':
     case 'modulo':
-    case 'faq':
       return <InfoView />;
+    case 'faq':
+      return <FaqView />;
     default:
       return <HomeView />;
   }
@@ -200,7 +202,7 @@ export function App() {
           <p>
             <ExternalLink href={LICENSE_URL}>{m.footer.license}</ExternalLink> ·{' '}
             <ExternalLink href={SOURCE_REPOSITORY_URL}>{m.footer.source}</ExternalLink> ·{' '}
-            <ExternalLink href={PRIVACY_URL}>{m.footer.privacy}</ExternalLink> · <a href={href('faq')}>{m.footer.faq}</a>
+            <ExternalLink href={PRIVACY_URL}>{m.footer.privacy}</ExternalLink>
           </p>
           <p>
             <ExternalLink href={releaseUrl(APP_VERSION)}>

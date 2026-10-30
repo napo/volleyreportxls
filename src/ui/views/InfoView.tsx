@@ -7,7 +7,6 @@ import { CodeLegend } from '../components/CodeLegend';
 import { DownloadSection, GuideSection, PrivacySection, ProjectSection, SupportSection, UpdatesSection } from '../components/ProjectSections';
 import { useI18n } from '../../i18n';
 import { DownloadFormButton } from '../components/DownloadFormButton';
-import { FaqSection } from '../components/FaqSection';
 
 export function InfoView() {
   const { m } = useI18n();
@@ -24,8 +23,6 @@ export function InfoView() {
       </header>
 
       <SupportSection />
-
-      <FaqSection />
 
       <GuideSection />
 

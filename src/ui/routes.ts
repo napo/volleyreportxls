@@ -4,12 +4,12 @@
 /** Hash routes: "#tab", "#tab/param" (e.g. "#partita/k3x9…", "#tabellino/esempio"). */
 
 /** Tabs of the main navigation, in order (their names are in the i18n texts). */
-export const TABS = ['partite', 'tabellino', 'grafici', 'storico', 'informazioni'] as const;
+export const TABS = ['partite', 'tabellino', 'grafici', 'storico', 'informazioni', 'faq'] as const;
 
 export type Tab = (typeof TABS)[number];
 
 /** Pages that live inside a tab. */
-const PAGES = { partita: 'partite', foto: 'partite', rileva: 'partite', atleta: 'storico', modulo: 'informazioni', faq: 'informazioni' } as const satisfies Record<string, Tab>;
+const PAGES = { partita: 'partite', foto: 'partite', rileva: 'partite', atleta: 'storico', modulo: 'informazioni' } as const satisfies Record<string, Tab>;
 
 export interface Route {
   readonly name: Tab | keyof typeof PAGES;
@@ -26,7 +26,7 @@ export function parseRoute(hash: string): Route {
 }
 
 /** Pages that are a section of their tab's page: the app scrolls to the element with their name as id. */
-export const isSectionPage = (route: Route) => route.name === 'modulo' || route.name === 'faq';
+export const isSectionPage = (route: Route) => route.name === 'modulo';
 
 export const tabOf = (route: Route): Tab => (route.name in PAGES ? PAGES[route.name as keyof typeof PAGES] : (route.name as Tab));
 

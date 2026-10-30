@@ -10,7 +10,7 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
 export const it = {
   skills: { B: 'Battuta', R: 'Ricezione', A: 'Attacco', M: 'Muro', P: 'Alzata', F: 'Free ball', D: 'Difesa' },
 
-  nav: { partite: 'Partite', tabellino: 'Tabellino', grafici: 'Grafici', storico: 'Storico', informazioni: 'Informazioni', label: 'Navigazione principale' },
+  nav: { partite: 'Partite', tabellino: 'Tabellino', grafici: 'Grafici', storico: 'Storico', informazioni: 'Informazioni', faq: 'FAQ', label: 'Navigazione principale' },
 
   common: {
     loading: 'Caricamento…',
@@ -34,7 +34,6 @@ export const it = {
     license: 'Licenza AGPL-3.0-or-later',
     source: 'Codice sorgente',
     privacy: 'Privacy',
-    faq: 'Domande frequenti',
     version: 'ver',
   },
 
@@ -419,10 +418,10 @@ export const it = {
     opponentErrorsSet: (n: number) => `Errori avversari del set: ${n}`,
     opponentErrorsTotal: (n: number) => `Errori avversari totali: ${n}`,
     legend:
-      'Voto: votazione DataVolley · V-P: punti vinti meno punti persi · Pos%: ricezione positiva (#+) · Prf%: perfetta (#) · Mur: attacchi murati · Pt%: attacchi vincenti. Il punto indica zero o "non applicabile".',
+      'Voto: sul modello DataVolley · V-P: punti vinti meno punti persi · Pos%: ricezione positiva (#+) · Prf%: perfetta (#) · Mur: attacchi murati · Pt%: attacchi vincenti. Il punto indica zero o "non applicabile".',
     pdfLegend:
-      'Voto: votazione DataVolley (media dei voti per fondamentale)   V-P: vinti - persi   Err: errori   Pt: punti   Mur: murati   Pos%: positiva (#+)   Prf%: perfetta (#)   Er.Av: errori avversari',
-    footer: (url: string) => `VolleyReport · un’idea di Maurizio Napolitano · ${url} · statistiche calcolate con le definizioni DataVolley 4`,
+      'Voto: sul modello DataVolley (media dei voti per fondamentale)   V-P: vinti - persi   Err: errori   Pt: punti   Mur: murati   Pos%: positiva (#+)   Prf%: perfetta (#)   Er.Av: errori avversari',
+    footer: (url: string) => `VolleyReport · un’idea di Maurizio Napolitano · ${url} · statistiche basate sulle definizioni DataVolley 4`,
     eyebrow: 'Tabellino',
     toCheck: 'Da controllare prima di condividere il tabellino:',
     complete: 'I dati della partita sono completi.',
@@ -492,77 +491,11 @@ export const it = {
     noPoints: 'Nessun punto vinto o perso.',
   },
 
-  /** Frequent questions, in the Informazioni page. */
+  /** Frequent questions, a page of their own. */
   faq: {
+    eyebrow: 'FAQ',
     title: 'Domande frequenti',
-    text: 'Le domande che arrivano più spesso.',
-    link: 'Domande frequenti',
-    items: [
-      {
-        id: 'cost',
-        q: 'Quanto costa?',
-        a: ['Niente. VolleyReport è software libero e i sorgenti sono pubblici. Se vuoi aiutare lo sviluppo puoi fare una donazione: è facoltativa e non sblocca funzioni.'],
-      },
-      {
-        id: 'data',
-        q: 'Dove finiscono i dati?',
-        a: [
-          'Restano sul dispositivo. Anche la versione web gira tutta nel browser: partite, nomi e foto non vengono inviati a un server del progetto, che infatti non esiste. Lasciano il dispositivo solo per tua scelta: quando esporti un file o colleghi il tuo Google Drive.',
-          'Attenzione: i dati stanno in quel browser su quel dispositivo. Se cambi computer o browser non li ritrovi, e cancellando i dati di navigazione li perdi. Per non perderli esporta le partite o, su web e computer, sincronizzale con il tuo Google Drive.',
-        ],
-      },
-      {
-        id: 'exchange',
-        q: 'Come faccio a scambiare i dati o a passarli su un altro dispositivo?',
-        a: [
-          'Ci sono due modi. Il primo è esportare: dall’elenco delle partite ottieni un file .vrp, che puoi inviare a chi vuoi e aprire con «Importa» su qualsiasi versione dell’app. L’importazione non sovrascrive nulla: una partita già presente con dati diversi viene aggiunta come copia.',
-          'Il secondo è la sincronizzazione con Google Drive, dal riquadro nella pagina Partite: collegando lo stesso account su più dispositivi i dati restano allineati. L’app vede solo il proprio file, non il resto del Drive. Per ora è disponibile sulla versione web e sulle app per Windows, macOS e Linux; su Android, iPhone e iPad usa l’esportazione.',
-        ],
-      },
-      {
-        id: 'download',
-        q: 'Dove si scarica?',
-        a: ['Non serve installare nulla: la versione web si apre dal browser, ma serve la connessione per aprirla. Ci sono anche le app per Windows, macOS, Linux, Android, iPhone e iPad, che funzionano senza rete. Ogni versione ha il proprio archivio: i dati non passano da una all’altra da soli, vale quanto detto sopra.'],
-      },
-      {
-        id: 'form',
-        q: 'Il modulo PDF è cambiato: come faccio con quelli che ho già stampato?',
-        a: ['Puoi continuare a usarli. Il software viene aggiornato spesso, ma la retrocompatibilità è garantita: ogni foglio dichiara la propria versione nel codice QR e l’app lo legge con le regole di quella versione, anche mescolando versioni diverse nella stessa partita. Quando vuoi, scarica e stampa il modulo più recente.'],
-      },
-      {
-        id: 'warning',
-        q: 'Perché Windows, Apple o Android dicono che il software è pericoloso?',
-        a: [
-          'Perché l’autore non è registrato come sviluppatore riconosciuto presso di loro: la registrazione ha un costo e il progetto oggi ha più spese che entrate, quindi per ora non si investe in questa direzione. L’avviso dice che l’app non è firmata, non che sia stato trovato qualcosa di dannoso. Le versioni sono prodotte da GitHub Actions a partire dal codice pubblico, che chiunque può controllare.',
-          'Windows: «Ulteriori informazioni», poi «Esegui comunque». macOS: clic destro sull’app, poi «Apri». Android: consenti l’installazione dal browser o dal file manager. iPhone e iPad: il pacchetto va installato con strumenti come AltStore o Sideloadly. Se preferisci non installare nulla, usa la versione web.',
-        ],
-      },
-      {
-        id: 'photo',
-        q: 'E se l’app legge male un foglio?',
-        a: ['Prima di salvare puoi controllare il foglio: i numeri di divisa si trascrivono guardando i ritagli della foto e i conteggi delle caselle si correggono a mano, anche dopo, dalla pagina della partita. Una foto dritta, con luce uniforme e i sei quadrati neri ben visibili aiuta molto.'],
-      },
-      {
-        id: 'datavolley',
-        q: 'Le statistiche sono come quelle di DataVolley?',
-        a: ['Efficienze, V-P, votazione e tabellino seguono le definizioni predefinite di DataVolley 4, con le poche scelte del progetto descritte nella sezione Statistiche. VolleyReport è un progetto indipendente: conta i tocchi per atleta e non registra la sequenza delle azioni, quindi non offre le analisi che ne dipendono, come rotazioni e break point.'],
-      },
-      {
-        id: 'languages',
-        q: 'Posso averlo in altre lingue?',
-        a: ['Certo. Al momento ci sono italiano e inglese. Se vuoi contribuire con un’altra lingua, la guida su GitHub spiega come fare.'],
-      },
-      {
-        id: 'ai',
-        q: 'Il progetto è sviluppato con l’intelligenza artificiale?',
-        a: ['Sì, il progetto è sviluppato facendo uso di agenti AI. Questo non vuol dire che non ci sia impegno: idee, scelte, prove sul campo e guida del lavoro restano umane.'],
-      },
-      {
-        id: 'request',
-        q: 'Posso chiedere una nuova funzione o segnalare un errore?',
-        a: ['Sì, ogni richiesta è benvenuta: segnalazioni di errori e nuove funzioni aspettano volentieri di essere sviluppate. Scrivi su GitHub oppure via email.'],
-      },
-    ],
+    text: 'Le domande che arrivano più spesso, per argomento.',
     donate: 'Fai una donazione',
     source: 'Codice sorgente',
     web: 'Apri la versione web',
@@ -570,6 +503,188 @@ export const it = {
     translate: 'Come tradurre VolleyReport',
     issues: 'Scrivi su GitHub',
     showEmail: 'Mostra l’indirizzo email',
+    groups: [
+      {
+        title: 'Per iniziare',
+        items: [
+          {
+            id: 'cost',
+            q: 'Quanto costa?',
+            a: ['Niente. VolleyReport è software libero e i sorgenti sono pubblici. Se vuoi aiutare lo sviluppo puoi fare una donazione: è facoltativa e non sblocca funzioni.'],
+          },
+          {
+            id: 'download',
+            q: 'Dove si scarica?',
+            a: ['Non serve installare nulla: la versione web si apre dal browser, ma serve la connessione per aprirla. Ci sono anche le app per Windows, macOS, Linux, Android, iPhone e iPad, che funzionano senza rete. Ogni versione ha il proprio archivio: i dati non passano da una all’altra da soli, vale quanto detto sopra.'],
+          },
+          {
+            id: 'warning',
+            q: 'Perché Windows, Apple o Android dicono che il software è pericoloso?',
+            a: ['Perché l’autore non è registrato come sviluppatore riconosciuto presso di loro: la registrazione ha un costo e il progetto oggi ha più spese che entrate, quindi per ora non si investe in questa direzione. L’avviso dice che l’app non è firmata, non che sia stato trovato qualcosa di dannoso. Le versioni sono prodotte da GitHub Actions a partire dal codice pubblico, che chiunque può controllare.', 'Windows: «Ulteriori informazioni», poi «Esegui comunque». macOS: clic destro sull’app, poi «Apri». Android: consenti l’installazione dal browser o dal file manager. iPhone e iPad: il pacchetto va installato con strumenti come AltStore o Sideloadly. Se preferisci non installare nulla, usa la versione web.'],
+          },
+          {
+            id: 'languages',
+            q: 'Posso averlo in altre lingue?',
+            a: ['Certo. Al momento ci sono italiano e inglese. Se vuoi contribuire con un’altra lingua, la guida su GitHub spiega come fare.'],
+          },
+        ],
+      },
+      {
+        title: 'Dati e dispositivi',
+        items: [
+          {
+            id: 'data',
+            q: 'Dove finiscono i dati?',
+            a: ['Restano sul dispositivo. Anche la versione web gira tutta nel browser: partite, nomi e foto non vengono inviati a un server del progetto, che infatti non esiste. Lasciano il dispositivo solo per tua scelta: quando esporti un file o colleghi il tuo Google Drive.', 'Attenzione: i dati stanno in quel browser su quel dispositivo. Se cambi computer o browser non li ritrovi, e cancellando i dati di navigazione li perdi. Per non perderli esporta le partite o, su web e computer, sincronizzale con il tuo Google Drive.'],
+          },
+          {
+            id: 'exchange',
+            q: 'Come faccio a scambiare i dati o a passarli su un altro dispositivo?',
+            a: ['Ci sono due modi. Il primo è esportare: dall’elenco delle partite ottieni un file .vrp, che puoi inviare a chi vuoi e aprire con «Importa» su qualsiasi versione dell’app. L’importazione non sovrascrive nulla: una partita già presente con dati diversi viene aggiunta come copia.', 'Il secondo è la sincronizzazione con Google Drive, dal riquadro nella pagina Partite: collegando lo stesso account su più dispositivi i dati restano allineati. L’app vede solo il proprio file, non il resto del Drive. Per ora è disponibile sulla versione web e sulle app per Windows, macOS e Linux; su Android, iPhone e iPad usa l’esportazione.'],
+          },
+          {
+            id: 'delete',
+            q: 'Se elimino una partita posso recuperarla?',
+            a: ['Dal dispositivo no, a meno di averla esportata. Se usi Google Drive la cancellazione arriva anche agli altri dispositivi collegati: per conservarla, esporta prima un file .vrp.'],
+          },
+        ],
+      },
+      {
+        title: 'Modulo e foto',
+        items: [
+          {
+            id: 'form',
+            q: 'Il modulo PDF è cambiato: come faccio con quelli che ho già stampato?',
+            a: ['Puoi continuare a usarli. Il software viene aggiornato spesso, ma la retrocompatibilità è garantita: ogni foglio dichiara la propria versione nel codice QR e l’app lo legge con le regole di quella versione, anche mescolando versioni diverse nella stessa partita. Quando vuoi, scarica e stampa il modulo più recente.'],
+          },
+          {
+            id: 'evaluations',
+            q: 'Cosa significano le valutazioni # + ! - / =?',
+            a: ['Il significato dipende dal fondamentale e segue lo standard DataVolley. Il simbolo è scritto dopo la lettera del fondamentale: B battuta, R ricezione, A attacco, M muro, P alzata (solo il fallo).'],
+          },
+          {
+            id: 'photo',
+            q: 'E se l’app legge male un foglio?',
+            a: ['Prima di salvare puoi controllare il foglio: i numeri di divisa si trascrivono guardando i ritagli della foto e i conteggi delle caselle si correggono a mano, anche dopo, dalla pagina della partita. Una foto dritta, con luce uniforme e i sei quadrati neri ben visibili aiuta molto.'],
+          },
+          {
+            id: 'sheets',
+            q: 'Ho fotografato di nuovo un set o il set è su due fogli: cosa succede?',
+            a: ['Quando un set è già presente l’app chiede cosa fare: sommare i fogli, se sono fogli diversi dello stesso set, oppure sostituire il set salvato. Se è lo stesso foglio fotografato due volte, togli una delle due foto: sommandole conteresti i tocchi due volte.'],
+          },
+        ],
+      },
+      {
+        title: 'Correggere i dati',
+        items: [
+          {
+            id: 'correct',
+            q: 'Ho sbagliato un conteggio: come lo correggo?',
+            a: ['Apri la partita dall’elenco in Partite. Nella sezione Set scrivi il totale giusto nella casella, oppure usa la modalità «Per divisa» con i pulsanti + e −. La modifica si salva da sola e aggiorna tabellino, grafici e storico. Nella stessa pagina correggi squadre, data, punteggi, numeri di divisa e nomi.'],
+          },
+          {
+            id: 'correctLive',
+            q: 'Come correggo mentre rilevo sul tablet?',
+            a: ['«Annulla» toglie l’ultimo tocco, una pressione prolungata sulla casella (clic destro con il mouse) toglie 1 e con «Modalità −1» ogni tocco toglie 1. Un set chiuso è in sola lettura: per correggerlo tocca «Riapri set».'],
+          },
+          {
+            id: 'check',
+            q: 'Cosa vuol dire «Da controllare» nella pagina della partita?',
+            a: ['L’app segnala dati mancanti o incoerenti: squadra senza nome, punteggio mancante o in parità, tocchi su una riga senza numero di divisa, punti diretti superiori al punteggio della squadra. Il tabellino si può aprire lo stesso, ma quei numeri potrebbero non essere affidabili.'],
+          },
+          {
+            id: 'score',
+            q: 'Perché serve il punteggio finale di ogni set?',
+            a: ['Serve a calcolare gli errori avversari: sono i punti della squadra che non vengono da un tocco vincente registrato (punteggio meno punti diretti). Senza punteggio, per quel set non si possono calcolare.'],
+          },
+        ],
+      },
+      {
+        title: 'Storico',
+        items: [
+          {
+            id: 'history',
+            q: 'Come funziona lo storico?',
+            a: ['Lo storico raccoglie i dati di ogni atleta in più partite. Una divisa identifica qualcuno solo in una squadra e in un campionato, quindi ogni divisa va abbinata all’atleta di riferimento. L’app propone gli abbinamenti, ma non li applica finché non li confermi. Un abbinamento vale per tutte le partite della stessa squadra e dello stesso campionato con quel numero.'],
+          },
+          {
+            id: 'shirts',
+            q: 'Ogni atleta può cambiare numero o giocare in due campionati: come unisco i dati?',
+            a: ['Nella pagina Storico abbina entrambe le divise allo stesso atleta di riferimento: i dati vengono uniti qualunque sia il numero. Il nome può anche mancare. Con due nomi uguali, usa la nota per distinguerli, per esempio con l’anno di nascita.'],
+          },
+          {
+            id: 'squads',
+            q: 'La squadra ha un nome diverso in ogni campionato, per esempio con lo sponsor: come faccio?',
+            a: ['In Storico, nella sezione «Nomi della squadra», unisci i nomi: lo storico mette insieme i suoi campionati. L’app si limita a suggerire i nomi simili: li unisci solo tu e puoi separarli con «Separa».'],
+          },
+          {
+            id: 'aggregate',
+            q: 'Come vengono sommati i dati di più partite?',
+            a: ['Nella pagina dell’atleta scegli quali partite unire. I totali e le percentuali vengono ricalcolati da tutti i tocchi delle partite scelte, non facendo la media delle percentuali di ogni partita. Così una partita con pochi tocchi non pesa come una con molti. Trovi anche il voto medio, l’andamento partita per partita e le valutazioni.'],
+          },
+          {
+            id: 'unlink',
+            q: 'Se tolgo un abbinamento o elimino l’atleta di riferimento perdo le partite?',
+            a: ['No. Le partite restano: si perde solo il collegamento, quindi quei dati non contano più in quello storico.'],
+          },
+          {
+            id: 'historyScope',
+            q: 'Lo storico vede tutte le mie partite?',
+            a: ['Vede le partite presenti nell’archivio di quel dispositivo e browser. Per averlo completo importa le partite da altri dispositivi o sincronizzale con Google Drive. Lo storico è per atleta: non c’è un totale della squadra su più partite.'],
+          },
+        ],
+      },
+      {
+        title: 'Tabellino e grafici',
+        items: [
+          {
+            id: 'charts',
+            q: 'Quali grafici ci sono e come li leggo?',
+            a: ['Nella pagina Grafici, per ogni partita: le valutazioni per fondamentale, i punti vinti e persi, l’andamento per set, e gli stessi dati per le divise che scegli, con un confronto. «Mostra i dati» apre i valori in tabella. Il PDF contiene i grafici della squadra e delle divise scelte.'],
+          },
+          {
+            id: 'colours',
+            q: 'Perché lo stesso simbolo ha colori diversi tra i fondamentali?',
+            a: ['Il colore indica la posizione dalla valutazione più favorevole alla meno favorevole, e l’ordine dipende dal fondamentale: in battuta è # / + ! - =, negli altri # + ! - / =. Per esempio / è verde chiaro in battuta, dove è un mezzo punto, e arancione in ricezione.'],
+          },
+          {
+            id: 'oneSet',
+            q: 'Posso vedere il tabellino di un solo set?',
+            a: ['Sì: nel tabellino tocca il set nel riquadro del punteggio. Anche il PDF segue la scelta.'],
+          },
+          {
+            id: 'rating',
+            q: 'Come viene calcolato il voto?',
+            a: ['Il voto è la media dei voti ottenuti in battuta, ricezione, attacco e muro, con le regole del tabellino di DataVolley 4 e una scelta del progetto: DataVolley non assegna un peso a !, qui ne ha uno coerente con la scala del fondamentale. L’alzata non ha voto: i falli di alzata (P=) non lo cambiano.', 'Battuta, ricezione e attacco: ogni tocco vale dei punti, si sommano e si divide per i tocchi fatti in quel fondamentale. In battuta # vale 10, / vale 8, + vale 7, ! vale 5,5, - vale 4, = vale 0. In ricezione # vale 10, + vale 7, ! vale 0, - vale −1, / e = valgono −3. In attacco # vale 10, +, ! e - valgono 5, / e = valgono 0. Un voto sotto 5,5 sale a 5,5.', 'Il voto di un fondamentale c’è solo con una quota sufficiente dei tocchi della squadra: almeno il 5% delle battute, il 12% delle ricezioni, il 7% degli attacchi.', 'Muro: dipende dai muri vincenti (#) per set giocato. Almeno 1 a set vale 8,5, almeno 0,8 vale 8, almeno 0,5 vale 7; sotto non c’è voto.', 'Esempio: 10 battute (2 #, 3 +, 4 -, 1 =) danno (20 + 21 + 16) / 10 = 5,7. Con un voto di 6,5 in attacco e nessun altro voto, il voto finale è (5,7 + 6,5) / 2 = 6,1.', 'DataVolley prevede un voto in più per il ruolo di palleggio, legato agli attacchi dopo ricezione positiva: richiede la sequenza delle azioni, che il modulo non registra, quindi qui non c’è.', 'Nello storico, il voto medio è la media dei voti delle partite scelte in cui c’è un voto.'],
+          },
+          {
+            id: 'dots',
+            q: 'Perché nel tabellino vedo dei punti o manca il voto?',
+            a: ['Il punto indica un valore nullo o non calcolabile, come nei tabellini DataVolley. Il voto compare solo con abbastanza tocchi nel fondamentale rispetto alla squadra, quindi può mancare per chi ha giocato poco.'],
+          },
+          {
+            id: 'datavolley',
+            q: 'Le statistiche sono come quelle di DataVolley?',
+            a: ['Efficienze, V-P, votazione e tabellino seguono le definizioni predefinite di DataVolley 4, con le poche scelte del progetto descritte nella sezione Statistiche di Informazioni: per questo il voto può differire da quello di DataVolley quando ci sono valutazioni !. VolleyReport è un progetto indipendente: conta i tocchi per atleta e non registra la sequenza delle azioni, quindi non offre le analisi che ne dipendono, come rotazioni e break point.'],
+          },
+        ],
+      },
+      {
+        title: 'Il progetto',
+        items: [
+          {
+            id: 'ai',
+            q: 'Il progetto è sviluppato con l’intelligenza artificiale?',
+            a: ['Sì, il progetto è sviluppato facendo uso di agenti AI. Questo non vuol dire che non ci sia impegno: idee, scelte, prove sul campo e guida del lavoro restano umane.'],
+          },
+          {
+            id: 'request',
+            q: 'Posso chiedere una nuova funzione o segnalare un errore?',
+            a: ['Sì, ogni richiesta è benvenuta: segnalazioni di errori e nuove funzioni aspettano volentieri di essere sviluppate. Scrivi su GitHub oppure via email.'],
+          },
+        ],
+      },
+    ],
   },
 
   info: {
@@ -609,7 +724,7 @@ export const it = {
     codesText: 'Valutazioni dello standard DataVolley. Per l’alzata si segna solo il fallo (=).',
     statsTitle: 'Statistiche',
     statsText:
-      'Efficienze, V-P, votazione e tabellino seguono le definizioni predefinite di DataVolley 4, con due scelte del progetto: il V-P conta anche i punti persi a muro (M= e M/), e l’invasione a muro (M/) fa perdere il punto. I falli di alzata (P=) sono punti persi, ma non entrano nel V-P.',
+      'Efficienze, V-P, votazione e tabellino seguono le definizioni predefinite di DataVolley 4, con tre scelte del progetto: il V-P conta anche i punti persi a muro (M= e M/), l’invasione a muro (M/) fa perdere il punto e nel voto ! ha un peso coerente con la scala (5,5 in battuta, 5 in attacco). I falli di alzata (P=) sono punti persi, ma non entrano nel V-P.',
     supportTitle: 'Sostieni lo sviluppo',
     supportText: 'VolleyReport è gratuito e open source. Se ti è utile, puoi contribuire al tempo e alle spese di sviluppo con una donazione su PayPal.',
     supportButton: 'Sostieni VolleyReport con PayPal',

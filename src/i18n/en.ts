@@ -11,7 +11,7 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
 export const en: Messages = {
   skills: { B: 'Serve', R: 'Reception', A: 'Attack', M: 'Block', P: 'Setting', F: 'Free ball', D: 'Dig' },
 
-  nav: { partite: 'Matches', tabellino: 'Scoresheet', grafici: 'Charts', storico: 'History', informazioni: 'About', label: 'Main navigation' },
+  nav: { partite: 'Matches', tabellino: 'Scoresheet', grafici: 'Charts', storico: 'History', informazioni: 'About', faq: 'FAQ', label: 'Main navigation' },
 
   common: {
     loading: 'Loading…',
@@ -35,7 +35,6 @@ export const en: Messages = {
     license: 'License AGPL-3.0-or-later',
     source: 'Source code',
     privacy: 'Privacy',
-    faq: 'FAQ',
     version: 'ver',
   },
 
@@ -455,10 +454,10 @@ export const en: Messages = {
     opponentErrorsSet: (n: number) => `Opponent errors in the set: ${n}`,
     opponentErrorsTotal: (n: number) => `Total opponent errors: ${n}`,
     legend:
-      'Vote: DataVolley rating · W-L: points won minus points lost · Pos%: positive reception (#+) · Exc%: excellent (#) · Blo: attacks blocked · Pts%: kills. A dot means zero or "not applicable".',
+      'Vote: on the DataVolley model · W-L: points won minus points lost · Pos%: positive reception (#+) · Exc%: excellent (#) · Blo: attacks blocked · Pts%: kills. A dot means zero or "not applicable".',
     pdfLegend:
-      'Vote: DataVolley rating (mean of the skill votes)   W-L: won - lost   Err: errors   Pts: points   Blo: blocked   Pos%: positive (#+)   Exc%: excellent (#)   Op.Er: opponent errors',
-    footer: (url: string) => `VolleyReport · an idea of Maurizio Napolitano · ${url} · statistics with the DataVolley 4 definitions`,
+      'Vote: on the DataVolley model (mean of the skill votes)   W-L: won - lost   Err: errors   Pts: points   Blo: blocked   Pos%: positive (#+)   Exc%: excellent (#)   Op.Er: opponent errors',
+    footer: (url: string) => `VolleyReport · an idea of Maurizio Napolitano · ${url} · statistics based on the DataVolley 4 definitions`,
     eyebrow: 'Scoresheet',
     toCheck: 'To check before sharing the scoresheet:',
     complete: 'The match data are complete.',
@@ -529,75 +528,9 @@ export const en: Messages = {
   },
 
   faq: {
+    eyebrow: 'FAQ',
     title: 'Frequently asked questions',
-    text: 'The questions that come up most often.',
-    link: 'FAQ',
-    items: [
-      {
-        id: 'cost',
-        q: 'How much does it cost?',
-        a: ['Nothing. VolleyReport is free software and its source code is public. If you want to help the development you can make a donation: it is optional and unlocks no features.'],
-      },
-      {
-        id: 'data',
-        q: 'Where does my data go?',
-        a: [
-          'It stays on the device. The web version too runs entirely in the browser: matches, names and photos are not sent to any server of the project, because there is none. It leaves the device only by your choice: when you export a file or connect your Google Drive.',
-          'Keep in mind that the data sits in that browser on that device. If you change computer or browser you will not find it, and clearing the browsing data deletes it. To keep it, export your matches or, on the web and on computers, sync them with your Google Drive.',
-        ],
-      },
-      {
-        id: 'exchange',
-        q: 'How do I share data or move it to another device?',
-        a: [
-          'There are two ways. The first is exporting: the match list gives you a .vrp file that you can send to anyone and open with “Import” in any version of the app. Importing never overwrites anything: a match already there with different data is added as a copy.',
-          'The second is syncing with Google Drive, from the box on the Matches page: with the same account connected on several devices the data stays aligned. The app sees only its own file, not the rest of your Drive. For now it is available in the web version and in the apps for Windows, macOS and Linux; on Android, iPhone and iPad use export.',
-        ],
-      },
-      {
-        id: 'download',
-        q: 'Where do I download it?',
-        a: ['You do not need to install anything: the web version opens in the browser, though it needs a connection to open. There are also apps for Windows, macOS, Linux, Android, iPhone and iPad, which work offline. Each version has its own archive: data does not move between them by itself, as explained above.'],
-      },
-      {
-        id: 'form',
-        q: 'The PDF form has changed: what about the ones I already printed?',
-        a: ['You can keep using them. The software is updated often, but backward compatibility is guaranteed: every sheet states its version in the QR code and the app reads it with the rules of that version, even with different versions in the same match. Download and print the latest form whenever you like.'],
-      },
-      {
-        id: 'warning',
-        q: 'Why do Windows, Apple or Android say the software is dangerous?',
-        a: [
-          'Because the author is not registered with them as a recognised developer: registering costs money and the project currently has more expenses than income, so for now there is no investment in that direction. The warning says the app is not signed, not that anything harmful was found. The builds are made by GitHub Actions from the public source code, which anyone can check.',
-          'Windows: “More info”, then “Run anyway”. macOS: right-click the app, then “Open”. Android: allow installing from the browser or the file manager. iPhone and iPad: the package is installed with tools such as AltStore or Sideloadly. If you prefer not to install anything, use the web version.',
-        ],
-      },
-      {
-        id: 'photo',
-        q: 'What if the app misreads a sheet?',
-        a: ['You can check the sheet before saving: shirt numbers are typed by looking at the crops of the photo, and the counts of the cells can be corrected by hand, also later on the match page. A straight photo, with even light and the six black squares clearly visible, helps a lot.'],
-      },
-      {
-        id: 'datavolley',
-        q: 'Are the statistics the same as DataVolley?',
-        a: ['Efficiencies, W-L, ratings and the scoresheet follow the default definitions of DataVolley 4, with the few project choices described in the Statistics section. VolleyReport is an independent project: it counts touches per player and does not record the sequence of rallies, so it does not offer the analyses that depend on it, such as rotations and break points.'],
-      },
-      {
-        id: 'languages',
-        q: 'Can I have it in other languages?',
-        a: ['Of course. At the moment there are Italian and English. If you want to contribute another language, the guide on GitHub explains how.'],
-      },
-      {
-        id: 'ai',
-        q: 'Is the project developed with artificial intelligence?',
-        a: ['Yes, the project is developed using AI agents. That does not mean there is no commitment: ideas, choices, field tests and the direction of the work remain human.'],
-      },
-      {
-        id: 'request',
-        q: 'Can I ask for a new feature or report a bug?',
-        a: ['Yes, every request is welcome: bug reports and new features are gladly waiting to be developed. Write on GitHub or by email.'],
-      },
-    ],
+    text: 'The questions that come up most often, by topic.',
     donate: 'Make a donation',
     source: 'Source code',
     web: 'Open the web version',
@@ -605,6 +538,188 @@ export const en: Messages = {
     translate: 'How to translate VolleyReport',
     issues: 'Write on GitHub',
     showEmail: 'Show the email address',
+    groups: [
+      {
+        title: 'Getting started',
+        items: [
+          {
+            id: 'cost',
+            q: 'How much does it cost?',
+            a: ['Nothing. VolleyReport is free software and its source code is public. If you want to help the development you can make a donation: it is optional and unlocks no features.'],
+          },
+          {
+            id: 'download',
+            q: 'Where do I download it?',
+            a: ['You do not need to install anything: the web version opens in the browser, though it needs a connection to open. There are also apps for Windows, macOS, Linux, Android, iPhone and iPad, which work offline. Each version has its own archive: data does not move between them by itself, as explained above.'],
+          },
+          {
+            id: 'warning',
+            q: 'Why do Windows, Apple or Android say the software is dangerous?',
+            a: ['Because the author is not registered with them as a recognised developer: registering costs money and the project currently has more expenses than income, so for now there is no investment in that direction. The warning says the app is not signed, not that anything harmful was found. The builds are made by GitHub Actions from the public source code, which anyone can check.', 'Windows: “More info”, then “Run anyway”. macOS: right-click the app, then “Open”. Android: allow installing from the browser or the file manager. iPhone and iPad: the package is installed with tools such as AltStore or Sideloadly. If you prefer not to install anything, use the web version.'],
+          },
+          {
+            id: 'languages',
+            q: 'Can I have it in other languages?',
+            a: ['Of course. At the moment there are Italian and English. If you want to contribute another language, the guide on GitHub explains how.'],
+          },
+        ],
+      },
+      {
+        title: 'Data and devices',
+        items: [
+          {
+            id: 'data',
+            q: 'Where does my data go?',
+            a: ['It stays on the device. The web version too runs entirely in the browser: matches, names and photos are not sent to any server of the project, because there is none. It leaves the device only by your choice: when you export a file or connect your Google Drive.', 'Keep in mind that the data sits in that browser on that device. If you change computer or browser you will not find it, and clearing the browsing data deletes it. To keep it, export your matches or, on the web and on computers, sync them with your Google Drive.'],
+          },
+          {
+            id: 'exchange',
+            q: 'How do I share data or move it to another device?',
+            a: ['There are two ways. The first is exporting: the match list gives you a .vrp file that you can send to anyone and open with “Import” in any version of the app. Importing never overwrites anything: a match already there with different data is added as a copy.', 'The second is syncing with Google Drive, from the box on the Matches page: with the same account connected on several devices the data stays aligned. The app sees only its own file, not the rest of your Drive. For now it is available in the web version and in the apps for Windows, macOS and Linux; on Android, iPhone and iPad use export.'],
+          },
+          {
+            id: 'delete',
+            q: 'If I delete a match can I get it back?',
+            a: ['Not from the device, unless you exported it. If you use Google Drive the deletion reaches the other connected devices too: to keep it, export a .vrp file first.'],
+          },
+        ],
+      },
+      {
+        title: 'Form and photos',
+        items: [
+          {
+            id: 'form',
+            q: 'The PDF form has changed: what about the ones I already printed?',
+            a: ['You can keep using them. The software is updated often, but backward compatibility is guaranteed: every sheet states its version in the QR code and the app reads it with the rules of that version, even with different versions in the same match. Download and print the latest form whenever you like.'],
+          },
+          {
+            id: 'evaluations',
+            q: 'What do the ratings # + ! - / = mean?',
+            a: ['The meaning depends on the skill and follows the DataVolley standard. The symbol comes after the letter of the skill: B serve, R reception, A attack, M block, P setting (faults only).'],
+          },
+          {
+            id: 'photo',
+            q: 'What if the app misreads a sheet?',
+            a: ['You can check the sheet before saving: shirt numbers are typed by looking at the crops of the photo, and the counts of the cells can be corrected by hand, also later on the match page. A straight photo, with even light and the six black squares clearly visible, helps a lot.'],
+          },
+          {
+            id: 'sheets',
+            q: 'I photographed a set again, or the set is on two sheets: what happens?',
+            a: ['When a set is already there the app asks what to do: add the sheets up, if they are different sheets of the same set, or replace the saved set. If it is the same sheet photographed twice, remove one of the photos: adding them up would count the touches twice.'],
+          },
+        ],
+      },
+      {
+        title: 'Correcting data',
+        items: [
+          {
+            id: 'correct',
+            q: 'I got a count wrong: how do I correct it?',
+            a: ['Open the match from the list in Matches. In the Sets section type the right total in the cell, or use the “By player” mode with the + and − buttons. The change saves by itself and updates scoresheet, charts and history. On the same page you correct teams, date, scores, shirt numbers and names.'],
+          },
+          {
+            id: 'correctLive',
+            q: 'How do I correct while scouting on the tablet?',
+            a: ['“Undo” takes back the last touch, a long press on the cell (right click with a mouse) takes 1 away and with “−1 mode” every tap takes 1 away. A closed set is read-only: to correct it tap “Reopen set”.'],
+          },
+          {
+            id: 'check',
+            q: 'What does “To check” mean on the match page?',
+            a: ['The app points out missing or inconsistent data: a team without a name, a missing or tied score, touches on a row without a shirt number, direct points above the team’s score. The scoresheet still opens, but those numbers may not be reliable.'],
+          },
+          {
+            id: 'score',
+            q: 'Why is the final score of each set needed?',
+            a: ['It is used to calculate opponent errors: the team’s points that do not come from a recorded winning touch (score minus direct points). Without the score they cannot be calculated for that set.'],
+          },
+        ],
+      },
+      {
+        title: 'History',
+        items: [
+          {
+            id: 'history',
+            q: 'How does the history work?',
+            a: ['The history gathers each athlete’s data across matches. A shirt identifies someone only within a team and a competition, so each shirt has to be linked to its athlete. The app suggests links but does not apply them until you confirm. A link applies to all the matches of the same team and competition with that number.'],
+          },
+          {
+            id: 'shirts',
+            q: 'An athlete changed number or plays in two competitions: how do I join the data?',
+            a: ['On the History page link both shirts to the same athlete: the data is joined whatever the number. The name may even be missing. If two athletes share a name, use the note to tell them apart, for example with the year of birth.'],
+          },
+          {
+            id: 'squads',
+            q: 'The team has a different name in each competition, for example with a sponsor: what do I do?',
+            a: ['In History, in the “Team names” section, join the names: the history puts its competitions together. The app only suggests similar names: only you join them, and you can undo it with “Separate”.'],
+          },
+          {
+            id: 'aggregate',
+            q: 'How is the data of several matches added up?',
+            a: ['On the athlete’s page choose which matches to join. Totals and percentages are calculated again from all the touches of the chosen matches, not by averaging each match’s percentages. So a match with few touches does not weigh as much as one with many. You also find the mean rating, the match-by-match trend and the ratings.'],
+          },
+          {
+            id: 'unlink',
+            q: 'If I remove a link or delete an athlete do I lose the matches?',
+            a: ['No. The matches stay: only the link is lost, so that data no longer counts in that history.'],
+          },
+          {
+            id: 'historyScope',
+            q: 'Does the history see all my matches?',
+            a: ['It sees the matches in the archive of that device and browser. To make it complete, import matches from other devices or sync them with Google Drive. The history is per athlete: there is no team total across matches.'],
+          },
+        ],
+      },
+      {
+        title: 'Scoresheet and charts',
+        items: [
+          {
+            id: 'charts',
+            q: 'Which charts are there and how do I read them?',
+            a: ['On the Charts page, for each match: ratings by skill, points won and lost, the set trend, and the same data for the shirts you choose, with a comparison. “Show the data” opens the values in a table. The PDF contains the charts of the team and of the chosen shirts.'],
+          },
+          {
+            id: 'colours',
+            q: 'Why does the same symbol have different colours across skills?',
+            a: ['The colour shows the place from the most to the least favourable rating, and the order depends on the skill: serve # / + ! - =, the others # + ! - / =. For example / is light green in serve, where it is a half point, and orange in reception.'],
+          },
+          {
+            id: 'oneSet',
+            q: 'Can I see the scoresheet of a single set?',
+            a: ['Yes: in the scoresheet tap the set in the score box. The PDF follows your choice too.'],
+          },
+          {
+            id: 'rating',
+            q: 'How is the rating calculated?',
+            a: ['The rating is the mean of the ratings obtained in serve, reception, attack and block, with the rules of the DataVolley 4 scoresheet and one project choice: DataVolley gives ! no weight, here it has one that fits the scale of the skill. Setting has no rating: setting faults (P=) do not change it.', 'Serve, reception and attack: each touch is worth some points, they are added up and divided by the touches made in that skill. In serve # is worth 10, / 8, + 7, ! 5.5, - 4, = 0. In reception # is worth 10, + 7, ! 0, - −1, / and = −3. In attack # is worth 10, +, ! and - 5, / and = 0. A rating below 5.5 is raised to 5.5.', 'A skill is rated only with a sufficient share of the team’s touches: at least 5% of serves, 12% of receptions, 7% of attacks.', 'Block: it depends on winning blocks (#) per set played. At least 1 per set is worth 8.5, at least 0.8 is worth 8, at least 0.5 is worth 7; below that there is no rating.', 'Example: 10 serves (2 #, 3 +, 4 -, 1 =) give (20 + 21 + 16) / 10 = 5.7. With a rating of 6.5 in attack and no other rating, the final rating is (5.7 + 6.5) / 2 = 6.1.', 'DataVolley has an extra rating for the setter, based on attacks after a positive reception: it needs the sequence of rallies, which the form does not record, so it is not here.', 'In the history, the mean rating is the mean of the ratings of the chosen matches that have one.'],
+          },
+          {
+            id: 'dots',
+            q: 'Why do I see dots in the scoresheet, or no rating?',
+            a: ['A dot means a zero or a value that cannot be calculated, as in DataVolley scoresheets. The rating appears only with enough touches in the skill compared with the team, so it may be missing for those who played little.'],
+          },
+          {
+            id: 'datavolley',
+            q: 'Are the statistics the same as DataVolley?',
+            a: ['Efficiencies, W-L, ratings and the scoresheet follow the default definitions of DataVolley 4, with the few project choices described in the Statistics section of the About page: so the rating can differ from DataVolley’s when there are ! ratings. VolleyReport is an independent project: it counts touches per player and does not record the sequence of rallies, so it does not offer the analyses that depend on it, such as rotations and break points.'],
+          },
+        ],
+      },
+      {
+        title: 'The project',
+        items: [
+          {
+            id: 'ai',
+            q: 'Is the project developed with artificial intelligence?',
+            a: ['Yes, the project is developed using AI agents. That does not mean there is no commitment: ideas, choices, field tests and the direction of the work remain human.'],
+          },
+          {
+            id: 'request',
+            q: 'Can I ask for a new feature or report a bug?',
+            a: ['Yes, every request is welcome: bug reports and new features are gladly waiting to be developed. Write on GitHub or by email.'],
+          },
+        ],
+      },
+    ],
   },
 
   info: {
@@ -644,7 +759,7 @@ export const en: Messages = {
     codesText: 'Ratings of the DataVolley standard. For setting only the fault (=) is marked.',
     statsTitle: 'Statistics',
     statsText:
-      'Efficiencies, W-L, rating and scoresheet follow the DataVolley 4 default definitions, with two project choices: W-L also counts the points lost at the block (M= and M/), and a block net fault (M/) loses the point. Setting faults (P=) are points lost, but they do not count in W-L.',
+      'Efficiencies, W-L, rating and scoresheet follow the DataVolley 4 default definitions, with three project choices: W-L also counts the points lost at the block (M= and M/), a block net fault (M/) loses the point, and in the rating ! has a weight that fits the scale (5.5 in serve, 5 in attack). Setting faults (P=) are points lost, but they do not count in W-L.',
     supportTitle: 'Support the development',
     supportText: 'VolleyReport is free and open source. If you find it useful, you can contribute to the time and costs of development with a donation on PayPal.',
     supportButton: 'Support VolleyReport with PayPal',

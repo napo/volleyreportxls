@@ -20,6 +20,6 @@ test('both languages describe every anomaly and every evaluation of the vocabula
 });
 
 test('the two languages have the same frequent questions, in the same order', () => {
-  const ids = (lang: 'it' | 'en') => messagesFor(lang).faq.items.map((item) => item.id);
+  const ids = (lang: 'it' | 'en') => messagesFor(lang).faq.groups.flatMap((group) => group.items.map((item) => item.id));
   expect(ids('en')).toEqual(ids('it'));
 });
