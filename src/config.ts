@@ -31,6 +31,14 @@ export const releaseUrl = (version: string) => `${SOURCE_REPOSITORY_URL}/release
  */
 export const PAYPAL_DONATION_URL = 'https://paypal.me/MNapolitano570';
 
+/**
+ * Contact address, kept reversed so that it is not in the published code as plain text:
+ * it is put together only when the user asks to see it.
+ */
+const CONTACT_EMAIL = ['onatilopan.oiziruam', 'moc.liamg'] as const;
+const reversed = (text: string) => [...text].reverse().join('');
+export const contactEmail = () => CONTACT_EMAIL.map(reversed).join('@');
+
 /** A configured external link: http(s) only, otherwise null (no broken button). */
 export function externalUrl(value: string | undefined): string | null {
   if (!value?.trim()) return null;

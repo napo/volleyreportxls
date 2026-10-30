@@ -64,7 +64,7 @@ SPDX-License-Identifier: CC-BY-4.0
         <p class="updated">Ultimo aggiornamento: 29 ottobre 2026</p>
 
         <h2>Chi gestisce l’app</h2>
-        <p>VolleyReport (<a href="https://report.volleyserve.it/">report.volleyserve.it</a> e le app per Windows, macOS, Linux, Android e iOS) è software libero sviluppato da Maurizio Napolitano, <a href="mailto:maurizio.napolitano@gmail.com">maurizio.napolitano@gmail.com</a>. Il codice è pubblico: <a href="https://github.com/napo/volleyreportxls">github.com/napo/volleyreportxls</a>.</p>
+        <p>VolleyReport (<a href="https://report.volleyserve.it/">report.volleyserve.it</a> e le app per Windows, macOS, Linux, Android e iOS) è software libero sviluppato da Maurizio Napolitano, <span class="contact">maurizio.napolitano [at] gmail [dot] com</span>. Il codice è pubblico: <a href="https://github.com/napo/volleyreportxls">github.com/napo/volleyreportxls</a>.</p>
 
         <h2>Dati trattati</h2>
         <p>L’app tratta solo i dati che inserisci: partite, punteggi, conteggi dei tocchi, numeri di divisa, nomi di squadre e atleti, e le foto dei fogli di rilevazione. Le foto sono lette sul dispositivo e non vengono salvate né inviate.</p>
@@ -89,7 +89,7 @@ SPDX-License-Identifier: CC-BY-4.0
         <p class="updated">Last updated: 29 October 2026</p>
 
         <h2>Who runs the app</h2>
-        <p>VolleyReport (<a href="https://report.volleyserve.it/">report.volleyserve.it</a> and the apps for Windows, macOS, Linux, Android and iOS) is free software developed by Maurizio Napolitano, <a href="mailto:maurizio.napolitano@gmail.com">maurizio.napolitano@gmail.com</a>. The source code is public: <a href="https://github.com/napo/volleyreportxls">github.com/napo/volleyreportxls</a>.</p>
+        <p>VolleyReport (<a href="https://report.volleyserve.it/">report.volleyserve.it</a> and the apps for Windows, macOS, Linux, Android and iOS) is free software developed by Maurizio Napolitano, <span class="contact">maurizio.napolitano [at] gmail [dot] com</span>. The source code is public: <a href="https://github.com/napo/volleyreportxls">github.com/napo/volleyreportxls</a>.</p>
 
         <h2>Data processed</h2>
         <p>The app processes only the data you enter: matches, scores, touch counts, shirt numbers, team and athlete names, and photos of the scouting sheets. Photos are read on the device and are neither stored nor sent.</p>
@@ -109,5 +109,15 @@ SPDX-License-Identifier: CC-BY-4.0
         <p>Changes to this policy are published on this page, with the update date.</p>
       </article>
     </main>
+    <script>
+      // The address is put together here, so that it is not in the page as plain text.
+      const address = ['maurizio.napolitano', 'gmail.com'].join(String.fromCharCode(64));
+      for (const contact of document.querySelectorAll('.contact')) {
+        const link = document.createElement('a');
+        link.href = 'mail' + 'to:' + address;
+        link.textContent = address;
+        contact.replaceWith(link);
+      }
+    </script>
   </body>
 </html>

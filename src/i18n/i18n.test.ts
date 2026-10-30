@@ -18,3 +18,8 @@ test('both languages describe every anomaly and every evaluation of the vocabula
     expect(Object.keys(m.codes.B)).toEqual(['#', '+', '!', '-', '/', '=']);
   }
 });
+
+test('the two languages have the same frequent questions, in the same order', () => {
+  const ids = (lang: 'it' | 'en') => messagesFor(lang).faq.items.map((item) => item.id);
+  expect(ids('en')).toEqual(ids('it'));
+});

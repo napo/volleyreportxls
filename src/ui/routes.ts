@@ -9,7 +9,7 @@ export const TABS = ['partite', 'tabellino', 'grafici', 'storico', 'informazioni
 export type Tab = (typeof TABS)[number];
 
 /** Pages that live inside a tab. */
-const PAGES = { partita: 'partite', foto: 'partite', rileva: 'partite', atleta: 'storico', modulo: 'informazioni' } as const satisfies Record<string, Tab>;
+const PAGES = { partita: 'partite', foto: 'partite', rileva: 'partite', atleta: 'storico', modulo: 'informazioni', faq: 'informazioni' } as const satisfies Record<string, Tab>;
 
 export interface Route {
   readonly name: Tab | keyof typeof PAGES;
@@ -26,7 +26,7 @@ export function parseRoute(hash: string): Route {
 }
 
 /** Pages that are a section of their tab's page: the app scrolls to the element with their name as id. */
-export const isSectionPage = (route: Route) => route.name === 'modulo';
+export const isSectionPage = (route: Route) => route.name === 'modulo' || route.name === 'faq';
 
 export const tabOf = (route: Route): Tab => (route.name in PAGES ? PAGES[route.name as keyof typeof PAGES] : (route.name as Tab));
 

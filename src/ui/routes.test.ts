@@ -8,6 +8,7 @@ test('hash routes with an optional parameter', () => {
   expect(tabOf(parseRoute('#partita/abc123'))).toBe('partite');
   expect(parseRoute('#tabellino')).toEqual({ name: 'tabellino', param: null });
   expect(tabOf(parseRoute('#modulo'))).toBe('informazioni');
+  expect(tabOf(parseRoute('#faq'))).toBe('informazioni');
   expect(parseRoute('#qualcosa')).toEqual({ name: 'partite', param: null });
   expect(parseRoute('')).toEqual({ name: 'partite', param: null });
   expect(tabOf(parseRoute('#atleta/a1'))).toBe('storico');

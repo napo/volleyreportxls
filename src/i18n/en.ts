@@ -35,6 +35,7 @@ export const en: Messages = {
     license: 'License AGPL-3.0-or-later',
     source: 'Source code',
     privacy: 'Privacy',
+    faq: 'FAQ',
     version: 'ver',
   },
 
@@ -527,6 +528,85 @@ export const en: Messages = {
     noPoints: 'No point won or lost.',
   },
 
+  faq: {
+    title: 'Frequently asked questions',
+    text: 'The questions that come up most often.',
+    link: 'FAQ',
+    items: [
+      {
+        id: 'cost',
+        q: 'How much does it cost?',
+        a: ['Nothing. VolleyReport is free software and its source code is public. If you want to help the development you can make a donation: it is optional and unlocks no features.'],
+      },
+      {
+        id: 'data',
+        q: 'Where does my data go?',
+        a: [
+          'It stays on the device. The web version too runs entirely in the browser: matches, names and photos are not sent to any server of the project, because there is none. It leaves the device only by your choice: when you export a file or connect your Google Drive.',
+          'Keep in mind that the data sits in that browser on that device. If you change computer or browser you will not find it, and clearing the browsing data deletes it. To keep it, export your matches or, on the web and on computers, sync them with your Google Drive.',
+        ],
+      },
+      {
+        id: 'exchange',
+        q: 'How do I share data or move it to another device?',
+        a: [
+          'There are two ways. The first is exporting: the match list gives you a .vrp file that you can send to anyone and open with “Import” in any version of the app. Importing never overwrites anything: a match already there with different data is added as a copy.',
+          'The second is syncing with Google Drive, from the box on the Matches page: with the same account connected on several devices the data stays aligned. The app sees only its own file, not the rest of your Drive. For now it is available in the web version and in the apps for Windows, macOS and Linux; on Android, iPhone and iPad use export.',
+        ],
+      },
+      {
+        id: 'download',
+        q: 'Where do I download it?',
+        a: ['You do not need to install anything: the web version opens in the browser, though it needs a connection to open. There are also apps for Windows, macOS, Linux, Android, iPhone and iPad, which work offline. Each version has its own archive: data does not move between them by itself, as explained above.'],
+      },
+      {
+        id: 'form',
+        q: 'The PDF form has changed: what about the ones I already printed?',
+        a: ['You can keep using them. The software is updated often, but backward compatibility is guaranteed: every sheet states its version in the QR code and the app reads it with the rules of that version, even with different versions in the same match. Download and print the latest form whenever you like.'],
+      },
+      {
+        id: 'warning',
+        q: 'Why do Windows, Apple or Android say the software is dangerous?',
+        a: [
+          'Because the author is not registered with them as a recognised developer: registering costs money and the project currently has more expenses than income, so for now there is no investment in that direction. The warning says the app is not signed, not that anything harmful was found. The builds are made by GitHub Actions from the public source code, which anyone can check.',
+          'Windows: “More info”, then “Run anyway”. macOS: right-click the app, then “Open”. Android: allow installing from the browser or the file manager. iPhone and iPad: the package is installed with tools such as AltStore or Sideloadly. If you prefer not to install anything, use the web version.',
+        ],
+      },
+      {
+        id: 'photo',
+        q: 'What if the app misreads a sheet?',
+        a: ['You can check the sheet before saving: shirt numbers are typed by looking at the crops of the photo, and the counts of the cells can be corrected by hand, also later on the match page. A straight photo, with even light and the six black squares clearly visible, helps a lot.'],
+      },
+      {
+        id: 'datavolley',
+        q: 'Are the statistics the same as DataVolley?',
+        a: ['Efficiencies, W-L, ratings and the scoresheet follow the default definitions of DataVolley 4, with the few project choices described in the Statistics section. VolleyReport is an independent project: it counts touches per player and does not record the sequence of rallies, so it does not offer the analyses that depend on it, such as rotations and break points.'],
+      },
+      {
+        id: 'languages',
+        q: 'Can I have it in other languages?',
+        a: ['Of course. At the moment there are Italian and English. If you want to contribute another language, the guide on GitHub explains how.'],
+      },
+      {
+        id: 'ai',
+        q: 'Is the project developed with artificial intelligence?',
+        a: ['Yes, the project is developed using AI agents. That does not mean there is no commitment: ideas, choices, field tests and the direction of the work remain human.'],
+      },
+      {
+        id: 'request',
+        q: 'Can I ask for a new feature or report a bug?',
+        a: ['Yes, every request is welcome: bug reports and new features are gladly waiting to be developed. Write on GitHub or by email.'],
+      },
+    ],
+    donate: 'Make a donation',
+    source: 'Source code',
+    web: 'Open the web version',
+    releases: 'Download the apps',
+    translate: 'How to translate VolleyReport',
+    issues: 'Write on GitHub',
+    showEmail: 'Show the email address',
+  },
+
   info: {
     eyebrow: 'About',
     leadBefore: 'It comes from',
@@ -599,7 +679,8 @@ export const en: Messages = {
       'Photos, players, results and statistics are processed on the device: no image is sent to a server.',
       'No analytics, tracking, advertising or telemetry; the code sets no cookies.',
       'Fonts, scripts and resources ship with the app, they are not loaded from external services.',
-      'The installed apps ask GitHub only for the number of the latest published version (can be turned off above), and this page reads from GitHub the list of files to download: no match data leaves the device.',
+      'The installed apps ask GitHub only for the number of the latest published version (can be turned off above), and this page reads from GitHub the list of files to download: no match data is sent.',
+      'Data leaves the device only by your choice: when you export a file, which you then handle yourself, or when you connect your Google Drive, where it goes straight with no server of the project in between.',
     ],
   },
 

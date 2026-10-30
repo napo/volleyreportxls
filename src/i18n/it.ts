@@ -34,6 +34,7 @@ export const it = {
     license: 'Licenza AGPL-3.0-or-later',
     source: 'Codice sorgente',
     privacy: 'Privacy',
+    faq: 'Domande frequenti',
     version: 'ver',
   },
 
@@ -491,6 +492,86 @@ export const it = {
     noPoints: 'Nessun punto vinto o perso.',
   },
 
+  /** Frequent questions, in the Informazioni page. */
+  faq: {
+    title: 'Domande frequenti',
+    text: 'Le domande che arrivano più spesso.',
+    link: 'Domande frequenti',
+    items: [
+      {
+        id: 'cost',
+        q: 'Quanto costa?',
+        a: ['Niente. VolleyReport è software libero e i sorgenti sono pubblici. Se vuoi aiutare lo sviluppo puoi fare una donazione: è facoltativa e non sblocca funzioni.'],
+      },
+      {
+        id: 'data',
+        q: 'Dove finiscono i dati?',
+        a: [
+          'Restano sul dispositivo. Anche la versione web gira tutta nel browser: partite, nomi e foto non vengono inviati a un server del progetto, che infatti non esiste. Lasciano il dispositivo solo per tua scelta: quando esporti un file o colleghi il tuo Google Drive.',
+          'Attenzione: i dati stanno in quel browser su quel dispositivo. Se cambi computer o browser non li ritrovi, e cancellando i dati di navigazione li perdi. Per non perderli esporta le partite o, su web e computer, sincronizzale con il tuo Google Drive.',
+        ],
+      },
+      {
+        id: 'exchange',
+        q: 'Come faccio a scambiare i dati o a passarli su un altro dispositivo?',
+        a: [
+          'Ci sono due modi. Il primo è esportare: dall’elenco delle partite ottieni un file .vrp, che puoi inviare a chi vuoi e aprire con «Importa» su qualsiasi versione dell’app. L’importazione non sovrascrive nulla: una partita già presente con dati diversi viene aggiunta come copia.',
+          'Il secondo è la sincronizzazione con Google Drive, dal riquadro nella pagina Partite: collegando lo stesso account su più dispositivi i dati restano allineati. L’app vede solo il proprio file, non il resto del Drive. Per ora è disponibile sulla versione web e sulle app per Windows, macOS e Linux; su Android, iPhone e iPad usa l’esportazione.',
+        ],
+      },
+      {
+        id: 'download',
+        q: 'Dove si scarica?',
+        a: ['Non serve installare nulla: la versione web si apre dal browser, ma serve la connessione per aprirla. Ci sono anche le app per Windows, macOS, Linux, Android, iPhone e iPad, che funzionano senza rete. Ogni versione ha il proprio archivio: i dati non passano da una all’altra da soli, vale quanto detto sopra.'],
+      },
+      {
+        id: 'form',
+        q: 'Il modulo PDF è cambiato: come faccio con quelli che ho già stampato?',
+        a: ['Puoi continuare a usarli. Il software viene aggiornato spesso, ma la retrocompatibilità è garantita: ogni foglio dichiara la propria versione nel codice QR e l’app lo legge con le regole di quella versione, anche mescolando versioni diverse nella stessa partita. Quando vuoi, scarica e stampa il modulo più recente.'],
+      },
+      {
+        id: 'warning',
+        q: 'Perché Windows, Apple o Android dicono che il software è pericoloso?',
+        a: [
+          'Perché l’autore non è registrato come sviluppatore riconosciuto presso di loro: la registrazione ha un costo e il progetto oggi ha più spese che entrate, quindi per ora non si investe in questa direzione. L’avviso dice che l’app non è firmata, non che sia stato trovato qualcosa di dannoso. Le versioni sono prodotte da GitHub Actions a partire dal codice pubblico, che chiunque può controllare.',
+          'Windows: «Ulteriori informazioni», poi «Esegui comunque». macOS: clic destro sull’app, poi «Apri». Android: consenti l’installazione dal browser o dal file manager. iPhone e iPad: il pacchetto va installato con strumenti come AltStore o Sideloadly. Se preferisci non installare nulla, usa la versione web.',
+        ],
+      },
+      {
+        id: 'photo',
+        q: 'E se l’app legge male un foglio?',
+        a: ['Prima di salvare puoi controllare il foglio: i numeri di divisa si trascrivono guardando i ritagli della foto e i conteggi delle caselle si correggono a mano, anche dopo, dalla pagina della partita. Una foto dritta, con luce uniforme e i sei quadrati neri ben visibili aiuta molto.'],
+      },
+      {
+        id: 'datavolley',
+        q: 'Le statistiche sono come quelle di DataVolley?',
+        a: ['Efficienze, V-P, votazione e tabellino seguono le definizioni predefinite di DataVolley 4, con le poche scelte del progetto descritte nella sezione Statistiche. VolleyReport è un progetto indipendente: conta i tocchi per atleta e non registra la sequenza delle azioni, quindi non offre le analisi che ne dipendono, come rotazioni e break point.'],
+      },
+      {
+        id: 'languages',
+        q: 'Posso averlo in altre lingue?',
+        a: ['Certo. Al momento ci sono italiano e inglese. Se vuoi contribuire con un’altra lingua, la guida su GitHub spiega come fare.'],
+      },
+      {
+        id: 'ai',
+        q: 'Il progetto è sviluppato con l’intelligenza artificiale?',
+        a: ['Sì, il progetto è sviluppato facendo uso di agenti AI. Questo non vuol dire che non ci sia impegno: idee, scelte, prove sul campo e guida del lavoro restano umane.'],
+      },
+      {
+        id: 'request',
+        q: 'Posso chiedere una nuova funzione o segnalare un errore?',
+        a: ['Sì, ogni richiesta è benvenuta: segnalazioni di errori e nuove funzioni aspettano volentieri di essere sviluppate. Scrivi su GitHub oppure via email.'],
+      },
+    ],
+    donate: 'Fai una donazione',
+    source: 'Codice sorgente',
+    web: 'Apri la versione web',
+    releases: 'Scarica le app',
+    translate: 'Come tradurre VolleyReport',
+    issues: 'Scrivi su GitHub',
+    showEmail: 'Mostra l’indirizzo email',
+  },
+
   info: {
     eyebrow: 'Informazioni',
     leadBefore: 'Nasce da',
@@ -563,7 +644,8 @@ export const it = {
       'Foto, nomi, risultati e statistiche vengono elaborati sul dispositivo: nessuna immagine viene inviata a un server.',
       'Nessun sistema di analytics, tracking, pubblicità o telemetria; il codice non imposta cookie.',
       'Font, script e risorse sono distribuiti con l’applicazione, non caricati da servizi esterni.',
-      'Le applicazioni installate chiedono a GitHub solo il numero dell’ultima versione pubblicata (disattivabile qui sopra), e questa pagina legge da GitHub l’elenco dei file da scaricare: nessun dato delle gare lascia il dispositivo.',
+      'Le applicazioni installate chiedono a GitHub solo il numero dell’ultima versione pubblicata (disattivabile qui sopra), e questa pagina legge da GitHub l’elenco dei file da scaricare: nessun dato delle gare viene inviato.',
+      'I dati lasciano il dispositivo solo per tua scelta: quando esporti un file, che gestisci tu, o quando colleghi il tuo Google Drive, dove vanno direttamente senza passare da server del progetto.',
     ],
   },
 
