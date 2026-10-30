@@ -8,7 +8,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#F4F4F4" />
-    <meta name="description" content="Segni i tocchi a penna, fotografi il modulo: l’app conta i segni e ti dà tabellino e grafici con le definizioni DataVolley. Tutto sul dispositivo." />
+    <meta name="description" content="Segni i tocchi a penna, fotografi il modulo: l’app conta i segni e ti dà tabellino e grafici con le definizioni DataVolley. I dati restano sul dispositivo e, se scegli di collegarlo, nel tuo Google Drive." />
     <link rel="icon" href="/favicon.png" type="image/png" />
     <!-- Preview when the link is shared (Open Graph, X/Twitter). -->
     <meta property="og:type" content="website" />
@@ -26,7 +26,12 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     <title>VolleyReport · dalla carta al report della gara</title>
   </head>
   <body>
-    <div id="root"></div>
+    <!-- Replaced by the app at start: what a page reader without scripts sees, with the privacy link Google asks for. -->
+    <div id="root">
+      <h1>VolleyReport</h1>
+      <p>Tabellino e grafici di pallavolo dal foglio di rilevazione o dal tablet. I dati restano sul dispositivo e, se scegli di collegarlo, nel tuo Google Drive.</p>
+      <p><a href="/privacy.html">Privacy</a></p>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
