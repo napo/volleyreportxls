@@ -5,18 +5,22 @@ import 'fake-indexeddb/auto';
 import { newMatchRecord } from '../matches/record';
 import { importVrp } from '../matches/vrp';
 import { Archive } from '../storage/archive';
-import type { GoogleAuth } from './auth';
-import { type DriveApi, DriveError, type DriveFile } from './drive';
+import type { CloudAuth } from './auth';
+import { PkceAuth, type PkceEndpoints } from './auth-pkce';
 import { synchronise } from './engine';
 import { readSyncFile, writeSyncFile } from './file';
+import { DropboxClient } from './dropbox';
+import { OneDriveClient } from './onedrive';
 import { EMPTY_SNAPSHOT, type Snapshot, mergeSnapshots } from './merge';
+import { DEFAULT_PROVIDER, providerById } from './providers';
+import { type RemoteFile, type RemoteStorage, StorageError } from './storage';
 
-/** Drive in memory: one archive file, its version increasing at every write. */
-class FakeDrive implements DriveApi {
+/** A service in memory: one archive file, its version increasing at every write. */
+class FakeDrive implements RemoteStorage {
   file: { id: string; version: number; bytes: Uint8Array } | null = null;
   /** Called before every version check: lets a test change the file meanwhile. */
   beforeVersion: (() => void) | null = null;
-  async findArchive(): Promise<DriveFile | null> {
+  async findArchive(): Promise<RemoteFile | null> {
     return this.file && { id: this.file.id, version: String(this.file.version) };
   }
   async version(id: string) {
@@ -24,20 +28,24 @@ class FakeDrive implements DriveApi {
     return this.file?.id === id ? String(this.file.version) : null;
   }
   async download(id: string) {
-    if (this.file?.id !== id) throw new DriveError(404);
+    if (this.file?.id !== id) throw new StorageError(404);
     return this.file.bytes;
   }
   async create(bytes: Uint8Array) {
     this.file = { id: 'f1', version: 1, bytes };
     return { id: 'f1', version: '1' };
   }
-  async update(id: string, bytes: Uint8Array) {
+  async update(id: string, bytes: Uint8Array, expected: string) {
+    if ((await this.version(id)) !== expected) return null;
     this.file = { id, version: this.file!.version + 1, bytes };
     return { id, version: String(this.file.version) };
   }
+  async trash() {
+    this.file = null;
+  }
 }
 
-const auth = (token: string | null = 'token'): GoogleAuth & { invalidated: number } => ({
+const auth = (token: string | null = 'token'): CloudAuth & { invalidated: number } => ({
   invalidated: 0,
   async token() {
     return token;
@@ -51,7 +59,7 @@ const auth = (token: string | null = 'token'): GoogleAuth & { invalidated: numbe
 let n = 0;
 const device = () => Archive.open(`sync-${n++}`);
 const tick = () => new Promise((r) => setTimeout(r, 5));
-const sync = (archive: Archive, drive: DriveApi, a: GoogleAuth = auth()) => synchronise({ archive, auth: a, appVersion: '0.9.0', drive: () => drive });
+const sync = (archive: Archive, drive: RemoteStorage, a: CloudAuth = auth()) => synchronise({ archive, auth: a, appVersion: '0.9.0', storage: () => drive });
 
 test('a match created on one device reaches the other; changes and deletions follow it', async () => {
   const drive = new FakeDrive();
@@ -178,7 +186,7 @@ test('a refused token is renewed once; without a token nothing happens', async (
   drive.findArchive = async () => {
     if (refuse) {
       refuse = false;
-      throw new DriveError(401);
+      throw new StorageError(401);
     }
     return findArchive();
   };
@@ -235,4 +243,144 @@ test('merge: one side changed wins, old deletions are forgotten', () => {
   // Over a year later the deletion is forgotten.
   const later = mergeSnapshots(deleted.merged, deleted.merged, deleted.base, id, new Date('2027-06-01T00:00:00.000Z'));
   expect(later.merged.deletions).toEqual([]);
+});
+
+describe('PKCE sign-in', () => {
+  const endpoints: PkceEndpoints = { authorize: 'https://s/authorize', token: 'https://s/token', scope: 'files', storageKey: 'test.refresh' };
+  const memory = (stored: Record<string, string>) => ({
+    getItem: (k: string) => stored[k] ?? null,
+    setItem: (k: string, v: string) => void (stored[k] = v),
+    removeItem: (k: string) => void delete stored[k],
+  });
+  const options = (stored: Record<string, string>, fetchFn: (url: string) => Promise<Response>, over: Partial<PkceEndpoints> = {}) => ({
+    endpoints: { ...endpoints, ...over },
+    clientId: 'id',
+    fetch: fetchFn,
+    storage: memory(stored),
+    redirect: async () => ({ uri: 'http://127.0.0.1:1', wait: async () => '' }),
+    openBrowser: async () => {},
+  });
+
+  test('a refresh token renewed by the service replaces the old one', async () => {
+    const stored = { 'test.refresh': 'old' };
+    const renewed = async () => new Response(JSON.stringify({ access_token: 'a', expires_in: 3600, refresh_token: 'new' }));
+    expect(await new PkceAuth(options(stored, renewed)).token(false)).toBe('a');
+    expect(stored['test.refresh']).toBe('new');
+  });
+
+  test('a refresh token kept by the service stays', async () => {
+    const stored = { 'test.refresh': 'old' };
+    const kept = async () => new Response(JSON.stringify({ access_token: 'a', expires_in: 3600 }));
+    await new PkceAuth(options(stored, kept)).token(false);
+    expect(stored['test.refresh']).toBe('old');
+  });
+
+  test('signing out revokes only where the service can; the token is forgotten anyway', async () => {
+    const urls: string[] = [];
+    const record = async (url: string) => {
+      urls.push(url);
+      return new Response('{}');
+    };
+    const without: Record<string, string> = { 'test.refresh': 'old' };
+    await new PkceAuth(options(without, record)).signOut();
+    expect(urls).toEqual([]);
+    expect(without).toEqual({});
+    await new PkceAuth(options({ 'test.refresh': 'old' }, record, { revoke: 'https://s/revoke' })).signOut();
+    expect(urls).toEqual(['https://s/revoke?token=old']);
+  });
+});
+
+test('a device connected before the choice of a service stays on Google Drive', () => {
+  expect(DEFAULT_PROVIDER.id).toBe('google-drive');
+  expect(providerById(undefined)).toBe(DEFAULT_PROVIDER);
+  expect(providerById(null)).toBe(DEFAULT_PROVIDER);
+});
+
+describe('Dropbox', () => {
+  const failing = (status: number, error_summary: string) => async () => new Response(JSON.stringify({ error_summary }), { status });
+
+  test('no file at the path means no archive', async () => {
+    const client = new DropboxClient('t', failing(409, 'path/not_found/.'));
+    expect(await client.findArchive()).toBeNull();
+    expect(await client.version()).toBeNull();
+  });
+
+  test('an update writes only over the expected version; a conflict is not an error', async () => {
+    const calls: RequestInit[] = [];
+    const ok = new DropboxClient('t', async (_url, init) => {
+      calls.push(init!);
+      return new Response(JSON.stringify({ rev: 'r2' }));
+    });
+    expect(await ok.update('', new Uint8Array([1]), 'r1')).toEqual({ id: '/VolleyReport.vrp', version: 'r2' });
+    const arg = JSON.parse((calls[0]!.headers as Record<string, string>)['Dropbox-API-Arg']!);
+    expect(arg).toMatchObject({ path: '/VolleyReport.vrp', mode: { '.tag': 'update', update: 'r1' }, strict_conflict: true });
+    expect((calls[0]!.headers as Record<string, string>).Authorization).toBe('Bearer t');
+    expect(await new DropboxClient('t', failing(409, 'path/conflict/file/.')).update('', new Uint8Array([1]), 'r1')).toBeNull();
+  });
+
+  test('a refused token and other refusals stay errors', async () => {
+    await expect(new DropboxClient('t', failing(401, 'expired_access_token/.')).version()).rejects.toMatchObject({ status: 401 });
+    await expect(new DropboxClient('t', failing(409, 'path/insufficient_space/.')).create(new Uint8Array([1]))).rejects.toMatchObject({ status: 409 });
+  });
+});
+
+test('PKCE: a service revoking by access token gets it as bearer, renewed when needed', async () => {
+  const calls: { url: string; init: RequestInit | undefined }[] = [];
+  const stored: Record<string, string> = { key: 'refresh' };
+  await new PkceAuth({
+    endpoints: { authorize: 'https://s/a', token: 'https://s/token', revoke: 'https://s/revoke', revokeWithAccessToken: true, scope: 'x', storageKey: 'key' },
+    clientId: 'id',
+    fetch: async (url, init) => {
+      calls.push({ url, init });
+      return new Response(JSON.stringify({ access_token: 'fresh', expires_in: 3600 }));
+    },
+    storage: { getItem: (k) => stored[k] ?? null, setItem: (k, v) => void (stored[k] = v), removeItem: (k) => void delete stored[k] },
+    redirect: async () => ({ uri: '', wait: async () => '' }),
+    openBrowser: async () => {},
+  }).signOut();
+  expect(calls.map((c) => c.url)).toEqual(['https://s/token', 'https://s/revoke']);
+  expect((calls[1]!.init!.headers as Record<string, string>).Authorization).toBe('Bearer fresh');
+  expect(stored).toEqual({});
+});
+
+describe('OneDrive', () => {
+  const status = (code: number) => async () => new Response('{}', { status: code });
+
+  test('no file at the path means no archive', async () => {
+    expect(await new OneDriveClient('t', status(404)).findArchive()).toBeNull();
+  });
+
+  test('an update writes only over the expected eTag; another version is not an error', async () => {
+    const calls: { url: string; init: RequestInit | undefined }[] = [];
+    const ok = new OneDriveClient('t', async (url, init) => {
+      calls.push({ url, init });
+      return new Response(JSON.stringify({ eTag: 'e2' }));
+    });
+    expect(await ok.update('', new Uint8Array([1]), 'e1')).toEqual({ id: 'VolleyReport.vrp', version: 'e2' });
+    expect(calls[0]!.url).toBe('https://graph.microsoft.com/v1.0/me/drive/special/approot:/VolleyReport.vrp:/content');
+    expect(calls[0]!.init!.headers).toMatchObject({ 'If-Match': 'e1', Authorization: 'Bearer t' });
+    expect(await new OneDriveClient('t', status(412)).update('', new Uint8Array([1]), 'e1')).toBeNull();
+  });
+
+  test('the download uses the address from Graph, without the token', async () => {
+    const seen: (RequestInit | undefined)[] = [];
+    const client = new OneDriveClient('t', async (url, init) => {
+      seen.push(init);
+      return url.startsWith('https://graph')
+        ? new Response(JSON.stringify({ eTag: 'e', '@microsoft.graph.downloadUrl': 'https://x.1drv.com/f' }))
+        : new Response(new Uint8Array([7]));
+    });
+    expect(await client.download()).toEqual(new Uint8Array([7]));
+    expect(seen[1]).toBeUndefined();
+  });
+
+  test('a refused token stays an error; a new file never overwrites', async () => {
+    await expect(new OneDriveClient('t', status(401)).version()).rejects.toMatchObject({ status: 401 });
+    const urls: string[] = [];
+    await new OneDriveClient('t', async (url) => {
+      urls.push(url);
+      return new Response(JSON.stringify({ eTag: 'e1' }));
+    }).create(new Uint8Array([1]));
+    expect(urls[0]).toContain('conflictBehavior=fail');
+  });
 });

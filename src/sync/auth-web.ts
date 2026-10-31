@@ -11,7 +11,7 @@
  */
 
 import { DRIVE_SCOPE } from './drive';
-import { type GoogleAuth, TokenCache } from './auth';
+import { type CloudAuth, TokenCache } from './auth';
 
 const SCRIPT = 'https://accounts.google.com/gsi/client';
 const STORED = 'volleyreport.google.web-token';
@@ -62,7 +62,7 @@ export function loadGoogle(): Promise<GoogleOauth2> {
   return loading;
 }
 
-export class WebGoogleAuth implements GoogleAuth {
+export class WebGoogleAuth implements CloudAuth {
   private readonly cache = new TokenCache();
 
   constructor(private readonly clientId: string) {

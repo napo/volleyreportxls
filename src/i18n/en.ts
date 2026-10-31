@@ -287,42 +287,74 @@ export const en: Messages = {
 
   /** Live scouting on a tablet or a touch screen (the form as a sheet of counters). */
   sync: {
-    title: 'Sync with Google Drive',
-    text: 'A copy of the archive (matches, rosters, athletes) in your Google Drive, always up to date: if you change device or use more than one, you find the same data.',
-    connect: 'Connect Google Drive',
+    title: 'Sync your data',
+    text: 'A copy of the archive (matches, rosters, athletes) in your cloud storage, always up to date: if you change device or use more than one, you find the same data.',
+    exclusive: 'On each device you can use only one service at a time: Google Drive, Dropbox or OneDrive. To change, disconnect the current one and connect the new one: the data on the device move to the new service, while the copy on the old one stays where it is and is no longer updated. Devices connected to different services do not exchange data: to keep them aligned, connect them all to the same service and the same account.',
+    connect: (service: string) => `Connect ${service}`,
     confirmTitle: 'Before connecting',
-    confirmPoints: [
-      'The app creates a “VolleyReport” folder with a “VolleyReport.vrp” file in your Drive: you can see it, download it and import it by hand.',
-      'The app sees only the files it creates, not the rest of your Drive.',
-      'Data go straight from the device to your Drive: no server of the project receives them.',
-      'Connect the same Google account on every device: at start and after every change the app keeps the data aligned.',
-      'If you change the same match on two devices, the app keeps both versions.',
-    ],
-    confirmButton: 'Continue with Google',
+    services: {
+      'google-drive': {
+        name: 'Google Drive',
+        account: 'Google',
+        confirmPoints: [
+          'The app creates a “VolleyReport” folder with a “VolleyReport.vrp” file in your Drive: you can see it, download it and import it by hand.',
+          'The app sees only the files it creates, not the rest of your Drive.',
+          'Data go straight from the device to your Drive: no server of the project receives them.',
+          'Connect the same Google account on every device: at start and after every change the app keeps the data aligned. Devices connected to another service stay separate.',
+          'If you change the same match on two devices, the app keeps both versions.',
+        ],
+        disconnectDelete: 'Also move the “VolleyReport.vrp” file to the Drive bin (the other connected devices write it again at their next sync)',
+      },
+      dropbox: {
+        name: 'Dropbox',
+        account: 'Dropbox',
+        confirmPoints: [
+          'The app creates a private “VolleyReport” folder among the app folders of your Dropbox, with a “VolleyReport.vrp” file: you can see it, download it and import it by hand. Leave it there: if you move it, the app writes a new one.',
+          'The app sees only its own folder, not the rest of your Dropbox.',
+          'Data go straight from the device to your Dropbox: no server of the project receives them.',
+          'Connect the same Dropbox account on every device: at start and after every change the app keeps the data aligned. Devices connected to another service stay separate.',
+          'If you change the same match on two devices, the app keeps both versions.',
+        ],
+        disconnectDelete: 'Also delete the “VolleyReport.vrp” file from Dropbox, which keeps it for a while among the deleted files (the other connected devices write it again at their next sync)',
+      },
+      onedrive: {
+        name: 'OneDrive',
+        account: 'Microsoft',
+        confirmPoints: [
+          'The app creates a private “VolleyReport” folder inside the apps folder of your OneDrive, with a “VolleyReport.vrp” file: you can see it, download it and import it by hand. Leave it there: if you move it, the app writes a new one.',
+          'The app sees only its own folder, not the rest of your OneDrive.',
+          'Data go straight from the device to your OneDrive: no server of the project receives them.',
+          'Connect the same personal Microsoft account on every device: at start and after every change the app keeps the data aligned. Devices connected to another service stay separate.',
+          'If you change the same match on two devices, the app keeps both versions.',
+          'In the web version access lasts at most 24 hours: then just tap “Sync now”.',
+        ],
+        disconnectDelete: 'Also move the “VolleyReport.vrp” file to the OneDrive recycle bin (the other connected devices write it again at their next sync)',
+      },
+    },
+    confirmButton: (account: string) => `Continue with ${account}`,
     cancel: 'Cancel',
-    signInFailed: 'Google sign-in failed or was cancelled. You can try again.',
-    connected: 'Connected to Google Drive',
+    signInFailed: (account: string) => `${account} sign-in failed or was cancelled. You can try again.`,
+    connected: (service: string) => `Connected to ${service}`,
     syncing: 'Syncing…',
     last: (when: string) => `Last sync: ${when}`,
     never: 'Not synced yet',
-    paused: 'Google access expired: tap “Sync now” to resume.',
-    problems: {
+    paused: (account: string) => `${account} access expired: tap “Sync now” to resume.`,
+    problems: ({ name, account }: { name: string; account: string }) => ({
       offline: 'No connection: the app tries again as soon as the network is back.',
-      drive: 'Google Drive did not accept the request: try again later.',
-      file: 'The file on Drive comes from a newer version of the app: update the app to sync. The file is left untouched.',
-      'sign-in': 'Google access expired: tap “Sync now” to resume.',
-    },
+      storage: `${name} did not accept the request: try again later.`,
+      file: `The file on ${name} comes from a newer version of the app: update the app to sync. The file is left untouched.`,
+      'sign-in': `${account} access expired: tap “Sync now” to resume.`,
+    }),
     conflicts: (n: number) =>
       n === 1
         ? 'A match had been changed on two devices: you find both versions in the list.'
         : `${n} matches had been changed on two devices: you find both versions in the list.`,
     syncNow: 'Sync now',
     disconnect: 'Disconnect',
-    disconnectTitle: 'Disconnect Google Drive?',
-    disconnectText: 'All the data stay on this device; they are just no longer copied to Drive.',
-    disconnectDelete: 'Also move the “VolleyReport.vrp” file to the Drive bin (the other connected devices write it again at their next sync)',
+    disconnectTitle: (service: string) => `Disconnect ${service}?`,
+    disconnectText: (service: string) => `All the data stay on this device; they are just no longer copied to ${service}.`,
     disconnectButton: 'Disconnect',
-    localAndDrive: 'Data stay on the device and in your Google Drive',
+    localAnd: (service: string) => `Data stay on the device and in your ${service}`,
   },
 
   live: {
@@ -570,17 +602,17 @@ export const en: Messages = {
           {
             id: 'data',
             q: 'Where does my data go?',
-            a: ['It stays on the device. The web version too runs entirely in the browser: matches, names and photos are not sent to any server of the project, because there is none. It leaves the device only by your choice: when you export a file or connect your Google Drive.', 'Keep in mind that the data sits in that browser on that device. If you change computer or browser you will not find it, and clearing the browsing data deletes it. To keep it, export your matches or, on the web and on computers, sync them with your Google Drive.'],
+            a: ['It stays on the device. The web version too runs entirely in the browser: matches, names and photos are not sent to any server of the project, because there is none. It leaves the device only by your choice: when you export a file or connect your Google Drive, Dropbox or OneDrive.', 'Keep in mind that the data sits in that browser on that device. If you change computer or browser you will not find it, and clearing the browsing data deletes it. To keep it, export your matches or sync them with your Google Drive, Dropbox or OneDrive.'],
           },
           {
             id: 'exchange',
             q: 'How do I share data or move it to another device?',
-            a: ['There are two ways. The first is exporting: the match list gives you a .vrp file that you can send to anyone and open with “Import” in any version of the app. Importing never overwrites anything: a match already there with different data is added as a copy.', 'The second is syncing with Google Drive, from the box on the Matches page: with the same account connected on several devices the data stays aligned. The app sees only its own file, not the rest of your Drive. For now it is available in the web version and in the apps for Windows, macOS, Linux and Android; on iPhone and iPad use export.'],
+            a: ['There are two ways. The first is exporting: the match list gives you a .vrp file that you can send to anyone and open with “Import” in any version of the app. Importing never overwrites anything: a match already there with different data is added as a copy.', 'The second is syncing with Google Drive, Dropbox or OneDrive, from the box on the Matches page: with the same account of the same service connected on several devices the data stays aligned. The app sees only its own file or folder, not the rest of your storage. Google Drive is available in the web version and in the apps for Windows, macOS, Linux and Android; Dropbox and OneDrive in the web version and in the apps for Windows, macOS and Linux. The services exclude each other: on each device you use only one at a time, Google Drive, Dropbox or OneDrive, and devices connected to different services do not exchange data. The iPhone and iPad app (the IPA package) has no sync and the option does not appear: use export to move your data.'],
           },
           {
             id: 'delete',
             q: 'If I delete a match can I get it back?',
-            a: ['Not from the device, unless you exported it. If you use Google Drive the deletion reaches the other connected devices too: to keep it, export a .vrp file first.'],
+            a: ['Not from the device, unless you exported it. If you sync with Google Drive, Dropbox or OneDrive the deletion reaches the other connected devices too: to keep it, export a .vrp file first.'],
           },
         ],
       },
@@ -665,7 +697,7 @@ export const en: Messages = {
           {
             id: 'historyScope',
             q: 'Does the history see all my matches?',
-            a: ['It sees the matches in the archive of that device and browser. To make it complete, import matches from other devices or sync them with Google Drive. The history is per athlete: there is no team total across matches.'],
+            a: ['It sees the matches in the archive of that device and browser. To make it complete, import matches from other devices or sync them with Google Drive, Dropbox or OneDrive. The history is per athlete: there is no team total across matches.'],
           },
         ],
       },
@@ -795,7 +827,7 @@ export const en: Messages = {
       'No analytics, tracking, advertising or telemetry; the code sets no cookies.',
       'Fonts, scripts and resources ship with the app, they are not loaded from external services.',
       'The installed apps ask GitHub only for the number of the latest published version (can be turned off above), and this page reads from GitHub the list of files to download: no match data is sent.',
-      'Data leaves the device only by your choice: when you export a file, which you then handle yourself, or when you connect your Google Drive, where it goes straight with no server of the project in between.',
+      'Data leaves the device only by your choice: when you export a file, which you then handle yourself, or when you connect your Google Drive, Dropbox or OneDrive (only one at a time on each device), where it goes straight with no server of the project in between.',
     ],
   },
 

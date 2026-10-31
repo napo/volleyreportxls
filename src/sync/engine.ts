@@ -2,27 +2,27 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 /**
- * One synchronisation of the local archive with the file on Google Drive:
+ * One synchronisation of the local archive with the file on the cloud service:
  * download the file, merge (src/sync/merge.ts), write the changes to the
  * archive, upload the merged archive when it differs from the file. When the
- * file changed on Drive meanwhile (another device synchronised), the whole
+ * file changed on the service meanwhile (another device synchronised), the whole
  * round starts again, so nothing written by the other device is lost.
  */
 
 import { newId } from '../matches/record';
 import type { Archive } from '../storage/archive';
-import type { GoogleAuth } from './auth';
-import { type DriveApi, DriveClient, DriveError, type DriveFile } from './drive';
+import type { CloudAuth } from './auth';
 import { readSyncFile, writeSyncFile } from './file';
 import { EMPTY_SNAPSHOT, type SyncBase, mergeSnapshots, snapshotChanges, snapshotStamps } from './merge';
+import { type RemoteFile, type RemoteStorage, StorageError } from './storage';
 
 export type SyncArchive = Pick<Archive, 'snapshot' | 'applySync' | 'getMeta' | 'setMeta'>;
 
 export interface SyncDependencies {
   readonly archive: SyncArchive;
-  readonly auth: GoogleAuth;
+  readonly auth: CloudAuth;
   readonly appVersion: string;
-  readonly drive?: (accessToken: string) => DriveApi;
+  readonly storage: (accessToken: string) => RemoteStorage;
   readonly now?: () => Date;
 }
 
@@ -36,24 +36,23 @@ export interface SyncOutcome {
   readonly conflicts: number;
 }
 
-export const META = { base: 'sync.base', fileId: 'sync.fileId', lastSyncedAt: 'sync.lastSyncedAt' } as const;
+export const META = { base: 'sync.base', fileId: 'sync.fileId', lastSyncedAt: 'sync.lastSyncedAt', provider: 'sync.provider' } as const;
 
 /** Rounds tried when another device keeps changing the file. */
 const ATTEMPTS = 3;
 
 export async function synchronise(deps: SyncDependencies, interactive = false): Promise<SyncOutcome> {
-  const { archive, auth, appVersion } = deps;
-  const drive = deps.drive ?? ((token: string): DriveApi => new DriveClient(token));
+  const { archive, auth, appVersion, storage } = deps;
   const now = deps.now ?? (() => new Date());
 
   for (let retryAuth = true; ; retryAuth = false) {
     const token = await auth.token(interactive);
     if (!token) return { done: false, received: 0, uploaded: false, conflicts: 0 };
     try {
-      return await round(drive(token));
+      return await round(storage(token));
     } catch (e) {
       // An access token refused before its expiry: get a new one, once.
-      if (e instanceof DriveError && e.status === 401 && retryAuth) {
+      if (e instanceof StorageError && e.status === 401 && retryAuth) {
         auth.invalidate();
         continue;
       }
@@ -61,11 +60,11 @@ export async function synchronise(deps: SyncDependencies, interactive = false): 
     }
   }
 
-  async function round(client: DriveApi): Promise<SyncOutcome> {
+  async function round(client: RemoteStorage): Promise<SyncOutcome> {
     for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
       const knownId = await archive.getMeta<string>(META.fileId);
       const knownVersion = knownId ? await client.version(knownId) : null;
-      let file: DriveFile | null = knownId && knownVersion ? { id: knownId, version: knownVersion } : await client.findArchive();
+      let file: RemoteFile | null = knownId && knownVersion ? { id: knownId, version: knownVersion } : await client.findArchive();
       const remote = file ? readSyncFile(await client.download(file.id)) : EMPTY_SNAPSHOT;
       const local = await archive.snapshot();
       const base = (await archive.getMeta<SyncBase>(META.base)) ?? {};
@@ -80,8 +79,9 @@ export async function synchronise(deps: SyncDependencies, interactive = false): 
         const bytes = writeSyncFile(merged, appVersion, at);
         if (file) {
           // Another device wrote the file after it was read: merge again with its version.
-          if ((await client.version(file.id)) !== file.version) continue;
-          file = await client.update(file.id, bytes);
+          const updated = await client.update(file.id, bytes, file.version);
+          if (!updated) continue;
+          file = updated;
         } else {
           file = await client.create(bytes);
         }
@@ -91,13 +91,14 @@ export async function synchronise(deps: SyncDependencies, interactive = false): 
       await archive.setMeta(META.lastSyncedAt, at.toISOString());
       return { done: true, received, uploaded: upload, conflicts };
     }
-    throw new Error('sync: the file on Drive keeps changing');
+    throw new Error('sync: the remote file keeps changing');
   }
 }
 
-/** Forgets the file and the base: the next synchronisation starts from the file found on Drive, if any. */
+/** Forgets the file and the base: the next synchronisation starts from the file found on the service, if any. */
 export async function forgetSync(archive: SyncArchive): Promise<void> {
   await archive.setMeta(META.fileId, null);
   await archive.setMeta(META.base, {});
   await archive.setMeta(META.lastSyncedAt, null);
+  await archive.setMeta(META.provider, null);
 }

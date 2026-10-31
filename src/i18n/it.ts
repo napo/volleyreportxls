@@ -284,44 +284,76 @@ export const it = {
     deleteThisRow: 'Elimina questa riga',
   },
 
-  /** Synchronisation of the archive with the user's Google Drive (chosen by the user, device by device). */
+  /** Synchronisation of the archive with the user's cloud service (chosen by the user, device by device). */
   sync: {
-    title: 'Sincronizza con Google Drive',
-    text: 'Una copia dell’archivio (partite, rose, atleti) nel tuo Google Drive, sempre aggiornata: se cambi dispositivo o ne usi più di uno, ritrovi gli stessi dati.',
-    connect: 'Collega Google Drive',
+    title: 'Sincronizza i dati',
+    text: 'Una copia dell’archivio (partite, rose, atleti) nel tuo spazio cloud, sempre aggiornata: se cambi dispositivo o ne usi più di uno, ritrovi gli stessi dati.',
+    exclusive: 'Su ogni dispositivo puoi usare un solo servizio alla volta: Google Drive, Dropbox oppure OneDrive. Per cambiare, scollega quello attuale e collega il nuovo: i dati del dispositivo passano al nuovo servizio, mentre la copia sul vecchio resta dov’è e non si aggiorna più. I dispositivi collegati a servizi diversi non si scambiano i dati: per averli allineati, collegali tutti allo stesso servizio e allo stesso account.',
+    connect: (service: string) => `Collega ${service}`,
     confirmTitle: 'Prima di collegare',
-    confirmPoints: [
-      'L’app crea nel tuo Drive la cartella «VolleyReport» con il file «VolleyReport.vrp»: lo vedi e puoi scaricarlo e importarlo a mano.',
-      'L’app vede solo i file che crea lei, non il resto del tuo Drive.',
-      'I dati vanno direttamente dal dispositivo al tuo Drive: nessun server del progetto li riceve.',
-      'Collega lo stesso account Google su ogni dispositivo: all’avvio e dopo ogni modifica l’app tiene allineati i dati.',
-      'Se modifichi la stessa partita su due dispositivi, l’app tiene entrambe le versioni.',
-    ],
-    confirmButton: 'Continua con Google',
+    services: {
+      'google-drive': {
+        name: 'Google Drive',
+        account: 'Google',
+        confirmPoints: [
+          'L’app crea nel tuo Drive la cartella «VolleyReport» con il file «VolleyReport.vrp»: lo vedi e puoi scaricarlo e importarlo a mano.',
+          'L’app vede solo i file che crea lei, non il resto del tuo Drive.',
+          'I dati vanno direttamente dal dispositivo al tuo Drive: nessun server del progetto li riceve.',
+          'Collega lo stesso account Google su ogni dispositivo: all’avvio e dopo ogni modifica l’app tiene allineati i dati. I dispositivi collegati a un altro servizio restano separati.',
+          'Se modifichi la stessa partita su due dispositivi, l’app tiene entrambe le versioni.',
+        ],
+        disconnectDelete: 'Sposta anche il file «VolleyReport.vrp» nel cestino di Drive (gli altri dispositivi collegati lo ricreano alla prossima sincronizzazione)',
+      },
+      dropbox: {
+        name: 'Dropbox',
+        account: 'Dropbox',
+        confirmPoints: [
+          'L’app crea nel tuo Dropbox una cartella riservata «VolleyReport», tra le cartelle delle app, con il file «VolleyReport.vrp»: lo vedi e puoi scaricarlo e importarlo a mano. Lascialo lì: se lo sposti, l’app ne crea uno nuovo.',
+          'L’app vede solo la propria cartella, non il resto del tuo Dropbox.',
+          'I dati vanno direttamente dal dispositivo al tuo Dropbox: nessun server del progetto li riceve.',
+          'Collega lo stesso account Dropbox su ogni dispositivo: all’avvio e dopo ogni modifica l’app tiene allineati i dati. I dispositivi collegati a un altro servizio restano separati.',
+          'Se modifichi la stessa partita su due dispositivi, l’app tiene entrambe le versioni.',
+        ],
+        disconnectDelete: 'Elimina anche il file «VolleyReport.vrp» da Dropbox, che lo conserva per un periodo tra i file eliminati (gli altri dispositivi collegati lo ricreano alla prossima sincronizzazione)',
+      },
+      onedrive: {
+        name: 'OneDrive',
+        account: 'Microsoft',
+        confirmPoints: [
+          'L’app crea nel tuo OneDrive una cartella riservata «VolleyReport», dentro la cartella delle app, con il file «VolleyReport.vrp»: lo vedi e puoi scaricarlo e importarlo a mano. Lascialo lì: se lo sposti, l’app ne crea uno nuovo.',
+          'L’app vede solo la propria cartella, non il resto del tuo OneDrive.',
+          'I dati vanno direttamente dal dispositivo al tuo OneDrive: nessun server del progetto li riceve.',
+          'Collega lo stesso account Microsoft personale su ogni dispositivo: all’avvio e dopo ogni modifica l’app tiene allineati i dati. I dispositivi collegati a un altro servizio restano separati.',
+          'Se modifichi la stessa partita su due dispositivi, l’app tiene entrambe le versioni.',
+          'Nella versione web l’accesso dura al massimo 24 ore: poi basta un tocco su «Sincronizza ora».',
+        ],
+        disconnectDelete: 'Sposta anche il file «VolleyReport.vrp» nel cestino di OneDrive (gli altri dispositivi collegati lo ricreano alla prossima sincronizzazione)',
+      },
+    },
+    confirmButton: (account: string) => `Continua con ${account}`,
     cancel: 'Annulla',
-    signInFailed: 'Accesso a Google non riuscito o annullato. Puoi riprovare.',
-    connected: 'Collegato a Google Drive',
+    signInFailed: (account: string) => `Accesso a ${account} non riuscito o annullato. Puoi riprovare.`,
+    connected: (service: string) => `Collegato a ${service}`,
     syncing: 'Sincronizzazione in corso…',
     last: (when: string) => `Ultima sincronizzazione: ${when}`,
     never: 'Non ancora sincronizzato',
-    paused: 'Accesso a Google scaduto: tocca «Sincronizza ora» per riprendere.',
-    problems: {
+    paused: (account: string) => `Accesso a ${account} scaduto: tocca «Sincronizza ora» per riprendere.`,
+    problems: ({ name, account }: { name: string; account: string }) => ({
       offline: 'Nessuna connessione: l’app riprova appena la rete torna.',
-      drive: 'Google Drive non ha accettato la richiesta: riprova più tardi.',
-      file: 'Il file su Drive è di una versione più recente dell’app: aggiorna l’app per sincronizzare. Il file non viene toccato.',
-      'sign-in': 'Accesso a Google scaduto: tocca «Sincronizza ora» per riprendere.',
-    },
+      storage: `${name} non ha accettato la richiesta: riprova più tardi.`,
+      file: `Il file su ${name} è di una versione più recente dell’app: aggiorna l’app per sincronizzare. Il file non viene toccato.`,
+      'sign-in': `Accesso a ${account} scaduto: tocca «Sincronizza ora» per riprendere.`,
+    }),
     conflicts: (n: number) =>
       n === 1
         ? 'Una partita era stata modificata su due dispositivi: trovi entrambe le versioni nell’elenco.'
         : `${n} partite erano state modificate su due dispositivi: trovi entrambe le versioni nell’elenco.`,
     syncNow: 'Sincronizza ora',
     disconnect: 'Scollega',
-    disconnectTitle: 'Scollegare Google Drive?',
-    disconnectText: 'Su questo dispositivo i dati restano tutti; smettono solo di essere copiati su Drive.',
-    disconnectDelete: 'Sposta anche il file «VolleyReport.vrp» nel cestino di Drive (gli altri dispositivi collegati lo ricreano alla prossima sincronizzazione)',
+    disconnectTitle: (service: string) => `Scollegare ${service}?`,
+    disconnectText: (service: string) => `Su questo dispositivo i dati restano tutti; smettono solo di essere copiati su ${service}.`,
     disconnectButton: 'Scollega',
-    localAndDrive: 'I dati restano sul dispositivo e nel tuo Google Drive',
+    localAnd: (service: string) => `I dati restano sul dispositivo e nel tuo ${service}`,
   },
 
   /** Live scouting on a tablet or a touch screen (the form as a sheet of counters). */
@@ -535,17 +567,17 @@ export const it = {
           {
             id: 'data',
             q: 'Dove finiscono i dati?',
-            a: ['Restano sul dispositivo. Anche la versione web gira tutta nel browser: partite, nomi e foto non vengono inviati a un server del progetto, che infatti non esiste. Lasciano il dispositivo solo per tua scelta: quando esporti un file o colleghi il tuo Google Drive.', 'Attenzione: i dati stanno in quel browser su quel dispositivo. Se cambi computer o browser non li ritrovi, e cancellando i dati di navigazione li perdi. Per non perderli esporta le partite o, su web e computer, sincronizzale con il tuo Google Drive.'],
+            a: ['Restano sul dispositivo. Anche la versione web gira tutta nel browser: partite, nomi e foto non vengono inviati a un server del progetto, che infatti non esiste. Lasciano il dispositivo solo per tua scelta: quando esporti un file o colleghi il tuo Google Drive, Dropbox o OneDrive.', 'Attenzione: i dati stanno in quel browser su quel dispositivo. Se cambi computer o browser non li ritrovi, e cancellando i dati di navigazione li perdi. Per non perderli esporta le partite o, sincronizzale con il tuo Google Drive, Dropbox o OneDrive.'],
           },
           {
             id: 'exchange',
             q: 'Come faccio a scambiare i dati o a passarli su un altro dispositivo?',
-            a: ['Ci sono due modi. Il primo è esportare: dall’elenco delle partite ottieni un file .vrp, che puoi inviare a chi vuoi e aprire con «Importa» su qualsiasi versione dell’app. L’importazione non sovrascrive nulla: una partita già presente con dati diversi viene aggiunta come copia.', 'Il secondo è la sincronizzazione con Google Drive, dal riquadro nella pagina Partite: collegando lo stesso account su più dispositivi i dati restano allineati. L’app vede solo il proprio file, non il resto del Drive. Per ora è disponibile sulla versione web e sulle app per Windows, macOS, Linux e Android; su iPhone e iPad usa l’esportazione.'],
+            a: ['Ci sono due modi. Il primo è esportare: dall’elenco delle partite ottieni un file .vrp, che puoi inviare a chi vuoi e aprire con «Importa» su qualsiasi versione dell’app. L’importazione non sovrascrive nulla: una partita già presente con dati diversi viene aggiunta come copia.', 'Il secondo è la sincronizzazione con Google Drive, Dropbox o OneDrive, dal riquadro nella pagina Partite: collegando lo stesso account dello stesso servizio su più dispositivi i dati restano allineati. L’app vede solo il proprio file o la propria cartella, non il resto del tuo spazio. Google Drive è disponibile sulla versione web e sulle app per Windows, macOS, Linux e Android; Dropbox e OneDrive sulla versione web e sulle app per Windows, macOS e Linux. I servizi si escludono a vicenda: su ogni dispositivo ne usi uno solo alla volta, Google Drive, Dropbox oppure OneDrive, e i dispositivi collegati a servizi diversi non si scambiano i dati. Nell’app per iPhone e iPad (il pacchetto IPA) la sincronizzazione non c’è e la voce non compare: per spostare i dati usa l’esportazione.'],
           },
           {
             id: 'delete',
             q: 'Se elimino una partita posso recuperarla?',
-            a: ['Dal dispositivo no, a meno di averla esportata. Se usi Google Drive la cancellazione arriva anche agli altri dispositivi collegati: per conservarla, esporta prima un file .vrp.'],
+            a: ['Dal dispositivo no, a meno di averla esportata. Se sincronizzi con Google Drive, Dropbox o OneDrive la cancellazione arriva anche agli altri dispositivi collegati: per conservarla, esporta prima un file .vrp.'],
           },
         ],
       },
@@ -630,7 +662,7 @@ export const it = {
           {
             id: 'historyScope',
             q: 'Lo storico vede tutte le mie partite?',
-            a: ['Vede le partite presenti nell’archivio di quel dispositivo e browser. Per averlo completo importa le partite da altri dispositivi o sincronizzale con Google Drive. Lo storico è per atleta: non c’è un totale della squadra su più partite.'],
+            a: ['Vede le partite presenti nell’archivio di quel dispositivo e browser. Per averlo completo importa le partite da altri dispositivi o sincronizzale con Google Drive, Dropbox o OneDrive. Lo storico è per atleta: non c’è un totale della squadra su più partite.'],
           },
         ],
       },
@@ -760,7 +792,7 @@ export const it = {
       'Nessun sistema di analytics, tracking, pubblicità o telemetria; il codice non imposta cookie.',
       'Font, script e risorse sono distribuiti con l’applicazione, non caricati da servizi esterni.',
       'Le applicazioni installate chiedono a GitHub solo il numero dell’ultima versione pubblicata (disattivabile qui sopra), e questa pagina legge da GitHub l’elenco dei file da scaricare: nessun dato delle gare viene inviato.',
-      'I dati lasciano il dispositivo solo per tua scelta: quando esporti un file, che gestisci tu, o quando colleghi il tuo Google Drive, dove vanno direttamente senza passare da server del progetto.',
+      'I dati lasciano il dispositivo solo per tua scelta: quando esporti un file, che gestisci tu, o quando colleghi il tuo Google Drive, Dropbox o OneDrive (uno solo alla volta su ogni dispositivo), dove vanno direttamente senza passare da server del progetto.',
     ],
   },
 

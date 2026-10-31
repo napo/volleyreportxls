@@ -2,23 +2,30 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 /**
- * Google sign-in of the installed apps (RFC 8252): Google's page opens in the
- * system browser, never inside the app (Google refuses embedded web views);
+ * Sign-in of the installed apps (RFC 8252): the page of the service opens in
+ * the system browser, never inside the app (Google refuses embedded web views);
  * the browser comes back to the app with a code, exchanged with PKCE for an
- * access token (one hour) and a refresh token, kept on the device to renew
- * the access without asking again. The way back depends on the platform:
+ * access token and a refresh token, kept on the device to renew the access
+ * without asking again. The way back depends on the platform:
  * 127.0.0.1 on the desktop (src-tauri/src/oauth.rs), the app's URL scheme on iOS.
  */
 
-import { DRIVE_SCOPE } from './drive';
-import { type GoogleAuth, TokenCache } from './auth';
+import { type CloudAuth, TokenCache } from './auth';
+import type { Fetch } from './storage';
 
-const AUTHORIZE = 'https://accounts.google.com/o/oauth2/v2/auth';
-const TOKEN = 'https://oauth2.googleapis.com/token';
-const REVOKE = 'https://oauth2.googleapis.com/revoke';
-const REFRESH_TOKEN = 'volleyreport.google.refresh-token';
-
-type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
+/** The addresses and the parameters of a service. */
+export interface PkceEndpoints {
+  readonly authorize: string;
+  readonly token: string;
+  /** Absent when the service cannot revoke a token: the app only forgets it. */
+  readonly revoke?: string;
+  /** The service revokes the access token it receives as bearer, not a refresh token in the query. */
+  readonly revokeWithAccessToken?: boolean;
+  readonly scope: string;
+  readonly extraParams?: Readonly<Record<string, string>>;
+  /** Where the refresh token is kept on the device, one per service. */
+  readonly storageKey: string;
+}
 
 export interface Redirect {
   readonly uri: string;
@@ -27,6 +34,9 @@ export interface Redirect {
 }
 
 export interface PkceOptions {
+  readonly endpoints: PkceEndpoints;
+  /** Added to the requests of tokens. */
+  readonly tokenHeaders?: Readonly<Record<string, string>>;
   readonly clientId: string;
   /** Desktop clients only; public by design. */
   readonly clientSecret?: string;
@@ -36,7 +46,7 @@ export interface PkceOptions {
   readonly storage?: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 }
 
-/** Sign-in refused or cancelled by the user, or a code Google did not accept. */
+/** Sign-in refused or cancelled by the user, or a code the service did not accept. */
 export class SignInError extends Error {}
 
 const base64url = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
@@ -48,7 +58,7 @@ export async function pkcePair() {
   return { verifier, challenge };
 }
 
-export class PkceGoogleAuth implements GoogleAuth {
+export class PkceAuth implements CloudAuth {
   private readonly cache = new TokenCache();
   private readonly storage: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 
@@ -56,10 +66,14 @@ export class PkceGoogleAuth implements GoogleAuth {
     this.storage = options.storage ?? localStorage;
   }
 
+  private get refreshKey() {
+    return this.options.endpoints.storageKey;
+  }
+
   async token(interactive: boolean): Promise<string | null> {
     const cached = this.cache.get();
     if (cached) return cached;
-    if (this.storage.getItem(REFRESH_TOKEN) && (await this.refresh())) return this.cache.get();
+    if (this.storage.getItem(this.refreshKey) && (await this.refresh())) return this.cache.get();
     return interactive ? this.signIn() : null;
   }
 
@@ -68,31 +82,39 @@ export class PkceGoogleAuth implements GoogleAuth {
   }
 
   async signOut(): Promise<void> {
-    const token = this.storage.getItem(REFRESH_TOKEN);
-    this.storage.removeItem(REFRESH_TOKEN);
+    const token = this.storage.getItem(this.refreshKey);
+    const { revoke, revokeWithAccessToken } = this.options.endpoints;
+    const access = revokeWithAccessToken && token ? (this.cache.get() ?? ((await this.refresh().catch(() => false)) ? this.cache.get() : null)) : null;
+    this.storage.removeItem(this.refreshKey);
     this.cache.clear();
-    if (token) await this.options.fetch(`${REVOKE}?${new URLSearchParams({ token })}`, { method: 'POST' }).catch(() => undefined);
+    if (!token || !revoke) return;
+    const request = revokeWithAccessToken
+      ? access && this.options.fetch(revoke, { method: 'POST', headers: { Authorization: `Bearer ${access}` } })
+      : this.options.fetch(`${revoke}?${new URLSearchParams({ token })}`, { method: 'POST' });
+    await Promise.resolve(request).catch(() => undefined);
   }
 
   private async tokenRequest(fields: Record<string, string>) {
     const { clientId, clientSecret } = this.options;
     const body = new URLSearchParams({ client_id: clientId, ...(clientSecret && { client_secret: clientSecret }), ...fields });
-    const response = await this.options.fetch(TOKEN, {
+    const response = await this.options.fetch(this.options.endpoints.token, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', ...this.options.tokenHeaders },
       body: body.toString(),
     });
     const json = (await response.json()) as { access_token?: string; expires_in?: number; refresh_token?: string; error?: string };
     return { ok: response.ok && Boolean(json.access_token), ...json };
   }
 
-  /** A new access token from the refresh token; false when Google no longer accepts it (access revoked). */
+  /** A new access token from the refresh token; false when the service no longer accepts it (access revoked). */
   private async refresh(): Promise<boolean> {
-    const result = await this.tokenRequest({ grant_type: 'refresh_token', refresh_token: this.storage.getItem(REFRESH_TOKEN)! });
+    const result = await this.tokenRequest({ grant_type: 'refresh_token', refresh_token: this.storage.getItem(this.refreshKey)! });
     if (!result.ok) {
-      if (result.error === 'invalid_grant') this.storage.removeItem(REFRESH_TOKEN);
+      if (result.error === 'invalid_grant') this.storage.removeItem(this.refreshKey);
       return false;
     }
+    // Some services hand out a new refresh token at every renewal.
+    if (result.refresh_token) this.storage.setItem(this.refreshKey, result.refresh_token);
     this.cache.set(result.access_token!, result.expires_in ?? 3600);
     return true;
   }
@@ -101,17 +123,16 @@ export class PkceGoogleAuth implements GoogleAuth {
     const redirect = await this.options.redirect();
     const { verifier, challenge } = await pkcePair();
     const state = random(16);
-    const url = `${AUTHORIZE}?${new URLSearchParams({
+    const { authorize, scope, extraParams } = this.options.endpoints;
+    const url = `${authorize}?${new URLSearchParams({
       client_id: this.options.clientId,
       redirect_uri: redirect.uri,
       response_type: 'code',
-      scope: DRIVE_SCOPE,
+      scope,
       code_challenge: challenge,
       code_challenge_method: 'S256',
       state,
-      // A refresh token, so that the access is renewed without the browser.
-      access_type: 'offline',
-      prompt: 'consent',
+      ...extraParams,
     })}`;
     const back = redirect.wait();
     await this.options.openBrowser(url);
@@ -119,7 +140,7 @@ export class PkceGoogleAuth implements GoogleAuth {
     if (query.get('state') !== state || !query.get('code')) throw new SignInError(query.get('error') ?? 'no code');
     const result = await this.tokenRequest({ grant_type: 'authorization_code', code: query.get('code')!, code_verifier: verifier, redirect_uri: redirect.uri });
     if (!result.ok) throw new SignInError(result.error ?? 'token');
-    if (result.refresh_token) this.storage.setItem(REFRESH_TOKEN, result.refresh_token);
+    if (result.refresh_token) this.storage.setItem(this.refreshKey, result.refresh_token);
     this.cache.set(result.access_token!, result.expires_in ?? 3600);
     return result.access_token!;
   }

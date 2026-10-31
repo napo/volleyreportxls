@@ -22,6 +22,7 @@ are in [`LICENSES/`](LICENSES/).
 | Documentation, images, icons, logo, `VolleyReportXLS.xlsx`, sample photos and PDFs | `CC-BY-4.0` |
 | Fonts in `src/assets/fonts/` and their licence texts in `public/licenses/` | `OFL-1.1` (their own authors) |
 | `src/assets/paypal.svg` (Tabler payment icons; PayPal is a trademark of PayPal, Inc.) | `MIT` (Paweł Kuna) |
+| `src/assets/services/*.svg` (Tabler Icons; the services named are trademarks of their owners) | `MIT` (Paweł Kuna) |
 
 Copyright: 2026 Maurizio Napolitano. Dependencies installed by npm and Cargo
 keep their own licences.
@@ -60,4 +61,4 @@ The licence of a single file is the one in its SPDX header or in
    Suggest alternatives: ask the copyright holder for permission, use the
    ideas without copying the expression, or pick a compatible component.
 
-Trademarks (such as PayPal) are not licensed by any of the licences above.
+Trademarks (such as PayPal, Google Drive, Dropbox, OneDrive) are not licensed by any of the licences above.

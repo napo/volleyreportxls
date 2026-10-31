@@ -70,3 +70,11 @@ path = "src/assets/paypal.svg"
 precedence = "override"
 SPDX-FileCopyrightText = "2024 Paweł Kuna (https://github.com/tabler/tabler-payments)"
 SPDX-License-Identifier = "MIT"
+
+# Service icons from Tabler Icons. Google Drive, Dropbox and OneDrive are trademarks of their
+# owners: the licence covers the drawings, not the marks.
+[[annotations]]
+path = "src/assets/services/*.svg"
+precedence = "override"
+SPDX-FileCopyrightText = "2020-2024 Paweł Kuna (https://github.com/tabler/tabler-icons)"
+SPDX-License-Identifier = "MIT"

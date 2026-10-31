@@ -43,8 +43,7 @@ export function HomeView() {
   const { m } = useI18n();
   const t = m.home;
   const { status } = useSync();
-  const onDrive = status !== null && status.state !== 'off';
-  return (
+    return (
     <>
       <header className="vr-hero">
         <p className="vr-eyebrow">VolleyReport</p>
@@ -54,7 +53,7 @@ export function HomeView() {
           <DownloadFormButton label={t.formButton} />
         </div>
         <ul className="vr-meta">
-          <li>{onDrive ? m.sync.localAndDrive : t.local}</li>
+          <li>{status && status.state !== 'off' ? m.sync.localAnd(m.sync.services[status.provider].name) : t.local}</li>
           <li>
             {t.evolution} <ExternalLink href={VOLLEYREPORTXLS_URL}>VolleyReportXLS</ExternalLink>
           </li>

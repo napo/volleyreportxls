@@ -10,6 +10,7 @@
  */
 
 import { SYNC_FILE_NAME } from './file';
+import { type Fetch, type RemoteFile, type RemoteStorage, StorageError } from './storage';
 
 const API = 'https://www.googleapis.com/drive/v3/files';
 const UPLOAD = 'https://www.googleapis.com/upload/drive/v3/files';
@@ -18,22 +19,7 @@ const PROPERTY = 'volleyreport';
 
 export const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
 
-export interface DriveFile {
-  readonly id: string;
-  /** Increases at every change of the file. */
-  readonly version: string;
-}
-
-/** A request refused by Drive; status 401 means the access token is no longer valid. */
-export class DriveError extends Error {
-  constructor(readonly status: number) {
-    super(`drive: ${status}`);
-  }
-}
-
-type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
-
-export class DriveClient {
+export class DriveClient implements RemoteStorage {
   constructor(
     private readonly accessToken: string,
     private readonly fetchFn: Fetch = (input, init) => fetch(input, init),
@@ -41,19 +27,18 @@ export class DriveClient {
 
   private async request(url: string, init: RequestInit = {}): Promise<Response> {
     const response = await this.fetchFn(url, { ...init, headers: { ...init.headers, Authorization: `Bearer ${this.accessToken}` } });
-    if (!response.ok) throw new DriveError(response.status);
+    if (!response.ok) throw new StorageError(response.status);
     return response;
   }
 
-  private async find(value: string, extra = ''): Promise<DriveFile | null> {
+  private async find(value: string, extra = ''): Promise<RemoteFile | null> {
     const q = `appProperties has { key='${PROPERTY}' and value='${value}' } and trashed=false${extra}`;
     const response = await this.request(`${API}?${new URLSearchParams({ q, spaces: 'drive', fields: 'files(id,version)', orderBy: 'modifiedTime desc' })}`);
-    const { files } = (await response.json()) as { files?: DriveFile[] };
+    const { files } = (await response.json()) as { files?: RemoteFile[] };
     return files?.[0] ?? null;
   }
 
-  /** The archive file of the app, or null when there is none (never synchronised, or deleted by the user). */
-  findArchive(): Promise<DriveFile | null> {
+  findArchive(): Promise<RemoteFile | null> {
     return this.find('archive');
   }
 
@@ -63,7 +48,7 @@ export class DriveClient {
       const file = (await response.json()) as { version: string; trashed?: boolean };
       return file.trashed ? null : file.version;
     } catch (e) {
-      if (e instanceof DriveError && e.status === 404) return null;
+      if (e instanceof StorageError && e.status === 404) return null;
       throw e;
     }
   }
@@ -83,7 +68,7 @@ export class DriveClient {
     return ((await response.json()) as { id: string }).id;
   }
 
-  async create(bytes: Uint8Array): Promise<DriveFile> {
+  async create(bytes: Uint8Array): Promise<RemoteFile> {
     const metadata = { name: SYNC_FILE_NAME, parents: [await this.folder()], mimeType: 'application/zip', appProperties: { [PROPERTY]: 'archive' } };
     const boundary = `volleyreport${Math.random().toString(36).slice(2)}`;
     const body = new Blob([
@@ -97,7 +82,7 @@ export class DriveClient {
       headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
       body,
     });
-    return (await response.json()) as DriveFile;
+    return (await response.json()) as RemoteFile;
   }
 
   /** Moves the file to the bin of the user's Drive, where it can still be restored for 30 days. */
@@ -105,15 +90,14 @@ export class DriveClient {
     await this.request(`${API}/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ trashed: true }) });
   }
 
-  async update(id: string, bytes: Uint8Array): Promise<DriveFile> {
+  /** Drive has no conditional write: the version is checked just before writing. */
+  async update(id: string, bytes: Uint8Array, expected: string): Promise<RemoteFile | null> {
+    if ((await this.version(id)) !== expected) return null;
     const response = await this.request(`${UPLOAD}/${id}?uploadType=media&fields=id,version`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/zip' },
       body: new Blob([bytes as BlobPart]),
     });
-    return (await response.json()) as DriveFile;
+    return (await response.json()) as RemoteFile;
   }
 }
-
-/** What synchronisation uses of Drive (a fake one in the tests). */
-export type DriveApi = Pick<DriveClient, 'findArchive' | 'version' | 'download' | 'create' | 'update'>;

@@ -99,11 +99,11 @@ function Page({ route }: { route: Route }) {
   }
 }
 
-/** Where the data are: on the device, and on the user's Drive once it is connected. */
+/** Where the data are: on the device, and on the user's cloud service once it is connected. */
 function DataPlace() {
   const { m } = useI18n();
   const { status } = useSync();
-  return <p>{status && status.state !== 'off' ? m.sync.localAndDrive : m.footer.local}</p>;
+  return <p>{status && status.state !== 'off' ? m.sync.localAnd(m.sync.services[status.provider].name) : m.footer.local}</p>;
 }
 
 function LanguageMenu() {

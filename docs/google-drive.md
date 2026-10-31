@@ -51,6 +51,25 @@ Nelle app installate le richieste a Google passano da `tauri-plugin-http` (capab
    - nelle build di GitHub, dal secret del repository `GOOGLE_DESKTOP_CLIENT_SECRET` (`gh secret set GOOGLE_DESKTOP_CLIENT_SECRET`).
    Senza secret la sincronizzazione resta nascosta sul desktop. Il secret finisce comunque nell'app installata: per Google non è riservato.
 
+## Dropbox
+
+Oltre a Google Drive l'app può usare Dropbox, uno per dispositivo (`src/sync/provider-dropbox.ts`, `src/sync/dropbox.ts`). I servizi si escludono a vicenda: ogni dispositivo ne usa uno alla volta e quelli su servizi diversi non si allineano tra loro; l'app lo spiega nel riquadro di sincronizzazione, nelle FAQ e nelle informazioni. Per ora è disponibile su web e desktop: Dropbox documenta come ritorno solo indirizzi https e localhost, quindi Android e iOS richiedono un link https che riapra l'app.
+
+- **App**: «VolleyReport» nella console di Dropbox, accesso circoscritto, tipo cartella dell'app, client pubblici consentiti. La chiave è in `DROPBOX_OAUTH` di `src/config.ts`; il segreto non serve.
+- **Autorizzazioni**: `files.content.read`, `files.content.write`, `files.metadata.read`.
+- **Indirizzi di ritorno registrati**: `https://report.volleyserve.it/oauth-callback.html` (web, finestra e `public/oauth-callback.html`) e `http://localhost:53682/` (desktop, porta fissa perché Dropbox vuole l'indirizzo esatto).
+- **File**: `VolleyReport.vrp` nella cartella dell'app, riconosciuto dal percorso. La scrittura è condizionata alla revisione (`rev`): se un altro dispositivo ha scritto prima, l'app ripete il giro.
+
+## OneDrive
+
+Disponibile su web e desktop per gli account Microsoft personali (`src/sync/provider-onedrive.ts`, `src/sync/onedrive.ts`), con le stesse regole di esclusività di Dropbox.
+
+- **App**: «VolleyReport» in Microsoft Entra, solo account personali. Registrarla richiede una directory, creata con un account Azure. L'ID client è in `ONEDRIVE_OAUTH` di `src/config.ts`; nessun secret.
+- **Indirizzi di ritorno**: piattaforma SPA `https://report.volleyserve.it/oauth-callback.html` e `http://localhost:5173/oauth-callback.html`; piattaforma Mobile e desktop `http://localhost` (la porta è ignorata). Sul desktop la richiesta dei token va senza `Origin`, che Microsoft rifiuta fuori dalle SPA: per questo `tauri-plugin-http` ha la funzione `unsafe-headers`.
+- **Autorizzazioni**: `Files.ReadWrite.AppFolder`, `offline_access`.
+- **File**: `VolleyReport.vrp` nella cartella dell'app, riconosciuto dal percorso. La scrittura è condizionata all'`eTag` (`If-Match`). Lo scaricamento usa l'indirizzo temporaneo dato da Graph: gli host ammessi sul desktop sono in `src-tauri/capabilities/onedrive.json`.
+- **Durata dell'accesso**: 24 ore sul web (limite Microsoft per le SPA), poi basta un tocco; senza scadenza dichiarata sul desktop.
+
 ## Privacy
 
 Collegare Drive è una scelta esplicita, presentata con una schermata che spiega cosa succede. Finché non si collega, l'app non contatta Google (lo script di Google per il web si carica solo dopo la scelta). «Scollega» lascia i dati sul dispositivo, cancella i token, revoca l'accesso e, se richiesto, sposta il file nel cestino del Drive.

@@ -76,3 +76,13 @@ export const GOOGLE_OAUTH = {
   /** "iOS" client: bundle id it.napolitano.volleyreport; Google redirects to its reversed id. */
   ios: '',
 } as const;
+
+/** App key of the project's Dropbox app (App folder, public client): not a secret. An empty key hides Dropbox. See docs/google-drive.md. */
+export const DROPBOX_OAUTH: { readonly appKey: string } = {
+  appKey: 'npc8260ahcqos4l',
+};
+
+/** Client id of the project's Microsoft app (personal accounts, public client): not a secret. An empty id hides OneDrive. See docs/google-drive.md. */
+export const ONEDRIVE_OAUTH: { readonly clientId: string } = {
+  clientId: '6743fa33-0170-455f-8110-49bcab7399d8',
+};

@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-//! Google sign-in on the desktop (RFC 8252, loopback redirect): the app listens on
-//! 127.0.0.1 on a free port, the system browser shows Google's page and then sends
-//! the browser to that address with the authorisation code, which the web view
+//! Sign-in to a cloud service on the desktop (RFC 8252, loopback redirect): the app
+//! listens on 127.0.0.1, on a free port or on the one the service requires, the system
+//! browser shows the page of the service and then sends the browser to that address with the authorisation code, which the web view
 //! exchanges for the tokens (src/sync/auth-pkce.ts). Only one request is read.
 
 use std::collections::HashMap;
@@ -12,7 +12,7 @@ use std::net::TcpListener;
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
-/// Listeners waiting for Google's redirect, by port.
+/// Listeners waiting for the service's redirect, by port.
 #[derive(Default)]
 pub struct Pending(Mutex<HashMap<u16, TcpListener>>);
 
@@ -26,8 +26,8 @@ const PAGE: &str = "<!doctype html><meta charset=\"utf-8\"><title>VolleyReport</
 
 /// Opens the listener and returns its port, to put in the redirect address.
 #[tauri::command]
-pub fn oauth_listen(pending: tauri::State<'_, Pending>) -> Result<u16, String> {
-    let listener = TcpListener::bind("127.0.0.1:0").map_err(|e| e.to_string())?;
+pub fn oauth_listen(port: Option<u16>, pending: tauri::State<'_, Pending>) -> Result<u16, String> {
+    let listener = TcpListener::bind(("127.0.0.1", port.unwrap_or(0))).map_err(|e| e.to_string())?;
     let port = listener.local_addr().map_err(|e| e.to_string())?.port();
     pending.0.lock().map_err(|e| e.to_string())?.insert(port, listener);
     Ok(port)

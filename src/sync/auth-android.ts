@@ -10,15 +10,14 @@
 
 import { invoke } from '@tauri-apps/api/core';
 import { DRIVE_SCOPE } from './drive';
-import { type GoogleAuth, TokenCache } from './auth';
+import { type CloudAuth, TokenCache } from './auth';
+import type { Fetch } from './storage';
 
 const REVOKE = 'https://oauth2.googleapis.com/revoke';
 /** Play services does not tell the expiry: Google's tokens last an hour, keep them a bit less. */
 const TOKEN_SECONDS = 50 * 60;
 
-type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
-
-export class AndroidGoogleAuth implements GoogleAuth {
+export class AndroidGoogleAuth implements CloudAuth {
   private readonly cache = new TokenCache();
   /** The last token handed out, to drop it from Play services when Drive refuses it. */
   private last: string | null = null;

@@ -2,12 +2,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 /**
- * Google sign-in for Drive, one way per platform (src/sync/auth-*.ts), all
- * behind this interface. Only the drive.file scope is asked for. Tokens stay
- * on the device: no server of the project sees them.
+ * Sign-in to a cloud service, one way per service and platform, all behind
+ * this interface. Tokens stay on the device: no server of the project sees them.
  */
 
-export interface GoogleAuth {
+export interface CloudAuth {
   /**
    * A valid access token. When `interactive` is false nothing is shown to the
    * user: null means that the user has to sign in again (e.g. on the web, where
