@@ -540,7 +540,7 @@ export const it = {
           {
             id: 'exchange',
             q: 'Come faccio a scambiare i dati o a passarli su un altro dispositivo?',
-            a: ['Ci sono due modi. Il primo è esportare: dall’elenco delle partite ottieni un file .vrp, che puoi inviare a chi vuoi e aprire con «Importa» su qualsiasi versione dell’app. L’importazione non sovrascrive nulla: una partita già presente con dati diversi viene aggiunta come copia.', 'Il secondo è la sincronizzazione con Google Drive, dal riquadro nella pagina Partite: collegando lo stesso account su più dispositivi i dati restano allineati. L’app vede solo il proprio file, non il resto del Drive. Per ora è disponibile sulla versione web e sulle app per Windows, macOS e Linux; su Android, iPhone e iPad usa l’esportazione.'],
+            a: ['Ci sono due modi. Il primo è esportare: dall’elenco delle partite ottieni un file .vrp, che puoi inviare a chi vuoi e aprire con «Importa» su qualsiasi versione dell’app. L’importazione non sovrascrive nulla: una partita già presente con dati diversi viene aggiunta come copia.', 'Il secondo è la sincronizzazione con Google Drive, dal riquadro nella pagina Partite: collegando lo stesso account su più dispositivi i dati restano allineati. L’app vede solo il proprio file, non il resto del Drive. Per ora è disponibile sulla versione web e sulle app per Windows, macOS, Linux e Android; su iPhone e iPad usa l’esportazione.'],
           },
           {
             id: 'delete',

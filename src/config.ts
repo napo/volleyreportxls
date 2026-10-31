@@ -72,7 +72,7 @@ export const GOOGLE_OAUTH = {
     clientSecret: import.meta.env?.VITE_GOOGLE_DESKTOP_CLIENT_SECRET ?? '',
   },
   /** "Android" client: package it.napolitano.volleyreport and SHA-1 of the signing certificate. */
-  android: '',
+  android: '780810157215-68o4lmar3p8jdirdbp3ravv8huns8tje.apps.googleusercontent.com',
   /** "iOS" client: bundle id it.napolitano.volleyreport; Google redirects to its reversed id. */
   ios: '',
 } as const;

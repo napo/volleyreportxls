@@ -575,7 +575,7 @@ export const en: Messages = {
           {
             id: 'exchange',
             q: 'How do I share data or move it to another device?',
-            a: ['There are two ways. The first is exporting: the match list gives you a .vrp file that you can send to anyone and open with “Import” in any version of the app. Importing never overwrites anything: a match already there with different data is added as a copy.', 'The second is syncing with Google Drive, from the box on the Matches page: with the same account connected on several devices the data stays aligned. The app sees only its own file, not the rest of your Drive. For now it is available in the web version and in the apps for Windows, macOS and Linux; on Android, iPhone and iPad use export.'],
+            a: ['There are two ways. The first is exporting: the match list gives you a .vrp file that you can send to anyone and open with “Import” in any version of the app. Importing never overwrites anything: a match already there with different data is added as a copy.', 'The second is syncing with Google Drive, from the box on the Matches page: with the same account connected on several devices the data stays aligned. The app sees only its own file, not the rest of your Drive. For now it is available in the web version and in the apps for Windows, macOS, Linux and Android; on iPhone and iPad use export.'],
           },
           {
             id: 'delete',
