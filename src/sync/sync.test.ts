@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import 'fake-indexeddb/auto';
-import { newMatchRecord } from '../matches/record';
+import { type MatchRecord, newMatchRecord } from '../matches/record';
 import { importVrp } from '../matches/vrp';
 import { Archive } from '../storage/archive';
 import type { CloudAuth } from './auth';
@@ -175,6 +175,83 @@ test('a file changed on Drive while merging is merged again, not overwritten', a
   const onDrive = readSyncFile(drive.file!.bytes).matches.map((m) => m.venue).sort();
   expect(onDrive).toEqual(['A', 'B', 'C']);
   expect((await b.getMatch(other.id))?.venue).toBe('B');
+});
+
+describe('a file changed by another device during the upload', () => {
+  /** Before the next upload of this device only, another device writes the file. */
+  const beforeUpload = (drive: FakeDrive, change: (current: Snapshot) => Snapshot) => {
+    const update = drive.update.bind(drive);
+    drive.update = async (id, bytes, expected) => {
+      drive.update = update;
+      const file = drive.file!;
+      drive.file = { ...file, version: file.version + 1, bytes: writeSyncFile(change(readSyncFile(file.bytes)), '0.9.0') };
+      return update(id, bytes, expected);
+    };
+  };
+  const stamped = (match: MatchRecord, venue: string) => ({ ...match, venue, updatedAt: new Date(Date.now() + 1000).toISOString() });
+  const venues = async (archive: Archive) => (await archive.listMatches()).map((m) => m.venue).sort();
+
+  /** A match on both devices and on the service, changed on the service by a first device; B has something of its own to upload. */
+  const started = async () => {
+    const drive = new FakeDrive();
+    const [a, b] = [await device(), await device()];
+    const match = await a.saveMatch({ ...newMatchRecord(), venue: 'first' });
+    await sync(a, drive);
+    await sync(b, drive);
+    await tick();
+    const second = await a.saveMatch({ ...match, venue: 'second' });
+    await sync(a, drive);
+    await b.saveAthlete({ id: 'ath1', name: 'Alice', note: '' });
+    return { drive, a, b, match, second };
+  };
+
+  test('a change only received from the service is not taken for a change of this device', async () => {
+    const { drive, b, match, second } = await started();
+    beforeUpload(drive, (current) => ({ ...current, matches: current.matches.map((m) => (m.id === match.id ? stamped(second, 'third') : m)) }));
+    expect(await sync(b, drive)).toMatchObject({ conflicts: 0, uploaded: true });
+    expect(await venues(b)).toEqual(['third']);
+    expect(readSyncFile(drive.file!.bytes).matches.map((m) => m.venue)).toEqual(['third']);
+  });
+
+  test('a real conflict gives one copy, and it is reported', async () => {
+    const { drive, b, match } = await started();
+    await tick();
+    await b.saveMatch({ ...match, venue: 'on B' });
+    beforeUpload(drive, (current) => ({ ...current, squads: [{ id: 'squad001', name: 'Trento', teamNames: [] }] }));
+    expect(await sync(b, drive)).toMatchObject({ conflicts: 1 });
+    expect(await venues(b)).toEqual(['on B', 'second']);
+    expect(readSyncFile(drive.file!.bytes).matches.map((m) => m.venue).sort()).toEqual(['on B', 'second']);
+  });
+
+  test('a failed upload creates no copy at the next synchronisation', async () => {
+    const { drive, b, match, second } = await started();
+    const update = drive.update.bind(drive);
+    drive.update = async () => {
+      drive.update = update;
+      throw new StorageError(503);
+    };
+    await expect(sync(b, drive)).rejects.toMatchObject({ status: 503 });
+    const file = drive.file!;
+    const current = readSyncFile(file.bytes);
+    drive.file = { ...file, version: file.version + 1, bytes: writeSyncFile({ ...current, matches: current.matches.map((m) => (m.id === match.id ? stamped(second, 'third') : m)) }, '0.9.0') };
+    expect(await sync(b, drive)).toMatchObject({ conflicts: 0 });
+    expect(await venues(b)).toEqual(['third']);
+  });
+
+  test('a change of this device whose upload failed is not lost', async () => {
+    const { drive, b, match } = await started();
+    await tick();
+    await b.saveMatch({ ...match, venue: 'on B' });
+    const update = drive.update.bind(drive);
+    drive.update = async () => {
+      drive.update = update;
+      throw new StorageError(503);
+    };
+    await expect(sync(b, drive)).rejects.toMatchObject({ status: 503 });
+    expect(await sync(b, drive)).toMatchObject({ conflicts: 0, uploaded: true });
+    expect(await venues(b)).toEqual(['on B', 'second']);
+    expect(readSyncFile(drive.file!.bytes).matches.map((m) => m.venue).sort()).toEqual(['on B', 'second']);
+  });
 });
 
 test('a refused token is renewed once; without a token nothing happens', async () => {

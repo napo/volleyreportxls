@@ -61,6 +61,8 @@ export async function synchronise(deps: SyncDependencies, interactive = false): 
   }
 
   async function round(client: RemoteStorage): Promise<SyncOutcome> {
+    let received = 0;
+    let conflicts = 0;
     for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
       const knownId = await archive.getMeta<string>(META.fileId);
       const knownVersion = knownId ? await client.version(knownId) : null;
@@ -69,13 +71,17 @@ export async function synchronise(deps: SyncDependencies, interactive = false): 
       const local = await archive.snapshot();
       const base = (await archive.getMeta<SyncBase>(META.base)) ?? {};
       const at = now();
-      const { merged, base: nextBase, conflicts } = mergeSnapshots(local, remote, base, newId, at);
+      const { merged, base: nextBase, conflicts: found } = mergeSnapshots(local, remote, base, newId, at);
+      conflicts += found;
 
       const toLocal = snapshotChanges(local, merged);
-      const received = toLocal.changed ? await archive.applySync(toLocal.puts, toLocal.deletions, snapshotStamps(local)) : 0;
+      if (toLocal.changed) received += await archive.applySync(toLocal.puts, toLocal.deletions, snapshotStamps(local));
 
       const upload = !file || snapshotChanges(remote, merged).changed;
       if (upload) {
+        // The file read so far is now merged here, even if the upload fails: its versions must not count as
+        // changes of this device, or conflicts again. A change not uploaded yet still differs from them, so it is not lost.
+        await archive.setMeta(META.base, { ...base, ...Object.fromEntries(snapshotStamps(remote)) });
         const bytes = writeSyncFile(merged, appVersion, at);
         if (file) {
           // Another device wrote the file after it was read: merge again with its version.
