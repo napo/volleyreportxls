@@ -1247,6 +1247,47 @@ a {
   color: var(--vr-muted);
 }
 
+.vr-match-filter {
+  max-width: 24rem;
+  margin-bottom: 0.75rem;
+}
+
+.vr-match-sort {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.9rem;
+  margin-bottom: 0.5rem;
+  font-family: var(--vr-font-nav);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.vr-match-sort > span {
+  color: var(--vr-muted);
+}
+
+.vr-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: var(--vr-navy);
+  cursor: pointer;
+}
+
+.vr-sort:hover,
+.vr-sort.active {
+  color: var(--vr-blue);
+}
+
 .vr-warning {
   border-left: 4px solid var(--vr-orange);
   background: var(--vr-orange-soft);

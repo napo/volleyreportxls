@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 /** The matches saved on this device: open, edit, export, delete; import from a .vrp file. */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { type MatchRecord, newMatchRecord } from '../../matches/record';
 import { VrpError } from '../../matches/vrp';
 import { formatDate } from '../../report/format';
@@ -10,24 +10,39 @@ import { useArchive } from '../archive-context';
 import { exportMatches, importMatchFile } from '../match-files';
 import { type Messages, useI18n } from '../../i18n';
 import { href, navigate } from '../routes';
+import { DEFAULT_SORT, MATCH_COLUMNS, type MatchRow, type MatchSort, filterRows, matchResult, nextSort, sortRows } from '../match-table';
 
 const title = (r: MatchRecord, m: Messages) => `${r.teamName || m.common.team} – ${r.opponentName || m.common.opponent}`;
 
-function summary(m: MatchRecord) {
-  const scored = m.sets.flatMap((s) => (s.score ? [s.score] : []));
-  const won = scored.filter((s) => s.team > s.opponent).length;
-  const lost = scored.filter((s) => s.opponent > s.team).length;
-  const result = scored.length ? `${won}-${lost} (${scored.map((s) => `${s.team}-${s.opponent}`).join(', ')})` : null;
-  return [m.competition, formatDate(m.date), result].filter(Boolean).join(' · ');
-}
+const SORT_MARK = { ascending: '▲', descending: '▼' } as const;
 
 export function MatchList() {
-  const { m } = useI18n();
+  const { lang, m } = useI18n();
   const t = m.matches;
   const { archive, error, revision } = useArchive();
   const [matches, setMatches] = useState<MatchRecord[] | null>(null);
   const [message, setMessage] = useState<{ text: string; warning?: boolean } | null>(null);
+  const [query, setQuery] = useState('');
+  const [sort, setSort] = useState<MatchSort>(DEFAULT_SORT);
   const fileInput = useRef<HTMLInputElement>(null);
+
+  const rows = useMemo<readonly MatchRow[]>(() => {
+    const when = (iso: string) => {
+      const d = new Date(iso);
+      return iso && !Number.isNaN(d.getTime()) ? d.toLocaleString(lang, { dateStyle: 'short', timeStyle: 'short' }) : '';
+    };
+    const all = (matches ?? []).map((r) => ({
+      record: r,
+      cells: {
+        match: title(r, m),
+        competition: r.competition,
+        date: formatDate(r.date),
+        createdAt: when(r.createdAt),
+        updatedAt: when(r.updatedAt),
+      },
+    }));
+    return sortRows(filterRows(all, query), sort);
+  }, [matches, query, sort, lang, m]);
 
   const reload = () => archive?.listMatches().then(setMatches);
   useEffect(() => {
@@ -94,33 +109,57 @@ export function MatchList() {
       {error && <p className="vr-note">{t.noArchive}</p>}
       {matches && matches.length === 0 && <p className="vr-note">{t.none}</p>}
       {matches && matches.length > 0 && (
-        <ul className="vr-matches">
-          {matches.map((r) => (
-            <li key={r.id}>
-              <a href={href('partita', r.id)}>
-                <strong>{title(r, m)}</strong>
-                <span>{summary(r)}</span>
-              </a>
-              <span className="vr-actions start">
-                <a className="vr-btn vr-btn-secondary vr-btn-small" href={href('tabellino', r.id)}>
-                  {m.nav.tabellino}
-                </a>
-                <a className="vr-btn vr-btn-secondary vr-btn-small" href={href('grafici', r.id)}>
-                  {m.nav.grafici}
-                </a>
-                <a className="vr-btn vr-btn-secondary vr-btn-small" href={href('partita', r.id)}>
-                  {t.edit}
-                </a>
-                <button type="button" className="vr-btn vr-btn-secondary vr-btn-small" onClick={() => exportAll([r])}>
-                  {t.export}
+        <>
+          <label className="vr-field vr-match-filter">
+            <span>{t.filter}</span>
+            <input type="search" value={query} placeholder={t.filterPlaceholder} onChange={(e) => setQuery(e.target.value)} />
+          </label>
+          <div className="vr-match-sort" role="group" aria-label={t.sortBy}>
+            <span>{t.sortBy}</span>
+            {MATCH_COLUMNS.map((c) => {
+              const sorted = sort.column === c ? (sort.descending ? 'descending' : 'ascending') : undefined;
+              return (
+                <button key={c} type="button" className={`vr-sort${sorted ? ' active' : ''}`} aria-pressed={!!sorted} onClick={() => setSort(nextSort(sort, c))}>
+                  {t.columns[c]}
+                  <span aria-hidden="true">{sorted ? SORT_MARK[sorted] : ''}</span>
                 </button>
-                <button type="button" className="vr-btn vr-btn-secondary vr-btn-small vr-btn-danger" onClick={() => remove(r)}>
-                  {t.delete}
-                </button>
-              </span>
-            </li>
-          ))}
-        </ul>
+              );
+            })}
+          </div>
+          <ul className="vr-matches">
+            {rows.map(({ record: r, cells }) => (
+              <li key={r.id}>
+                <a href={href('partita', r.id)}>
+                  <strong>{cells.match}</strong>
+                  <span>{[cells.competition, cells.date, matchResult(r)].filter(Boolean).join(' · ')}</span>
+                  <span>
+                    {[cells.createdAt && `${t.columns.createdAt} ${cells.createdAt}`, cells.updatedAt && `${t.columns.updatedAt} ${cells.updatedAt}`]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </span>
+                </a>
+                <span className="vr-actions start">
+                  <a className="vr-btn vr-btn-secondary vr-btn-small" href={href('tabellino', r.id)}>
+                    {m.nav.tabellino}
+                  </a>
+                  <a className="vr-btn vr-btn-secondary vr-btn-small" href={href('grafici', r.id)}>
+                    {m.nav.grafici}
+                  </a>
+                  <a className="vr-btn vr-btn-secondary vr-btn-small" href={href('partita', r.id)}>
+                    {t.edit}
+                  </a>
+                  <button type="button" className="vr-btn vr-btn-secondary vr-btn-small" onClick={() => exportAll([r])}>
+                    {t.export}
+                  </button>
+                  <button type="button" className="vr-btn vr-btn-secondary vr-btn-small vr-btn-danger" onClick={() => remove(r)}>
+                    {t.delete}
+                  </button>
+                </span>
+              </li>
+            ))}
+          </ul>
+          {rows.length === 0 && <p className="vr-note">{t.noneFiltered}</p>}
+        </>
       )}
     </section>
   );
