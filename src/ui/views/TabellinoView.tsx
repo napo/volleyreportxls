@@ -16,7 +16,7 @@ import { buildSetTabellino } from '../../report/tabellino';
 import { type ShareSection, forSharing } from '../../share/payload';
 import type { Archive } from '../../storage/archive';
 import { useArchive } from '../archive-context';
-import { ShareButton } from '../components/ShareDialog';
+import { ShareBox, ShareButton } from '../components/ShareDialog';
 
 /** The match as a link carries it: names only if the user wants them. */
 export async function sharedMatch(archive: Archive | null, recordId: string, names: boolean, numbers: readonly number[] = []) {
@@ -35,6 +35,7 @@ export function TabellinoView({ report, shared }: Props) {
   const { m, lang } = useI18n();
   const { archive } = useArchive();
   const shown = (section: ShareSection) => !shared?.hidden.includes(section);
+  const subject = `${report.tabellino.teamName} – ${report.tabellino.opponentName}`;
   const t = m.scoresheet;
   // The whole match, or the set chosen on the scoreboard; the PDF follows.
   const [setShown, setSetShown] = useState<SetNumber | null>(null);
@@ -104,7 +105,7 @@ export function TabellinoView({ report, shared }: Props) {
             <a className="vr-btn vr-btn-secondary vr-btn-small" href={href('partita', report.recordId)}>
               {t.editMatch}
             </a>
-            <ShareButton kind="match" build={(names) => sharedMatch(archive, report.recordId!, names)} />
+            <ShareButton kind="match" subject={subject} build={(names) => sharedMatch(archive, report.recordId!, names)} />
           </div>
         </section>
       )}
@@ -141,6 +142,12 @@ export function TabellinoView({ report, shared }: Props) {
           </div>
           <TabellinoSetTable tabellino={tabellino} />
         </section>
+      )}
+
+      {report.recordId && !shared && (
+        <ShareBox>
+          <ShareButton kind="match" subject={subject} primary build={(names) => sharedMatch(archive, report.recordId!, names)} />
+        </ShareBox>
       )}
     </>
   );

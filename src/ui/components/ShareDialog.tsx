@@ -4,12 +4,15 @@
 /**
  * "Share": a link that opens the page read-only. The user chooses how long it
  * lasts (a week unless changed), whether names travel with it and what to
- * leave out; the dialog says that a link sent cannot be withdrawn.
+ * leave out; the dialog says that a link sent cannot be withdrawn. Then it is
+ * sent with WhatsApp (which asks to whom), with another app of the device, or
+ * copied, saying plainly that it has to be pasted where it should go.
  */
-import { useRef, useState } from 'react';
+import { type ReactNode, useRef, useState } from 'react';
 import { SHARE_BASE_URL } from '../../config';
 import { type ShareKind, type SharePayload, type ShareSection, SHARE_SECTIONS, encodeShare, shareUrl } from '../../share/payload';
 import { useI18n } from '../../i18n';
+import { ExternalLink } from '../../platform/ExternalLink';
 
 const DURATIONS = [1, 7, 30, 180] as const;
 
@@ -23,11 +26,29 @@ function expiryAfter(days: number, now = new Date()): Date {
 
 interface Props {
   readonly kind: ShareKind;
+  /** What is shared, in the message that goes with the link (e.g. "Volley Lago – Borgo"). */
+  readonly subject: string;
+  /** A wider button, for the box at the bottom of the page. */
+  readonly primary?: boolean;
   /** What the link carries, with or without names. */
   readonly build: (names: boolean) => Promise<Pick<SharePayload, 'matches' | 'athletes' | 'title' | 'numbers'>>;
 }
 
-export function ShareButton({ kind, build }: Props) {
+/** The box at the bottom of a page: share it (and download it), now that the page has been read. */
+export function ShareBox({ children }: { children: ReactNode }) {
+  const t = useI18n().m.share;
+  return (
+    <section className="vr-card vr-share-cta">
+      <div>
+        <h2>{t.ctaTitle}</h2>
+        <p>{t.ctaText}</p>
+      </div>
+      <div className="vr-actions start">{children}</div>
+    </section>
+  );
+}
+
+export function ShareButton({ kind, subject, primary = false, build }: Props) {
   const { m, lang } = useI18n();
   const t = m.share;
   const dialog = useRef<HTMLDialogElement>(null);
@@ -35,14 +56,16 @@ export function ShareButton({ kind, build }: Props) {
   const [names, setNames] = useState(false);
   const [hidden, setHidden] = useState<ReadonlySet<ShareSection>>(new Set());
   const [url, setUrl] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<'yes' | 'failed' | null>(null);
+  const linkInput = useRef<HTMLInputElement>(null);
 
   const expires = expiryAfter(days);
   const until = expires.toLocaleDateString(lang, { dateStyle: 'long' });
   const reset = () => {
     setUrl(null);
-    setCopied(false);
+    setCopied(null);
   };
+  const message = url ? t.message(subject, until, url) : '';
 
   const create = async () => {
     const content = await build(names);
@@ -50,8 +73,14 @@ export function ShareButton({ kind, build }: Props) {
   };
   const copy = async () => {
     if (!url) return;
-    await navigator.clipboard.writeText(url);
-    setCopied(true);
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied('yes');
+    } catch {
+      // No clipboard (an old browser, a page without permission): the link is selected to copy by hand.
+      linkInput.current?.select();
+      setCopied('failed');
+    }
   };
   const toggle = (section: ShareSection) => {
     const next = new Set(hidden);
@@ -64,7 +93,7 @@ export function ShareButton({ kind, build }: Props) {
     <>
       <button
         type="button"
-        className="vr-btn vr-btn-secondary"
+        className={`vr-btn ${primary ? 'vr-btn-primary' : 'vr-btn-secondary'}`}
         onClick={() => {
           reset();
           dialog.current?.showModal();
@@ -124,18 +153,36 @@ export function ShareButton({ kind, build }: Props) {
 
         {url ? (
           <div className="vr-share-link">
-            <input type="text" readOnly value={url} aria-label={t.title} onFocus={(e) => e.target.select()} />
-            <div className="vr-actions start">
-              <button type="button" className="vr-btn vr-btn-primary" onClick={copy}>
-                {copied ? t.copied : t.copy}
+            <h3>{t.ready}</h3>
+            <div className="vr-share-ways">
+              <ExternalLink className="vr-btn vr-btn-primary vr-btn-whatsapp" href={`https://wa.me/?text=${encodeURIComponent(message)}`}>
+                {t.whatsapp}
+              </ExternalLink>
+              <button type="button" className="vr-btn vr-btn-secondary" onClick={copy}>
+                {copied === 'yes' ? t.copied : t.copy}
               </button>
               {'share' in navigator && (
-                <button type="button" className="vr-btn vr-btn-secondary" onClick={() => navigator.share({ url }).catch(() => undefined)}>
+                <button type="button" className="vr-btn vr-btn-secondary" onClick={() => navigator.share({ title: subject, text: message }).catch(() => undefined)}>
                   {t.send}
                 </button>
               )}
-              <span className="vr-note">{t.size(url.length)}</span>
             </div>
+            <p className="vr-note">{t.whatsappHelp}</p>
+            {copied === 'yes' && (
+              <p className="vr-message" role="status">
+                {t.copiedHelp}
+              </p>
+            )}
+            {copied === 'failed' && (
+              <p className="vr-message warning" role="status">
+                {t.copyFailed}
+              </p>
+            )}
+            <details className="vr-share-raw" open={copied === 'failed'}>
+              <summary>{t.showLink}</summary>
+              <input ref={linkInput} type="text" readOnly value={url} aria-label={t.title} onFocus={(e) => e.target.select()} />
+              <span className="vr-note">{t.size(url.length)}</span>
+            </details>
           </div>
         ) : (
           <div className="vr-actions start">

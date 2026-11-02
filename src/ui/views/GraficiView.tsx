@@ -11,7 +11,7 @@ import type { MatchReport } from '../match-report';
 import { useI18n } from '../../i18n';
 import type { SavedFile } from '../../platform/save-file';
 import { SavedFileLink } from '../components/SavedFileLink';
-import { ShareButton } from '../components/ShareDialog';
+import { ShareBox, ShareButton } from '../components/ShareDialog';
 import { sharedMatch } from './TabellinoView';
 import { useArchive } from '../archive-context';
 import type { ShareSection } from '../../share/payload';
@@ -149,6 +149,7 @@ export default function GraficiView({ report, shared }: Props) {
   }
   const ordered = selected.filter((id) => active.some((p) => p.player.id === id));
   const shown = (section: ShareSection) => !shared?.hidden.includes(section);
+  const subject = `${tabellino.teamName} – ${tabellino.opponentName}`;
   const numbers = ordered.flatMap((id) => active.filter((p) => p.player.id === id).map((p) => p.player.number));
 
   // The report PDF: the blocks chosen, with the athletes chosen on the page.
@@ -219,7 +220,7 @@ export default function GraficiView({ report, shared }: Props) {
             {busy ? m.common.preparing : m.common.downloadPdf}
           </button>
           <ReportPdfButton kind="match" fileName={reportFileName(`${tabellino.teamName} · ${tabellino.opponentName}`)} make={reportPdf} />
-          {report.recordId && !shared && <ShareButton kind="match" build={(names) => sharedMatch(archive, report.recordId!, names, numbers)} />}
+          {report.recordId && !shared && <ShareButton kind="match" subject={subject} build={(names) => sharedMatch(archive, report.recordId!, names, numbers)} />}
         </div>
         <SavedFileLink file={saved} />
       </section>
@@ -237,6 +238,13 @@ export default function GraficiView({ report, shared }: Props) {
           <PlayersSection report={report} active={active} ordered={ordered} onChange={setSelected} />
         </>
       )}
+
+      <ShareBox>
+        {report.recordId && !shared && (
+          <ShareButton kind="match" subject={subject} primary build={(names) => sharedMatch(archive, report.recordId!, names, numbers)} />
+        )}
+        <ReportPdfButton kind="match" fileName={reportFileName(`${tabellino.teamName} · ${tabellino.opponentName}`)} make={reportPdf} />
+      </ShareBox>
     </>
   );
 }

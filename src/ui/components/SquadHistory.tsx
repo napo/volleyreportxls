@@ -23,7 +23,7 @@ import { ProfileChart } from '../charts/ProfileChart';
 import { meaningfulAxes, profileOf, teamProfile } from '../../athletes/profile';
 import { formatDate } from '../../report/format';
 import { type ShareSection, forSharing } from '../../share/payload';
-import { ShareButton } from './ShareDialog';
+import { ShareBox, ShareButton } from './ShareDialog';
 import { ReportPdfButton, reportFileName } from './ReportPdfButton';
 import type { ProfileSeries } from '../charts/ProfileChart';
 
@@ -96,7 +96,7 @@ export function SquadHistory({ records, athletes, title, shared }: Props) {
     <>
       {rows.length > 0 && (
         <div className="vr-actions start vr-report-actions">
-          {!shared && <ShareButton kind="history" build={share} />}
+          {!shared && <ShareButton kind="history" subject={m.share.historyTitle(title)} build={share} />}
           <ReportPdfButton kind="history" fileName={reportFileName(m.share.historyTitle(title))} make={pdf} />
         </div>
       )}
@@ -194,6 +194,13 @@ export function SquadHistory({ records, athletes, title, shared }: Props) {
             ))}
           </div>
         </section>
+      )}
+
+      {rows.length > 0 && (
+        <ShareBox>
+          {!shared && <ShareButton kind="history" subject={m.share.historyTitle(title)} primary build={share} />}
+          <ReportPdfButton kind="history" fileName={reportFileName(m.share.historyTitle(title))} make={pdf} />
+        </ShareBox>
       )}
     </>
   );

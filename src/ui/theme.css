@@ -3138,12 +3138,68 @@ button.vr-score-teams.selected {
   background: var(--vr-surface);
 }
 
-.vr-share-link input {
+/* "Share this page" at the bottom, and the ways to send a link. */
+.vr-share-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-left: 4px solid var(--vr-blue);
+}
+
+.vr-share-cta h2 {
+  margin: 0 0 0.25rem;
+}
+
+.vr-share-cta p {
+  margin: 0;
+}
+
+.vr-share-link h3 {
+  margin: 0 0 0.75rem;
+}
+
+.vr-share-ways {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.vr-btn-whatsapp {
+  border-color: #128c4a;
+  background: #128c4a;
+  color: #fff;
+}
+
+.vr-btn-whatsapp:hover {
+  border-color: #0e6e3a;
+  background: #0e6e3a;
+}
+
+.vr-share-raw {
+  margin-top: 0.75rem;
+}
+
+.vr-share-raw summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--vr-blue);
+}
+
+.vr-share-raw input {
   width: 100%;
-  margin-bottom: 0.75rem;
+  margin: 0.5rem 0 0.25rem;
   padding: 0.45rem 0.6rem;
   font: inherit;
   font-size: 0.85rem;
   border: 1px solid var(--vr-border-hover);
   border-radius: 0.4rem;
+}
+
+@media print {
+  .vr-share-cta {
+    display: none;
+  }
 }
