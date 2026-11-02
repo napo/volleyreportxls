@@ -7,7 +7,9 @@
  */
 import { type ChartsPdfBlock, chartsFileName, renderChartsPdf } from '../../pdf/charts-pdf';
 import { formatRating, formatSigned, playerLabel } from '../../report/format';
-import { evaluationShares, playerPoints, pointsBySkill, setTrend } from '../../report/chart-data';
+import { type SetTrendRow, evaluationShares, playerPoints, playerSetTrend, pointsBySkill, setTrend } from '../../report/chart-data';
+import type { StatLine } from '../../domain/stats/aggregate';
+import { type SquadRow, rowPoints } from '../../athletes/squad-history';
 import { saveFile } from '../../platform/save-file';
 import type { Messages } from '../../i18n';
 import type { MatchReport } from '../match-report';
@@ -19,12 +21,29 @@ import { TREND_CHART_HEIGHT, trendChartOption } from './TrendChart';
 import { wonLostChartHeight, wonLostChartOption } from './WonLostChart';
 
 async function chartBlocks(report: MatchReport, playerIds: readonly string[], m: Messages): Promise<ChartsPdfBlock[]> {
+  const { stats } = report;
+  const blocks: ChartsPdfBlock[] = [
+    { kind: 'section', title: m.charts.team },
+    ...(await teamChartBlocks({ team: stats.team.match, opponentErrors: stats.opponentErrors, trend: setTrend(stats) }, m)),
+  ];
+  if (playerIds.length) blocks.push({ kind: 'section', title: m.charts.players }, ...(await playerChartBlocks(report, playerIds, m)));
+  return blocks;
+}
+
+export interface TeamChartData {
+  readonly team: StatLine;
+  readonly opponentErrors: number;
+  /** Set by set for a match, match by match for the history. */
+  readonly trend: readonly SetTrendRow[];
+  readonly trendTexts?: { readonly title: string; readonly text: string };
+}
+
+/** The charts of the team: evaluations, points won and lost, trend. */
+export async function teamChartBlocks({ team, opponentErrors, trend, trendTexts }: TeamChartData, m: Messages): Promise<ChartsPdfBlock[]> {
   const t = m.charts;
   const names = { skills: m.skills, opponentErrors: t.opponentErrors };
-  const { stats, tabellino } = report;
-  const team = stats.team.match;
   const minShare = minLabelledShareFor(PDF_CHART_WIDTH);
-  const blocks: ChartsPdfBlock[] = [{ kind: 'section', title: t.team }];
+  const blocks: ChartsPdfBlock[] = [];
 
   const shares = evaluationShares(team, names);
   if (shares.length) {
@@ -35,14 +54,14 @@ async function chartBlocks(report: MatchReport, playerIds: readonly string[], m:
       figures: [
         [t.directPoints, String(team.summary.pointsWon)],
         [t.balance, formatSigned(team.summary.balance)],
-        [t.opponentErrors, String(stats.opponentErrors)],
+        [t.opponentErrors, String(opponentErrors)],
         [t.receptionPos, percent(team.reception.positivity)],
         [t.attackPt, percent(team.attack.pointRate)],
       ],
       image: await chartImage(evaluationChartOption(shares, minShare, m), evaluationChartHeight(shares)),
     });
   }
-  const points = pointsBySkill(team, stats.opponentErrors, names);
+  const points = pointsBySkill(team, opponentErrors, names);
   if (points.length) {
     blocks.push({
       kind: 'chart',
@@ -51,18 +70,66 @@ async function chartBlocks(report: MatchReport, playerIds: readonly string[], m:
       image: await chartImage(wonLostChartOption(points, m), wonLostChartHeight(points)),
     });
   }
-  const trend = setTrend(stats);
   if (trend.length > 1) {
     blocks.push({
       kind: 'chart',
-      title: t.trendTitle,
-      note: t.trendText,
+      title: trendTexts?.title ?? t.trendTitle,
+      note: trendTexts?.text ?? t.trendText,
       image: await chartImage(trendChartOption(trend, m), TREND_CHART_HEIGHT),
     });
   }
 
+  return blocks;
+}
+
+/** Points won and lost side by side, then the evaluations of each athlete (rows of the history). */
+export async function athleteChartBlocks(
+  rows: readonly SquadRow[],
+  trends: ReadonlyMap<string, readonly SetTrendRow[]>,
+  m: Messages,
+): Promise<ChartsPdfBlock[]> {
+  const t = m.charts;
+  const names = { skills: m.skills, opponentErrors: t.opponentErrors };
+  const minShare = minLabelledShareFor(PDF_CHART_WIDTH);
+  if (!rows.length) return [];
+  const comparison = rowPoints(rows);
+  const blocks: ChartsPdfBlock[] = [
+    { kind: 'chart', title: t.compareTitle, note: t.compareText, image: await chartImage(wonLostChartOption(comparison, m), wonLostChartHeight(comparison)) },
+  ];
+  for (const row of rows) {
+    const shares = evaluationShares(row.totals.stats, names);
+    if (!shares.length) continue;
+    blocks.push({
+      kind: 'chart',
+      title: `${row.label} n. ${row.numbers.join(', ')}`.trim(),
+      figures: [
+        [t.rating, formatRating(row.totals.rating)],
+        [t.points, String(row.totals.stats.summary.pointsWon)],
+        [t.balance, formatSigned(row.totals.stats.summary.balance)],
+      ],
+      image: await chartImage(evaluationChartOption(shares, minShare, m), evaluationChartHeight(shares)),
+    });
+    const trend = trends.get(row.id) ?? [];
+    if (trend.length > 1) blocks.push(await trendBlock(`${m.athletes.trendTitle} · ${row.label}`, m.athletes.trendText, trend, m));
+  }
+  return blocks;
+}
+
+const trendBlock = async (title: string, note: string, rows: readonly SetTrendRow[], m: Messages): Promise<ChartsPdfBlock> => ({
+  kind: 'chart',
+  title,
+  note,
+  image: await chartImage(trendChartOption(rows, m), TREND_CHART_HEIGHT),
+});
+
+/** The charts of the chosen athletes: points won and lost side by side, then the evaluations of each. */
+export async function playerChartBlocks(report: MatchReport, playerIds: readonly string[], m: Messages): Promise<ChartsPdfBlock[]> {
+  const t = m.charts;
+  const names = { skills: m.skills, opponentErrors: t.opponentErrors };
+  const { stats, tabellino } = report;
+  const minShare = minLabelledShareFor(PDF_CHART_WIDTH);
+  const blocks: ChartsPdfBlock[] = [];
   if (playerIds.length) {
-    blocks.push({ kind: 'section', title: t.players });
     const comparison = playerPoints(stats, playerIds);
     blocks.push({
       kind: 'chart',
@@ -87,6 +154,8 @@ async function chartBlocks(report: MatchReport, playerIds: readonly string[], m:
         ],
         image: await chartImage(evaluationChartOption(rows, minShare, m), evaluationChartHeight(rows)),
       });
+      const trend = playerSetTrend(player);
+      if (trend.length > 1) blocks.push(await trendBlock(`${t.trendTitle} · ${playerLabel(player.player)}`, t.trendText, trend, m));
     }
   }
   return blocks;

@@ -23,12 +23,12 @@ function bytesOf(dataUrl: string): Uint8Array {
   return Uint8Array.from(binary, (c) => c.charCodeAt(0));
 }
 
-/** The chart with its legend on top, without animation, as a PNG. */
-export async function chartImage(option: EChartsCoreOption, height: number, legend = true): Promise<ChartImage> {
+/** The chart with its legend on top, without animation, as a PNG; narrower for charts printed side by side. */
+export async function chartImage(option: EChartsCoreOption, height: number, legend = true, width = PDF_CHART_WIDTH): Promise<ChartImage> {
   await document.fonts.ready;
   const total = height + (legend ? LEGEND_HEIGHT : 0);
   const element = document.createElement('div');
-  const chart = echarts.init(element, null, { renderer: 'canvas', width: PDF_CHART_WIDTH, height: total, devicePixelRatio: PIXEL_RATIO });
+  const chart = echarts.init(element, null, { renderer: 'canvas', width, height: total, devicePixelRatio: PIXEL_RATIO });
   try {
     const grid = (option as { grid?: { top?: number } }).grid ?? {};
     chart.setOption({
@@ -36,11 +36,11 @@ export async function chartImage(option: EChartsCoreOption, height: number, lege
       animation: false,
       ...(legend && {
         grid: { ...grid, top: (grid.top ?? 0) + LEGEND_HEIGHT },
-        legend: { show: true, top: 0, left: 0, itemWidth: 14, itemHeight: 10, textStyle: { fontFamily: FONT, color: TEXT_PRIMARY, fontSize: 12 } },
+        legend: { ...(option as { legend?: object }).legend, show: true, top: 0, left: 0, itemWidth: 14, itemHeight: 10, textStyle: { fontFamily: FONT, color: TEXT_PRIMARY, fontSize: 12 } },
       }),
     });
     const png = bytesOf(chart.getDataURL({ type: 'png', pixelRatio: PIXEL_RATIO, backgroundColor: '#ffffff' }));
-    return { png, width: PDF_CHART_WIDTH, height: total };
+    return { png, width, height: total };
   } finally {
     chart.dispose();
   }

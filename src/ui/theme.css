@@ -560,6 +560,113 @@ a {
   color: var(--vr-heading);
 }
 
+.vr-picker {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.vr-picker legend {
+  margin-bottom: 0.5rem;
+  font-family: var(--vr-font-nav);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--vr-muted);
+}
+
+.vr-picker-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.vr-picker-head input {
+  flex: 1 1 14rem;
+  max-width: 22rem;
+  padding: 0.45rem 0.6rem;
+  font: inherit;
+  color: var(--vr-heading);
+  border: 1px solid var(--vr-border-hover);
+  border-radius: 0.4rem;
+  background: var(--vr-surface);
+}
+
+.vr-picker-count {
+  font-size: 0.85rem;
+  color: var(--vr-muted);
+}
+
+.vr-profile-bars {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 1rem;
+}
+
+.vr-profile-bars figure {
+  margin: 0;
+}
+
+.vr-profile-bars figcaption {
+  font-weight: 600;
+  text-align: center;
+  color: var(--vr-heading);
+}
+
+.vr-profiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  gap: 1rem;
+}
+
+.vr-profiles h3 {
+  margin: 0 0 0.5rem;
+}
+
+.vr-choice small {
+  opacity: 0.7;
+}
+
+.vr-squad-table td a {
+  font-weight: 700;
+  color: var(--vr-heading);
+  text-decoration: none;
+}
+
+.vr-squad-table td a:hover {
+  color: var(--vr-blue);
+}
+
+.vr-squad-numbers {
+  margin-left: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--vr-muted);
+}
+
+.vr-squad-table thead th.num {
+  text-align: right;
+}
+
+/* The names stay in view while the table scrolls sideways. */
+.vr-squad-table tr > :first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--vr-surface);
+}
+
+.vr-squad-table thead tr > :first-child {
+  background: var(--vr-blue-soft);
+}
+
+.vr-table td.vr-few {
+  color: var(--vr-muted);
+  opacity: 0.6;
+}
+
 .vr-squad-choice {
   max-width: 24rem;
   margin-top: 1rem;
@@ -2988,4 +3095,55 @@ button.vr-score-teams.selected {
 
 .vr-faq-actions .vr-codes {
   width: 100%;
+}
+
+/* On paper the data tables are open (see DataTable): their "show" line is not needed. */
+@media print {
+  .vr-data > summary {
+    display: none;
+  }
+}
+
+/* Shared report: validity and print above the page, the invitation to the app below. */
+.vr-shared-info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: var(--vr-muted);
+}
+
+.vr-share-promo {
+  border-left: 4px solid var(--vr-orange);
+}
+
+.vr-share {
+  width: min(560px, calc(100vw - 2rem));
+}
+
+.vr-share .vr-field,
+.vr-share .vr-check {
+  margin-bottom: 1rem;
+}
+
+.vr-share .vr-field select {
+  max-width: 14rem;
+  padding: 0.45rem 0.6rem;
+  font: inherit;
+  border: 1px solid var(--vr-border-hover);
+  border-radius: 0.4rem;
+  background: var(--vr-surface);
+}
+
+.vr-share-link input {
+  width: 100%;
+  margin-bottom: 0.75rem;
+  padding: 0.45rem 0.6rem;
+  font: inherit;
+  font-size: 0.85rem;
+  border: 1px solid var(--vr-border-hover);
+  border-radius: 0.4rem;
 }

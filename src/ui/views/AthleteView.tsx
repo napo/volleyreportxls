@@ -16,6 +16,9 @@ import { TrendChart } from '../charts/TrendChart';
 import { percent } from '../charts/tokens';
 import { inSquad } from '../../athletes/squads';
 import { useAthletesData } from '../athletes-data';
+import { MatchChoices } from '../components/MatchChoices';
+import { ProfileChart } from '../charts/ProfileChart';
+import { meaningfulAxes, profileOf, teamProfile } from '../../athletes/profile';
 import { PointsCells, SkillCells, SkillGroups, SkillHeaders } from '../components/TabellinoTable';
 import { href, navigate } from '../routes';
 
@@ -60,6 +63,15 @@ export default function AthleteView({ id }: { id: string }) {
   const all = useMemo(() => (data ? athleteMatches(data.records, id) : []), [data, id]);
   const chosen = useMemo(() => all.filter((x) => !excluded.has(x.record.id)), [all, excluded]);
   const totals = useMemo(() => athleteTotals(chosen), [chosen]);
+  const team = useMemo(() => teamProfile(chosen.map((x) => x.record)), [chosen]);
+  const last = chosen.at(-1);
+  const profileSeries = [
+    { kind: 'athlete' as const, name: m.profile.own, values: profileOf(totals.stats) },
+    ...(last && chosen.length > 1
+      ? [{ kind: 'last' as const, name: `${m.profile.last}: ${formatDate(last.record.date)} ${last.record.opponentName || m.common.opponent}`, values: profileOf(last.stats) }]
+      : []),
+    { kind: 'team' as const, name: m.profile.team, values: team },
+  ];
 
   if (!data || !archive) return <p className="vr-note">{m.common.loading}</p>;
   if (!athlete) {
@@ -75,27 +87,6 @@ export default function AthleteView({ id }: { id: string }) {
 
   const own = data.entries.filter((e) => e.athleteId === id);
   const title = athleteLabel(athlete, data.entries);
-  const toggle = (matchId: string) =>
-    setExcluded((ex) => {
-      const next = new Set(ex);
-      if (!next.delete(matchId)) next.add(matchId);
-      return next;
-    });
-
-  // The matches by team name and competition (one roster each), in order of first match.
-  const groups = all.reduce<{ key: string; label: string; matches: typeof all }[]>((list, x) => {
-    const key = `${x.record.teamName}|${x.record.competition}`;
-    const group = list.find((g) => g.key === key);
-    if (group) group.matches.push(x);
-    else list.push({ key, label: [x.record.competition, x.record.teamName].filter((s) => s.trim()).join(' · ') || '—', matches: [x] });
-    return list;
-  }, []);
-  const toggleAll = (ids: readonly string[], include: boolean) =>
-    setExcluded((ex) => {
-      const next = new Set(ex);
-      ids.forEach((id) => (include ? next.delete(id) : next.add(id)));
-      return next;
-    });
   const squadNames = data.squads.filter((s) => own.some((e) => inSquad(s, e.teamName))).map((s) => s.name);
   const back = href('storico', data.squads.find((s) => own.some((e) => inSquad(s, e.teamName)))?.id);
 
@@ -179,33 +170,7 @@ export default function AthleteView({ id }: { id: string }) {
               </button>
             </div>
           </div>
-          {groups.map(({ key, label, matches }) => {
-            const ids = matches.map((x) => x.record.id);
-            const on = ids.filter((id) => !excluded.has(id)).length;
-            return (
-              <fieldset key={key} className="vr-choices vr-match-group">
-                <legend>
-                  <label className="vr-check">
-                    <input
-                      type="checkbox"
-                      checked={on === ids.length}
-                      ref={(el) => {
-                        if (el) el.indeterminate = on > 0 && on < ids.length;
-                      }}
-                      onChange={() => toggleAll(ids, on < ids.length)}
-                    />
-                    {label}
-                  </label>
-                </legend>
-                {matches.map((x) => (
-                  <label key={x.record.id} className="vr-choice">
-                    <input type="checkbox" checked={!excluded.has(x.record.id)} onChange={() => toggle(x.record.id)} />
-                    {formatDate(x.record.date)} {x.record.opponentName || m.common.opponent} · n. {x.number}
-                  </label>
-                ))}
-              </fieldset>
-            );
-          })}
+          <MatchChoices items={all.map((x) => ({ record: x.record, detail: `n. ${x.number}` }))} excluded={excluded} onChange={setExcluded} />
         </section>
       )}
 
@@ -222,6 +187,16 @@ export default function AthleteView({ id }: { id: string }) {
             <Tile label={m.charts.receptionPos} value={totals.stats.reception.total ? percent(totals.stats.reception.positivity) : '.'} />
             <Tile label={m.charts.attackPt} value={totals.stats.attack.total ? percent(totals.stats.attack.pointRate) : '.'} />
           </div>
+
+          <section className="vr-card">
+            <div className="vr-card-head">
+              <div>
+                <h2>{m.profile.title}</h2>
+                <p>{m.profile.text}</p>
+              </div>
+            </div>
+            <ProfileChart series={profileSeries} axes={meaningfulAxes(totals.stats)} label={m.profile.label(athlete.name.trim() || title)} />
+          </section>
 
           {chosen.length > 1 && (
             <section className="vr-card">

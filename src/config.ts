@@ -15,6 +15,12 @@ export const SOURCE_REPOSITORY = 'napo/volleyreportxls';
 export const SOURCE_REPOSITORY_URL = `https://github.com/${SOURCE_REPOSITORY}`;
 /** Web version (GitHub Pages with the custom domain in public/CNAME, see .github/workflows/deploy-pages.yml). */
 export const WEB_APP_URL = 'https://report.volleyserve.it/';
+/**
+ * Address put in front of a shared report ("…#v/…"): the web version, unless
+ * VITE_SHARE_URL says otherwise at build time (e.g. a test deployment).
+ */
+// import.meta.env is missing when vite.config.ts loads this file (form PDFs).
+export const SHARE_BASE_URL = externalUrl(import.meta.env?.VITE_SHARE_URL) ?? WEB_APP_URL;
 export const LICENSE_URL = `${SOURCE_REPOSITORY_URL}/blob/main/LICENSE`;
 /** Privacy policy (public/privacy.html), linked from the footer as Google requires for its sign-in. */
 export const PRIVACY_URL = `${WEB_APP_URL}privacy.html`;

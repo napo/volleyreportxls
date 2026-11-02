@@ -23,24 +23,24 @@ import { type PdfFontFiles, embedPdfFonts } from './fonts';
 import { type Align, MARGIN, MM, MUTED, NAVY, PAGE, ROW, Writer, drawMatchHeader, footer } from './pdf-page';
 
 
-interface Column<T> {
+export interface Column<T> {
   readonly header: string;
   readonly width: number; // mm
   readonly align: Align;
   readonly value: (row: T) => string;
 }
 
-interface Group<T> {
+export interface Group<T> {
   readonly title: string;
   readonly columns: readonly Column<T>[];
 }
 
-const num = <T,>(header: string, value: (row: T) => string, width = 7): Column<T> => ({ header, width, align: 'right', value });
+export const num = <T,>(header: string, value: (row: T) => string, width = 7): Column<T> => ({ header, width, align: 'right', value });
 
 type Texts = Messages['scoresheet'];
 
 /** Serve, reception, attack and block: shared by player, total and set rows. */
-function skillGroups<T extends TabellinoSkills>(t: Texts): Group<T>[] {
+export function skillGroups<T extends TabellinoSkills>(t: Texts): Group<T>[] {
   return [
     {
       title: t.serve,
@@ -73,9 +73,9 @@ function skillGroups<T extends TabellinoSkills>(t: Texts): Group<T>[] {
   ];
 }
 
-type PlayerOrTotal = TabellinoPlayerRow | (Omit<TabellinoPlayerRow, 'player' | 'setsPlayed' | 'rating'> & { total: true });
+export type PlayerOrTotal = TabellinoPlayerRow | (Omit<TabellinoPlayerRow, 'player' | 'setsPlayed' | 'rating'> & { total: true });
 
-function playerGroups(tabellino: Tabellino, t: Texts): Group<PlayerOrTotal>[] {
+export function playerGroups(tabellino: Tabellino, t: Texts): Group<PlayerOrTotal>[] {
   const { showNames } = tabellino;
   const isPlayer = (r: PlayerOrTotal): r is TabellinoPlayerRow => 'player' in r;
   const libero = (r: TabellinoPlayerRow) => (r.player.role === 'L' ? ' (L)' : '');
@@ -108,7 +108,7 @@ function playerGroups(tabellino: Tabellino, t: Texts): Group<PlayerOrTotal>[] {
   ];
 }
 
-function setGroups(t: Texts): Group<TabellinoSetRow>[] {
+export function setGroups(t: Texts): Group<TabellinoSetRow>[] {
   return [
     {
       title: '',
@@ -136,7 +136,7 @@ function setGroups(t: Texts): Group<TabellinoSetRow>[] {
 
 
 /** Draws a grouped table and returns the y below it. */
-function drawTable<T>(w: Writer, top: number, groups: readonly Group<T>[], rows: readonly T[], emphasise: (row: T) => boolean): number {
+export function drawTable<T>(w: Writer, top: number, groups: readonly Group<T>[], rows: readonly T[], emphasise: (row: T) => boolean): number {
   const cellPad = 0.8 * MM;
   const width = groups.flatMap((g) => g.columns).reduce((sum, c) => sum + c.width * MM, 0);
   let y = top;

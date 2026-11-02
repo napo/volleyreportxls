@@ -27,28 +27,39 @@ export interface AthleteMatch {
   readonly events: readonly ScoutEvent[];
 }
 
+const byDate = (a: AthleteMatch, b: AthleteMatch) =>
+  a.record.date.localeCompare(b.record.date) || a.record.createdAt.localeCompare(b.record.createdAt);
+
+/** The matches of every linked athlete, oldest first; the statistics of each match are computed once. */
+export function matchesByAthlete(records: readonly MatchRecord[]): Map<string, AthleteMatch[]> {
+  const byAthlete = new Map<string, AthleteMatch[]>();
+  for (const record of records) {
+    const linked = record.players.filter((p) => p.athleteId);
+    if (!linked.length) continue;
+    const stats = calculateMatchStats(toMatch(record));
+    for (const player of linked) {
+      const own = stats.players.find((p) => p.player.number === player.number);
+      if (!own || !player.athleteId) continue;
+      const list = byAthlete.get(player.athleteId) ?? [];
+      list.push({
+        record,
+        number: player.number,
+        setsPlayed: own.setsPlayed,
+        rating: own.rating.overall,
+        stats: own.match,
+        line: tabellinoLine(own.match),
+        events: filterEvents(stats.events, { playerNumber: player.number }),
+      });
+      byAthlete.set(player.athleteId, list);
+    }
+  }
+  for (const list of byAthlete.values()) list.sort(byDate);
+  return byAthlete;
+}
+
 /** The matches of the athlete, oldest first. */
 export function athleteMatches(records: readonly MatchRecord[], athleteId: string): AthleteMatch[] {
-  return records
-    .flatMap((record) => {
-      const player = record.players.find((p) => p.athleteId === athleteId);
-      if (!player) return [];
-      const stats = calculateMatchStats(toMatch(record));
-      const own = stats.players.find((p) => p.player.number === player.number);
-      if (!own) return [];
-      return [
-        {
-          record,
-          number: player.number,
-          setsPlayed: own.setsPlayed,
-          rating: own.rating.overall,
-          stats: own.match,
-          line: tabellinoLine(own.match),
-          events: filterEvents(stats.events, { playerNumber: player.number }),
-        },
-      ];
-    })
-    .sort((a, b) => a.record.date.localeCompare(b.record.date) || a.record.createdAt.localeCompare(b.record.createdAt));
+  return matchesByAthlete(records.filter((r) => r.players.some((p) => p.athleteId === athleteId))).get(athleteId) ?? [];
 }
 
 export interface AthleteTotals {

@@ -13,9 +13,28 @@ import type { MatchReport } from '../match-report';
 import { href } from '../routes';
 import { formatDate } from '../../report/format';
 import { buildSetTabellino } from '../../report/tabellino';
+import { type ShareSection, forSharing } from '../../share/payload';
+import type { Archive } from '../../storage/archive';
+import { useArchive } from '../archive-context';
+import { ShareButton } from '../components/ShareDialog';
 
-export function TabellinoView({ report }: { report: MatchReport }) {
+/** The match as a link carries it: names only if the user wants them. */
+export async function sharedMatch(archive: Archive | null, recordId: string, names: boolean, numbers: readonly number[] = []) {
+  const record = await archive?.getMatch(recordId);
+  if (!record) throw new Error('match not found');
+  return { ...forSharing([record], [], names), title: '', numbers };
+}
+
+interface Props {
+  readonly report: MatchReport;
+  /** In a shared report: the sections left out. */
+  readonly shared?: { readonly hidden: readonly ShareSection[] };
+}
+
+export function TabellinoView({ report, shared }: Props) {
   const { m, lang } = useI18n();
+  const { archive } = useArchive();
+  const shown = (section: ShareSection) => !shared?.hidden.includes(section);
   const t = m.scoresheet;
   // The whole match, or the set chosen on the scoreboard; the PDF follows.
   const [setShown, setSetShown] = useState<SetNumber | null>(null);
@@ -50,7 +69,7 @@ export function TabellinoView({ report }: { report: MatchReport }) {
     <>
       <header className="vr-hero">
         <p className="vr-eyebrow">
-          {t.eyebrow} · {report.recordId ? m.common.match : m.common.example}
+          {shared ? m.share.eyebrow : `${t.eyebrow} · ${report.recordId ? m.common.match : m.common.example}`}
           {tabellino.set && ` · ${t.set} ${tabellino.set}`}
         </p>
         <h1>
@@ -85,39 +104,44 @@ export function TabellinoView({ report }: { report: MatchReport }) {
             <a className="vr-btn vr-btn-secondary vr-btn-small" href={href('partita', report.recordId)}>
               {t.editMatch}
             </a>
+            <ShareButton kind="match" build={(names) => sharedMatch(archive, report.recordId!, names)} />
           </div>
         </section>
       )}
 
-      <section className="vr-card">
-        <div className="vr-card-head">
-          <div>
-            <Scoreboard tabellino={tabellino} onSelect={setSetShown} />
-            <p className="vr-note">
-              {tabellino.set ? t.seeingSet(tabellino.set) : t.tapSet}
-            </p>
+      {shown('tabellino') && (
+        <section className="vr-card">
+          <div className="vr-card-head">
+            <div>
+              <Scoreboard tabellino={tabellino} onSelect={setSetShown} />
+              <p className="vr-note">
+                {tabellino.set ? t.seeingSet(tabellino.set) : t.tapSet}
+              </p>
+            </div>
+            <div className="vr-actions start">
+              <button type="button" className="vr-btn vr-btn-primary" onClick={exportPdf} disabled={busy}>
+                {busy ? m.common.preparing : m.common.downloadPdf}
+              </button>
+            </div>
           </div>
-          <div className="vr-actions start">
-            <button type="button" className="vr-btn vr-btn-primary" onClick={exportPdf} disabled={busy}>
-              {busy ? m.common.preparing : m.common.downloadPdf}
-            </button>
-          </div>
-        </div>
-        {failed && <p className="vr-message warning">{m.common.pdfError}</p>}
-        <SavedFileLink file={saved} />
-        <TabellinoTable tabellino={tabellino} />
-        <p className="vr-note">{t.legend}</p>
-      </section>
+          {failed && <p className="vr-message warning">{m.common.pdfError}</p>}
+          <SavedFileLink file={saved} />
+          <TabellinoTable tabellino={tabellino} />
+          <p className="vr-note">{t.legend}</p>
+        </section>
+      )}
 
-      <section className="vr-card">
-        <div className="vr-card-head">
-          <div>
-            <h2>{tabellino.set ? t.oneSetStats : t.setStats}</h2>
-            <p>{tabellino.set ? t.opponentErrorsSet(tabellino.opponentErrors) : t.opponentErrorsMatch(tabellino.opponentErrors)}</p>
+      {shown('sets') && (
+        <section className="vr-card">
+          <div className="vr-card-head">
+            <div>
+              <h2>{tabellino.set ? t.oneSetStats : t.setStats}</h2>
+              <p>{tabellino.set ? t.opponentErrorsSet(tabellino.opponentErrors) : t.opponentErrorsMatch(tabellino.opponentErrors)}</p>
+            </div>
           </div>
-        </div>
-        <TabellinoSetTable tabellino={tabellino} />
-      </section>
+          <TabellinoSetTable tabellino={tabellino} />
+        </section>
+      )}
     </>
   );
 }

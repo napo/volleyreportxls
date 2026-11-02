@@ -24,7 +24,8 @@ import { type MatchRecord, newId } from '../../matches/record';
 import { useI18n } from '../../i18n';
 import type { Archive } from '../../storage/archive';
 import { type AthletesData, readLastSquad, useAthletesData, writeLastSquad } from '../athletes-data';
-import { href, navigate } from '../routes';
+import { SquadHistory } from '../components/SquadHistory';
+import { navigate } from '../routes';
 
 const NEW = 'new';
 
@@ -66,6 +67,7 @@ export function AthletesView({ squadId }: { squadId: string | null }) {
     () => data?.athletes.filter((a) => entries.some((e) => e.athleteId === a.id) || !data.entries.some((e) => e.athleteId === a.id)) ?? [],
     [data, entries],
   );
+  const squadRecords = useMemo(() => (data && squad ? data.records.filter((r) => inSquad(squad, r.teamName)) : []), [data, squad]);
   const unlinked = useMemo(() => entries.filter((e) => !e.athleteId), [entries]);
   const proposed = useMemo(() => proposals(entries, athletes), [entries, athletes]);
 
@@ -167,6 +169,21 @@ export function AthletesView({ squadId }: { squadId: string | null }) {
         )}
       </header>
 
+      {listed.length > 0 ? (
+        <SquadHistory key={squad?.id} title={squad?.name || t.noTeamName} records={squadRecords} athletes={listed.map((a) => ({
+            id: a.id,
+            label: label(a),
+            hint: `n. ${[...new Set(entries.filter((e) => e.athleteId === a.id).map((e) => e.number))].join(', ')}`,
+          }))} />
+      ) : (
+        data.records.length > 0 && (
+          <section className="vr-card">
+            <h2>{t.listTitle}</h2>
+            <p className="vr-note">{t.none}</p>
+          </section>
+        )
+      )}
+
       {squad && (
         <SquadNames
           key={squad.id}
@@ -248,41 +265,6 @@ export function AthletesView({ squadId }: { squadId: string | null }) {
         </section>
       )}
 
-      <section className="vr-card">
-        <div className="vr-card-head">
-          <div>
-            <h2>{t.listTitle}</h2>
-            <p>{t.listText}</p>
-          </div>
-        </div>
-        {listed.length === 0 ? (
-          <p className="vr-note">{t.none}</p>
-        ) : (
-          <ul className="vr-matches">
-            {listed.map((a) => {
-              const own = entries.filter((e) => e.athleteId === a.id);
-              const matches = new Set(own.flatMap((e) => e.matchIds)).size;
-              return (
-                <li key={a.id}>
-                  <a href={href('atleta', a.id)}>
-                    <strong>{label(a)}</strong>
-                    <span>
-                      {own.map(entryLabel).join(' · ')}
-                      {own.length > 0 && ' · '}
-                      {t.matchesCount(matches)}
-                    </span>
-                  </a>
-                  <span className="vr-actions start">
-                    <a className="vr-btn vr-btn-secondary vr-btn-small" href={href('atleta', a.id)}>
-                      {t.history}
-                    </a>
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
     </>
   );
 }

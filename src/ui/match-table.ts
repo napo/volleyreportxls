@@ -41,7 +41,8 @@ export function matchResult(r: MatchRecord): string {
   return `${won}-${lost} (${scored.map((s) => `${s.team}-${s.opponent}`).join(', ')})`;
 }
 
-const fold = (text: string) =>
+/** Lower case and without accents, for searching. */
+export const fold = (text: string) =>
   text
     .normalize('NFD')
     .replace(/\p{Diacritic}/gu, '')

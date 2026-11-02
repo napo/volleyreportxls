@@ -3,7 +3,8 @@
 
 import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import logo from '../assets/volleyreportxls-logo.png';
-import { LICENSE_URL, PRIVACY_URL, SOURCE_REPOSITORY_URL, VOLLEYREPORTXLS_URL, releaseUrl } from '../config';
+import { LICENSE_URL, PRIVACY_URL, SOURCE_REPOSITORY_URL, VOLLEYREPORTXLS_URL, WEB_APP_URL, releaseUrl } from '../config';
+import { sharedPart } from '../share/payload';
 import { ExternalLink } from '../platform/ExternalLink';
 import { APP_VERSION } from '../version';
 import { ArchiveProvider, useSync } from './archive-context';
@@ -25,6 +26,7 @@ import { TabellinoView } from './views/TabellinoView';
 // Charts (ECharts) are loaded only when the tab is opened.
 const GraficiView = lazy(() => import('./views/GraficiView'));
 const AthleteView = lazy(() => import('./views/AthleteView'));
+const SharedView = lazy(() => import('./views/SharedView'));
 
 /** Tabellino and Grafici of the match in the route (the example when none). */
 function ReportPage({ route }: { route: Route }) {
@@ -162,6 +164,60 @@ function LanguageMenu() {
   );
 }
 
+/** Credits, licence and version; a shared report does not say where the data are (they are in its link). */
+function Footer({ shared = false }: { shared?: boolean }) {
+  const { m } = useI18n();
+  return (
+    <footer className="vr-footer">
+      <div>
+        <p>
+          <strong>VolleyReport</strong> · {m.footer.tagline}
+        </p>
+        <p>
+          {m.footer.idea} <ExternalLink href={VOLLEYREPORTXLS_URL}>VolleyReportXLS</ExternalLink>.
+        </p>
+      </div>
+      <div className="right">
+        {!shared && <DataPlace />}
+        <p>
+          <ExternalLink href={LICENSE_URL}>{m.footer.license}</ExternalLink> ·{' '}
+          <ExternalLink href={SOURCE_REPOSITORY_URL}>{m.footer.source}</ExternalLink> ·{' '}
+          <ExternalLink href={PRIVACY_URL}>{m.footer.privacy}</ExternalLink>
+        </p>
+        <p>
+          <ExternalLink href={releaseUrl(APP_VERSION)}>
+            {m.footer.version} {APP_VERSION}
+          </ExternalLink>
+        </p>
+      </div>
+    </footer>
+  );
+}
+
+/** A shared report: only the page it carries, with the brand and the language, no menus of the app. */
+function SharedApp({ encoded }: { encoded: string }) {
+  const { m } = useI18n();
+  return (
+    <>
+      <nav className="vr-navbar" aria-label={m.nav.label}>
+        <div className="vr-navbar-inner">
+          <ExternalLink className="vr-brand" href={WEB_APP_URL}>
+            <img src={logo} alt="" />
+            VolleyReport
+          </ExternalLink>
+          <LanguageMenu />
+        </div>
+      </nav>
+      <main className="vr-shell">
+        <Suspense fallback={<p className="vr-note">{m.common.loading}</p>}>
+          <SharedView encoded={encoded} />
+        </Suspense>
+      </main>
+      <Footer shared />
+    </>
+  );
+}
+
 export function App() {
   const [route, setRoute] = useState<Route>(() => parseRoute(window.location.hash));
   // The match the user worked on last: the Tabellino and Grafici tabs open it.
@@ -189,7 +245,10 @@ export function App() {
 
   const { m } = useI18n();
   const tab = tabOf(route);
+  const encoded = sharedPart(window.location.hash);
   const tabHref = (key: Tab) => (key === 'tabellino' || key === 'grafici' ? href(key, lastMatch ?? SAMPLE_ID) : href(key));
+
+  if (encoded !== null) return <SharedApp encoded={encoded} />;
 
   // Live scouting takes the whole screen: no navigation bar, no footer.
   if (route.name === 'rileva' && route.param) {
@@ -228,29 +287,7 @@ export function App() {
         <Page route={route} />
       </main>
 
-      <footer className="vr-footer">
-        <div>
-          <p>
-            <strong>VolleyReport</strong> · {m.footer.tagline}
-          </p>
-          <p>
-            {m.footer.idea} <ExternalLink href={VOLLEYREPORTXLS_URL}>VolleyReportXLS</ExternalLink>.
-          </p>
-        </div>
-        <div className="right">
-          <DataPlace />
-          <p>
-            <ExternalLink href={LICENSE_URL}>{m.footer.license}</ExternalLink> ·{' '}
-            <ExternalLink href={SOURCE_REPOSITORY_URL}>{m.footer.source}</ExternalLink> ·{' '}
-            <ExternalLink href={PRIVACY_URL}>{m.footer.privacy}</ExternalLink>
-          </p>
-          <p>
-            <ExternalLink href={releaseUrl(APP_VERSION)}>
-              {m.footer.version} {APP_VERSION}
-            </ExternalLink>
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </ArchiveProvider>
   );
 }
