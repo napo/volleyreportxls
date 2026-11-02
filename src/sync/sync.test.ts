@@ -110,6 +110,37 @@ test('the same match changed on two devices: the latest wins, the other is kept 
   }
 });
 
+test('a match the file keeps in a cleaned form (a count at zero) is neither copied nor uploaded again', async () => {
+  const drive = new FakeDrive();
+  const [a, b] = [await device(), await device()];
+  const record = newMatchRecord();
+  const sets = record.sets.map((set, i) => (i === 0 ? { ...set, rows: set.rows.map((row, j) => (j === 0 ? { ...row, playerNumber: 7, counts: { 'A#': 2, 'R+': 0 } } : row)) } : set));
+  await a.saveMatch({ ...record, teamName: 'Volley Trento', sets });
+
+  await sync(a, drive);
+  for (let i = 0; i < 3; i++) expect(await sync(a, drive)).toMatchObject({ conflicts: 0, uploaded: false });
+  await sync(b, drive);
+  await sync(a, drive);
+  expect(await a.listMatches()).toHaveLength(1);
+  expect(await b.listMatches()).toHaveLength(1);
+});
+
+test('copies equal in everything but the id are removed on every device, the same one kept', async () => {
+  const drive = new FakeDrive();
+  const [a, b] = [await device(), await device()];
+  const original = await a.saveMatch({ ...newMatchRecord(), id: 'mmmm0001', teamName: 'Volley Trento' });
+  const [copy1, copy2] = [{ ...original, id: 'zzzz0002' }, { ...original, id: 'aaaa0003' }];
+  for (const copy of [copy1, copy2]) await a.applySync([{ kind: 'match', id: copy.id, record: copy, stamp: copy.updatedAt }], [], new Map());
+  // A match created in the same way but at another time is not a copy.
+  await tick();
+  const other = await a.saveMatch({ ...newMatchRecord(), teamName: 'Volley Trento' });
+  expect(await a.listMatches()).toHaveLength(4);
+
+  await sync(a, drive);
+  await sync(b, drive);
+  for (const archive of [a, b]) expect((await archive.listMatches()).map((m) => m.id).sort()).toEqual(['aaaa0003', other.id].sort());
+});
+
 test('athletes and squads: changes and deletions reach the other device', async () => {
   const drive = new FakeDrive();
   const [a, b] = [await device(), await device()];

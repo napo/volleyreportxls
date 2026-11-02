@@ -13,11 +13,16 @@
  * - Changed on both sides: the latest change wins. Two different versions of
  *   the same match are both kept: the older one becomes a copy with a new id,
  *   as when importing a .vrp file, so no counts are lost.
+ * - The same time on both sides is the same version, whatever the content.
+ * Versions are compared as the file keeps them (a count at zero is left out).
+ * Matches equal in everything but the id (copies made by older versions of
+ * the merge) are deleted but one, the same on every device.
  */
 
 import type { Athlete } from '../athletes/matching';
 import type { Squad } from '../athletes/squads';
 import type { MatchRecord } from '../matches/record';
+import { readMatchRecord } from '../matches/vrp';
 import type { TeamRecord } from '../storage/archive';
 
 export type SyncKind = 'match' | 'athlete' | 'team' | 'squad';
@@ -72,7 +77,12 @@ function entries(s: Snapshot): Map<string, Entry> {
   return map;
 }
 
-const same = (a: Entry, b: Entry) => (a.record === null) === (b.record === null) && (a.record === null || JSON.stringify(a.record) === JSON.stringify(b.record));
+/** A match as the file keeps it: read back from its JSON, as from the file. */
+const asInFile = (m: MatchRecord) => readMatchRecord(JSON.parse(JSON.stringify(m))) ?? m;
+
+const content = (e: Entry) => JSON.stringify(e.kind === 'match' && e.record ? asInFile(e.record as MatchRecord) : e.record);
+
+const same = (a: Entry, b: Entry) => (a.record === null) === (b.record === null) && (a.record === null || content(a) === content(b));
 
 /** The latest of two entries; on the same time a deletion wins, then the local one. */
 const latest = (local: Entry, remote: Entry) =>
@@ -97,7 +107,7 @@ export function mergeSnapshots(local: Snapshot, remote: Snapshot, base: SyncBase
       out.set(key, (a ?? b)!);
       continue;
     }
-    if (same(a, b)) {
+    if (same(a, b) || (a.record && b.record && a.stamp === b.stamp)) {
       out.set(key, a);
       continue;
     }
@@ -117,6 +127,8 @@ export function mergeSnapshots(local: Snapshot, remote: Snapshot, base: SyncBase
     }
   }
 
+  removeDuplicates(out, now.toISOString());
+
   const oldest = new Date(now.getTime() - DELETION_KEPT_DAYS * 86_400_000).toISOString();
   const kept = [...out.values()].filter((e) => e.record !== null || e.stamp >= oldest);
   const records = <T>(kind: SyncKind) => kept.filter((e) => e.kind === kind && e.record).map((e) => e.record as T);
@@ -128,6 +140,18 @@ export function mergeSnapshots(local: Snapshot, remote: Snapshot, base: SyncBase
     deletions: kept.filter((e) => e.record === null).map((e) => ({ kind: e.kind, id: e.id, deletedAt: e.stamp })),
   };
   return { merged, base: Object.fromEntries(kept.map((e) => [syncKey(e.kind, e.id), e.stamp])), conflicts };
+}
+
+/** Keeps one of the matches equal in everything but the id (the smallest id, so every device keeps the same); the others become deletions. */
+function removeDuplicates(out: Map<string, Entry>, at: string) {
+  const kept = new Map<string, string>();
+  const matches = [...out.values()].filter((e) => e.kind === 'match' && e.record).sort((a, b) => a.id.localeCompare(b.id));
+  for (const e of matches) {
+    const { id: _, ...rest } = asInFile(e.record as MatchRecord);
+    const key = JSON.stringify(rest);
+    if (!kept.has(key)) kept.set(key, e.id);
+    else out.set(syncKey('match', e.id), { kind: 'match', id: e.id, record: null, stamp: at });
+  }
 }
 
 /** Records to write and to delete to turn `from` into `to`, by key. */
