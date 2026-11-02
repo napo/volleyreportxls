@@ -1953,7 +1953,14 @@ button.vr-score-teams.selected {
   margin-left: auto;
 }
 
-.vr-lang select {
+.vr-lang {
+  position: relative;
+}
+
+.vr-lang > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   padding: 0.3rem 1.6rem 0.3rem 0.6rem;
   border: 1px solid var(--vr-border-hover);
   border-radius: 999px;
@@ -1963,8 +1970,53 @@ button.vr-score-teams.selected {
   font-family: var(--vr-font-nav);
   font-size: 0.85rem;
   color: var(--vr-heading);
-  appearance: none;
   cursor: pointer;
+}
+
+.vr-lang ul {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  right: 0;
+  z-index: 20;
+  min-width: 100%;
+  margin: 0;
+  padding: 0.25rem;
+  list-style: none;
+  border: 1px solid var(--vr-border-hover);
+  border-radius: 0.6rem;
+  background: var(--vr-surface);
+  box-shadow: 0 6px 18px rgba(6, 40, 69, 0.15);
+}
+
+.vr-lang ul button {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.35rem 0.6rem;
+  border: 0;
+  border-radius: 0.4rem;
+  background: none;
+  font-family: var(--vr-font-nav);
+  font-size: 0.85rem;
+  color: var(--vr-heading);
+  cursor: pointer;
+}
+
+.vr-lang ul button:hover,
+.vr-lang ul button[aria-checked='true'] {
+  background: var(--vr-blue-soft);
+}
+
+.vr-lang ul button[aria-checked='true'] {
+  font-weight: 700;
+}
+
+.vr-flag {
+  width: 1.15rem;
+  height: 0.8rem;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(6, 40, 69, 0.15);
 }
 
 .vr-visually-hidden {

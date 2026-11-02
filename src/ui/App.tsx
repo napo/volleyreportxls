@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { Suspense, lazy, useEffect, useState } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import logo from '../assets/volleyreportxls-logo.png';
 import { LICENSE_URL, PRIVACY_URL, SOURCE_REPOSITORY_URL, VOLLEYREPORTXLS_URL, releaseUrl } from '../config';
 import { ExternalLink } from '../platform/ExternalLink';
@@ -18,7 +18,8 @@ import { InfoView } from './views/InfoView';
 import { LiveSheetView } from './views/LiveSheetView';
 import { MatchEditorView } from './views/MatchEditorView';
 import { AcquisitionView } from './acquisition/AcquisitionView';
-import { LANGUAGES, type Lang, setLang, useI18n } from '../i18n';
+import { LANGUAGES, setLang, useI18n } from '../i18n';
+import { LanguageFlag } from './components/LanguageFlag';
 import { TabellinoView } from './views/TabellinoView';
 
 // Charts (ECharts) are loaded only when the tab is opened.
@@ -106,19 +107,58 @@ function DataPlace() {
   return <p>{status && status.state !== 'off' ? m.sync.localAnd(m.sync.services[status.provider].name) : m.footer.local}</p>;
 }
 
+/** Drop-down of the languages, each with its flag; it closes on a choice, on Esc and on a click elsewhere. */
 function LanguageMenu() {
   const { lang, m } = useI18n();
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointer = (e: PointerEvent) => {
+      if (!root.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('pointerdown', onPointer);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onPointer);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  const current = LANGUAGES.find((l) => l.lang === lang);
   return (
-    <label className="vr-lang">
-      <span className="vr-visually-hidden">{m.language.label}</span>
-      <select value={lang} onChange={(e) => setLang(e.target.value as Lang)}>
-        {LANGUAGES.map((l) => (
-          <option key={l.lang} value={l.lang} lang={l.lang}>
-            {l.name}
-          </option>
-        ))}
-      </select>
-    </label>
+    <div className="vr-lang" ref={root}>
+      <button type="button" aria-haspopup="true" aria-expanded={open} aria-label={`${m.language.label}: ${current?.name ?? ''}`} onClick={() => setOpen(!open)}>
+        <LanguageFlag lang={lang} />
+        {lang.toUpperCase()}
+      </button>
+      {open && (
+        <ul role="menu" aria-label={m.language.label}>
+          {LANGUAGES.map((l) => (
+            <li key={l.lang} role="none">
+              <button
+                type="button"
+                role="menuitemradio"
+                aria-checked={l.lang === lang}
+                lang={l.lang}
+                title={l.name}
+                onClick={() => {
+                  setLang(l.lang);
+                  setOpen(false);
+                }}
+              >
+                <LanguageFlag lang={l.lang} />
+                {l.lang.toUpperCase()}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 
