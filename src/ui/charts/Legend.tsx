@@ -2,12 +2,16 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 /** HTML legend above a chart: wraps on narrow screens; the key mirrors the mark (box for bars, stroke for lines). */
-export function Legend({ items, mark }: { items: readonly { label: string; color: string }[]; mark: 'bar' | 'line' }) {
+export function Legend({ items, mark }: { items: readonly { label: string; color: string; dash?: 'dashed' | 'dotted' }[]; mark: 'bar' | 'line' }) {
   return (
     <ul className="vr-legend">
       {items.map((item) => (
         <li key={item.label}>
-          <span className={`vr-legend-key ${mark}`} style={{ background: item.color }} aria-hidden="true" />
+          <span
+            className={`vr-legend-key ${mark}${item.dash ? ` ${item.dash}` : ''}`}
+            style={item.dash ? { borderColor: item.color } : { background: item.color }}
+            aria-hidden="true"
+          />
           {item.label}
         </li>
       ))}

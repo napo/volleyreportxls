@@ -42,7 +42,7 @@ export function TeamCharts({ team, opponentErrors, trend, trendTexts }: Props) {
         <Tile label={t.balance} value={formatSigned(team.summary.balance)} note={t.wonLost(team.summary.pointsWon, team.summary.pointsLost)} />
         <Tile label={t.opponentErrors} value={String(opponentErrors)} />
         <Tile label={t.receptionPos} value={percent(team.reception.positivity)} note={t.receptions(team.reception.total)} />
-        <Tile label={t.attackPt} value={percent(team.attack.pointRate)} note={t.attacks(team.attack.total)} />
+        <Tile label={t.attackEff} value={`${formatSigned(Math.round(team.attack.efficiency * 100))}%`} note={t.attacks(team.attack.total)} />
       </div>
 
       <section className="vr-card">

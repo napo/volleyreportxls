@@ -8,7 +8,7 @@
  * in a worker, in Node (tests) and in native shells alike.
  */
 
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument, type rgb } from 'pdf-lib';
 import {
   formatBracketedPercent,
   formatCount,
@@ -135,8 +135,18 @@ export function setGroups(t: Texts): Group<TabellinoSetRow>[] {
 }
 
 
+/** Background of a cell, e.g. green above the team; none by default. */
+export type CellFill<T> = (row: T, column: Column<T>) => ReturnType<typeof rgb> | undefined;
+
 /** Draws a grouped table and returns the y below it. */
-export function drawTable<T>(w: Writer, top: number, groups: readonly Group<T>[], rows: readonly T[], emphasise: (row: T) => boolean): number {
+export function drawTable<T>(
+  w: Writer,
+  top: number,
+  groups: readonly Group<T>[],
+  rows: readonly T[],
+  emphasise: (row: T) => boolean,
+  fill?: CellFill<T>,
+): number {
   const cellPad = 0.8 * MM;
   const width = groups.flatMap((g) => g.columns).reduce((sum, c) => sum + c.width * MM, 0);
   let y = top;
@@ -167,6 +177,8 @@ export function drawTable<T>(w: Writer, top: number, groups: readonly Group<T>[]
     if (strong) w.line(MARGIN, y, MARGIN + width, y, 1.2, NAVY);
     x = MARGIN;
     for (const column of groups.flatMap((g) => g.columns)) {
+      const background = fill?.(row, column);
+      if (background) w.rect(x, y - ROW, column.width * MM, ROW, background);
       w.text(column.value(row), x + cellPad, y - ROW + 1.4 * MM, 7.5, {
         bold: strong,
         align: column.align,

@@ -88,6 +88,6 @@ export function athleteTrend(matches: readonly AthleteMatch[]): SetTrendRow[] {
   return matches.map((m) => ({
     set: [formatDate(m.record.date), m.record.opponentName].filter(Boolean).join(' '),
     receptionPositivity: m.stats.reception.total > 0 ? m.stats.reception.positivity : null,
-    attackPointRate: m.stats.attack.total > 0 ? m.stats.attack.pointRate : null,
+    attackEfficiency: m.stats.attack.total > 0 ? m.stats.attack.efficiency : null,
   }));
 }

@@ -7,9 +7,8 @@
  */
 import { type ChartsPdfBlock, chartsFileName, renderChartsPdf } from '../../pdf/charts-pdf';
 import { formatRating, formatSigned, playerLabel } from '../../report/format';
-import { type SetTrendRow, evaluationShares, playerPoints, playerSetTrend, pointsBySkill, setTrend } from '../../report/chart-data';
+import { type PlayerPointsRow, type SetTrendRow, evaluationShares, playerPoints, playerSetTrend, pointsBySkill, setTrend } from '../../report/chart-data';
 import type { StatLine } from '../../domain/stats/aggregate';
-import { type SquadRow, rowPoints } from '../../athletes/squad-history';
 import { saveFile } from '../../platform/save-file';
 import type { Messages } from '../../i18n';
 import type { MatchReport } from '../match-report';
@@ -56,7 +55,7 @@ export async function teamChartBlocks({ team, opponentErrors, trend, trendTexts 
         [t.balance, formatSigned(team.summary.balance)],
         [t.opponentErrors, String(opponentErrors)],
         [t.receptionPos, percent(team.reception.positivity)],
-        [t.attackPt, percent(team.attack.pointRate)],
+        [t.attackEff, formatSigned(Math.round(team.attack.efficiency * 100)) + '%'],
       ],
       image: await chartImage(evaluationChartOption(shares, minShare, m), evaluationChartHeight(shares)),
     });
@@ -82,37 +81,10 @@ export async function teamChartBlocks({ team, opponentErrors, trend, trendTexts 
   return blocks;
 }
 
-/** Points won and lost side by side, then the evaluations of each athlete (rows of the history). */
-export async function athleteChartBlocks(
-  rows: readonly SquadRow[],
-  trends: ReadonlyMap<string, readonly SetTrendRow[]>,
-  m: Messages,
-): Promise<ChartsPdfBlock[]> {
+/** Points won and lost of the chosen athletes, side by side. */
+export async function comparisonBlock(rows: readonly PlayerPointsRow[], m: Messages): Promise<ChartsPdfBlock> {
   const t = m.charts;
-  const names = { skills: m.skills, opponentErrors: t.opponentErrors };
-  const minShare = minLabelledShareFor(PDF_CHART_WIDTH);
-  if (!rows.length) return [];
-  const comparison = rowPoints(rows);
-  const blocks: ChartsPdfBlock[] = [
-    { kind: 'chart', title: t.compareTitle, note: t.compareText, image: await chartImage(wonLostChartOption(comparison, m), wonLostChartHeight(comparison)) },
-  ];
-  for (const row of rows) {
-    const shares = evaluationShares(row.totals.stats, names);
-    if (!shares.length) continue;
-    blocks.push({
-      kind: 'chart',
-      title: `${row.label} n. ${row.numbers.join(', ')}`.trim(),
-      figures: [
-        [t.rating, formatRating(row.totals.rating)],
-        [t.points, String(row.totals.stats.summary.pointsWon)],
-        [t.balance, formatSigned(row.totals.stats.summary.balance)],
-      ],
-      image: await chartImage(evaluationChartOption(shares, minShare, m), evaluationChartHeight(shares)),
-    });
-    const trend = trends.get(row.id) ?? [];
-    if (trend.length > 1) blocks.push(await trendBlock(`${m.athletes.trendTitle} · ${row.label}`, m.athletes.trendText, trend, m));
-  }
-  return blocks;
+  return { kind: 'chart', title: t.compareTitle, note: t.compareText, image: await chartImage(wonLostChartOption(rows, m), wonLostChartHeight(rows)) };
 }
 
 const trendBlock = async (title: string, note: string, rows: readonly SetTrendRow[], m: Messages): Promise<ChartsPdfBlock> => ({

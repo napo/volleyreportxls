@@ -2,13 +2,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { useMemo, useState } from 'react';
-import { formatRating, formatSigned, playerLabel } from '../../report/format';
-import { activePlayers, evaluationShares, playerPoints, playerSetTrend, setTrend } from '../../report/chart-data';
-import { TrendChart } from '../charts/TrendChart';
-import { EvaluationChart } from '../charts/EvaluationChart';
+import { formatRating, playerLabel } from '../../report/format';
+import { activePlayers, playerPoints, setTrend } from '../../report/chart-data';
 import { WonLostChart } from '../charts/WonLostChart';
 import type { MatchReport } from '../match-report';
-import { useI18n } from '../../i18n';
+import { type Messages, useI18n } from '../../i18n';
 import type { SavedFile } from '../../platform/save-file';
 import { SavedFileLink } from '../components/SavedFileLink';
 import { ShareBox, ShareButton } from '../components/ShareDialog';
@@ -17,56 +15,49 @@ import { useArchive } from '../archive-context';
 import type { ShareSection } from '../../share/payload';
 import { NamePicker } from '../components/NamePicker';
 import { ReportPdfButton, reportFileName } from '../components/ReportPdfButton';
-import type { ProfileSeries } from '../charts/ProfileChart';
-import { TeamCharts, Tile } from '../components/TeamCharts';
-import { ProfileChart } from '../charts/ProfileChart';
-import { meaningfulAxes, profileOf } from '../../athletes/profile';
+import { TeamCharts } from '../components/TeamCharts';
+import { profileOf } from '../../athletes/profile';
+import type { AthleteCardData } from '../../athletes/card';
+import { AthleteCard } from '../components/AthleteCard';
 import { StatsTable } from '../components/StatsTable';
 import { matchRows } from '../../athletes/squad-history';
 import { calculateStatLine } from '../../domain/stats/aggregate';
 import { tabellinoLine } from '../../report/tabellino';
 
+/** The card of a player in this match: against the team in the same match, set by set. */
+function matchCard(report: MatchReport, id: string, m: Messages): AthleteCardData | null {
+  const { stats, tabellino } = report;
+  const p = stats.players.find((x) => x.player.id === id);
+  if (!p) return null;
+  const rating = tabellino.players.find((x) => x.player.id === id)?.rating ?? null;
+  return {
+    id,
+    title: playerLabel(p.player),
+    subtitle: `${m.charts.setsPlayed(p.setsPlayed.join(', '))} · ${m.charts.rating} ${formatRating(rating)}`,
+    stats: p.match,
+    own: { name: m.profile.match, values: profileOf(p.match) },
+    team: { name: m.profile.team, values: profileOf(stats.team.match) },
+    trend: p.setsPlayed.map((n) => ({ label: `${m.scoresheet.set} ${n}`, values: profileOf(p.bySet[n]) })),
+    trendTitle: m.profile.trendSets,
+    trendColumn: m.scoresheet.set,
+  };
+}
+
 function PlayerCard({ report, playerId }: { report: MatchReport; playerId: string }) {
   const { m } = useI18n();
-  const t = m.charts;
-  const { stats, tabellino } = report;
-  const player = stats.players.find((p) => p.player.id === playerId)!;
-  const row = tabellino.players.find((p) => p.player.id === playerId)!;
+  const card = matchCard(report, playerId, m);
+  const player = report.stats.players.find((p) => p.player.id === playerId);
+  if (!card || !player) return null;
   return (
-    <section className="vr-card">
-      <div className="vr-card-head">
-        <div>
-          <h2>
-            <span className="vr-player-number">{player.player.number}</span> {player.player.name.trim()}
-            {player.player.role === 'L' && <span className="vr-badge vr-badge-orange">{t.libero}</span>}
-          </h2>
-          <p>{t.setsPlayed(player.setsPlayed.join(', '))}</p>
-        </div>
-        <div className="vr-tiles vr-tiles-compact">
-          <Tile label={t.rating} value={formatRating(row.rating)} />
-          <Tile label={t.points} value={String(player.match.summary.pointsWon)} />
-          <Tile label={t.balance} value={formatSigned(player.match.summary.balance)} />
-        </div>
-      </div>
-      <EvaluationChart rows={evaluationShares(player.match, { skills: m.skills, opponentErrors: t.opponentErrors })} title={t.playerEvaluations(playerLabel(player.player))} />
-      {player.setsPlayed.length > 1 && (
+    <AthleteCard
+      card={card}
+      heading={
         <>
-          <h3>{t.trendTitle}</h3>
-          <p className="vr-note">{t.trendText}</p>
-          <TrendChart rows={playerSetTrend(player)} label={`${t.trendLabel}: ${playerLabel(player.player)}`} />
+          <span className="vr-player-number">{player.player.number}</span> {player.player.name.trim()}
+          {player.player.role === 'L' && <span className="vr-badge vr-badge-orange">{m.charts.libero}</span>}
         </>
-      )}
-      <h3>{m.profile.title}</h3>
-      <p className="vr-note">{m.profile.matchText}</p>
-      <ProfileChart
-        series={[
-          { kind: 'athlete', name: m.profile.match, values: profileOf(player.match) },
-          { kind: 'team', name: m.profile.team, values: profileOf(stats.team.match) },
-        ]}
-        axes={meaningfulAxes(player.match)}
-        label={m.profile.label(playerLabel(player.player))}
-      />
-    </section>
+      }
+    />
   );
 }
 
@@ -158,16 +149,8 @@ export default function GraficiView({ report, shared }: Props) {
     const rows = matchRows(stats, ordered);
     const events = new Set(rows.flatMap((r) => r.numbers));
     const total = tabellinoLine(calculateStatLine(stats.events.filter((e) => e.playerNumber !== null && events.has(e.playerNumber))));
-    const profiles = ordered.flatMap((id) => {
-      const p = stats.players.find((x) => x.player.id === id);
-      if (!p) return [];
-      const series: ProfileSeries[] = [
-        { kind: 'athlete', name: m.profile.match, values: profileOf(p.match) },
-        { kind: 'team', name: m.profile.team, values: profileOf(stats.team.match) },
-      ];
-      return [{ title: playerLabel(p.player), series, axes: meaningfulAxes(p.match) }];
-    });
-    return matchReportPdf({ report, rows, total, playerIds: ordered, profiles }, sections, m);
+    const cards = ordered.flatMap((id) => matchCard(report, id, m) ?? []);
+    return matchReportPdf({ report, rows, total, playerIds: ordered, cards }, sections, m);
   }
 
   const { m } = useI18n();

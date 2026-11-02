@@ -17,7 +17,7 @@ import { it } from '../i18n/it';
 import type { ChartImage } from './charts-pdf';
 import { type PdfFontFiles, drawableText, embedPdfFonts } from './fonts';
 import { MARGIN, MM, MUTED, NAVY, PAGE, ROW, RULE, Writer, footer } from './pdf-page';
-import { type Group, drawTable } from './tabellino-pdf';
+import { type CellFill, type Group, drawTable } from './tabellino-pdf';
 
 export type ReportBlock =
   | { readonly kind: 'section'; readonly title: string }
@@ -47,8 +47,15 @@ export interface ReportPdfOptions {
 }
 
 /** A table block: the grouped columns of the tabellino PDF, any kind of row; strong rows are totals. */
-export function tableBlock<T>(title: string, groups: readonly Group<T>[], rows: readonly T[], strong: (row: T) => boolean, note?: string): ReportBlock {
-  return { kind: 'table', title, ...(note && { note }), rows: rows.length, draw: (w, top, start, end) => drawTable(w, top, groups, rows.slice(start, end), strong) };
+export function tableBlock<T>(
+  title: string,
+  groups: readonly Group<T>[],
+  rows: readonly T[],
+  strong: (row: T) => boolean,
+  note?: string,
+  fill?: CellFill<T>,
+): ReportBlock {
+  return { kind: 'table', title, ...(note && { note }), rows: rows.length, draw: (w, top, start, end) => drawTable(w, top, groups, rows.slice(start, end), strong, fill) };
 }
 
 const WIDTH = PAGE.width - 2 * MARGIN;
@@ -195,7 +202,7 @@ export async function renderReportPdf(blocks: readonly ReportBlock[], options: R
   title(options.legendTitle, 13);
   y -= 2 * MM;
   for (const { term, text } of options.legend) {
-    const termWidth = 32 * MM;
+    const termWidth = 40 * MM;
     const lines = wrap(fonts.regular, text, 8.5, WIDTH - termWidth);
     room(lines.length * 4.4 * MM + 2 * MM);
     y -= 4.4 * MM;

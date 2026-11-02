@@ -12,10 +12,15 @@ import { BASE_OPTION, GRID, SERIES, SURFACE, TEXT_PRIMARY, percent } from './tok
 const lines = (m: Messages) =>
   [
     { key: 'receptionPositivity', name: m.charts.receptionPos, color: SERIES[0] },
-    { key: 'attackPointRate', name: m.charts.attackPt, color: SERIES[1] },
+    { key: 'attackEfficiency', name: m.charts.attackEff, color: SERIES[1] },
   ] as const;
 
 export const TREND_CHART_HEIGHT = 230;
+
+const signedPercent = (v: number) => `${v > 0 ? '+' : ''}${percent(v)}`;
+
+/** The bottom of the axis: 0, or the quarter below the lowest value. */
+const lowest = (rows: readonly SetTrendRow[]) => Math.min(0, ...rows.map((r) => Math.floor((r.attackEfficiency ?? 0) * 4) / 4));
 
 export function trendChartOption(rows: readonly SetTrendRow[], m: Messages) {
   return {
@@ -29,7 +34,8 @@ export function trendChartOption(rows: readonly SetTrendRow[], m: Messages) {
       axisLine: { lineStyle: { color: '#c3cad0' } },
       axisLabel: { color: TEXT_PRIMARY },
     },
-    yAxis: { type: 'value', min: 0, max: 1, interval: 0.25, axisLabel: { formatter: percent }, splitLine: { lineStyle: { color: GRID } } },
+    // From 0 to 100%, lower when an attack efficiency is negative.
+    yAxis: { type: 'value', min: lowest(rows), max: 1, interval: 0.25, axisLabel: { formatter: percent }, splitLine: { lineStyle: { color: GRID } } },
     legend: { show: false },
     tooltip: {
       ...BASE_OPTION.tooltip,
@@ -46,7 +52,7 @@ export function trendChartOption(rows: readonly SetTrendRow[], m: Messages) {
       symbol: 'circle',
       symbolSize: 9,
       connectNulls: false,
-      endLabel: { show: true, color: TEXT_PRIMARY, fontWeight: 600, formatter: (p: { value: number }) => percent(p.value) },
+      endLabel: { show: true, color: TEXT_PRIMARY, fontWeight: 600, formatter: (p: { value: number; seriesIndex: number }) => (p.seriesIndex === 1 ? signedPercent(p.value) : percent(p.value)) },
     })),
   };
 }
@@ -61,11 +67,11 @@ export function TrendChart({ rows, firstColumn, label }: { rows: readonly SetTre
       <Legend mark="line" items={lines(m).map((l) => ({ label: l.name, color: l.color }))} />
       <EChart option={option} height={TREND_CHART_HEIGHT} label={label ?? m.charts.trendLabel} />
       <DataTable
-        head={[firstColumn ?? m.charts.set, m.charts.receptionPos, m.charts.attackPt]}
+        head={[firstColumn ?? m.charts.set, m.charts.receptionPos, m.charts.attackEff]}
         rows={rows.map((r) => [
           r.set,
           r.receptionPositivity === null ? '.' : percent(r.receptionPositivity),
-          r.attackPointRate === null ? '.' : percent(r.attackPointRate),
+          r.attackEfficiency === null ? '.' : signedPercent(r.attackEfficiency),
         ])}
       />
     </>

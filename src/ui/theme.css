@@ -1174,6 +1174,18 @@ a {
   border-radius: 1px;
 }
 
+/* Reference lines (averages): a stroke drawn with the border. */
+.vr-legend-key.line.dashed,
+.vr-legend-key.line.dotted {
+  height: 0;
+  border-top: 2px dashed;
+  border-radius: 0;
+}
+
+.vr-legend-key.line.dotted {
+  border-top-style: dotted;
+}
+
 @media (max-width: 760px) {
   .vr-tiles {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3201,5 +3213,231 @@ button.vr-score-teams.selected {
 @media print {
   .vr-share-cta {
     display: none;
+  }
+}
+
+/* Card of an athlete: key figures, comparison with the team, trend of one indicator. */
+.vr-athlete-card h3 {
+  margin: 0;
+}
+
+.vr-athlete-card h4 {
+  margin: 1.25rem 0 0.5rem;
+}
+
+.vr-figures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 2rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.vr-figures li {
+  display: flex;
+  flex-direction: column;
+}
+
+.vr-figures span {
+  font-family: var(--vr-font-nav);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--vr-muted);
+}
+
+.vr-figures strong {
+  font-size: 1.5rem;
+  color: var(--vr-heading);
+}
+
+.vr-figures strong.positive {
+  color: #2e7d32;
+}
+
+.vr-figures strong.negative {
+  color: #c62828;
+}
+
+.vr-figures small {
+  font-size: 0.8rem;
+  color: var(--vr-muted);
+}
+
+.vr-compare td:first-child {
+  font-weight: 600;
+  color: var(--vr-heading);
+}
+
+.vr-indicator-choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+
+.vr-indicator-choice button {
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--vr-border-hover);
+  border-radius: 999px;
+  background: var(--vr-surface);
+  font-family: var(--vr-font-nav);
+  font-size: 0.8rem;
+  color: var(--vr-heading);
+  cursor: pointer;
+}
+
+.vr-indicator-choice button[aria-pressed='true'] {
+  border-color: var(--vr-navy);
+  background: var(--vr-navy);
+  color: #fff;
+}
+
+.vr-compare thead tr:first-child th {
+  text-align: left;
+}
+
+.vr-compare thead tr:first-child th.num {
+  text-align: right;
+}
+
+/* History at a glance: the choice in one line, team tiles with their direction, athletes against the team. */
+.vr-choice-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--vr-radius);
+  background: var(--vr-surface);
+  font-weight: 600;
+  color: var(--vr-heading);
+}
+
+.vr-direction {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--vr-muted);
+}
+
+.vr-direction.up {
+  color: #2e7d32;
+}
+
+.vr-direction.down {
+  color: #c62828;
+}
+
+.vr-athlete-table td.vr-above,
+.vr-key.vr-above {
+  background: #e3f3e5;
+  color: #1b5e20;
+}
+
+.vr-athlete-table td.vr-below,
+.vr-key.vr-below {
+  background: #fbe4e4;
+  color: #8e1c1c;
+}
+
+.vr-key {
+  padding: 0.05rem 0.4rem;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+.vr-row-open {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: 700;
+  color: var(--vr-blue);
+  text-align: left;
+  cursor: pointer;
+}
+
+.vr-row-open:hover {
+  text-decoration: underline;
+}
+
+.vr-athlete-table tr.expanded td {
+  background: var(--vr-blue-soft);
+}
+
+.vr-opened-card {
+  margin-top: 1rem;
+  scroll-margin-top: 5rem;
+}
+
+.vr-opened-card h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.vr-more {
+  margin-top: 1rem;
+}
+
+.vr-more > summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--vr-blue);
+}
+
+.vr-more-section {
+  margin: 1.5rem 0;
+}
+
+.vr-more-section > summary {
+  margin-bottom: 1rem;
+  font-family: var(--vr-font-heading, inherit);
+  font-size: 1.25rem;
+  color: var(--vr-heading);
+}
+
+.vr-report-actions {
+  margin-bottom: 0.75rem;
+}
+
+.vr-opened-card .vr-card-head > div {
+  flex: 1;
+}
+
+/* "Ultima partita 06/10/26" may go on two lines: on a phone the comparison fits without scrolling. */
+.vr-compare th {
+  white-space: normal;
+}
+
+.vr-compare td:first-child {
+  white-space: normal;
+}
+
+@media (max-width: 760px) {
+  .vr-compare {
+    font-size: 0.78rem;
+  }
+
+  .vr-compare th,
+  .vr-compare td {
+    padding: 0.3rem 0.3rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .vr-opened-card .vr-athlete-card {
+    padding: 0.9rem 0.6rem;
+  }
+
+  .vr-compare thead tr:first-child th {
+    letter-spacing: 0;
+    text-transform: none;
   }
 }

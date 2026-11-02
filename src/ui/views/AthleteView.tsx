@@ -7,29 +7,16 @@
  */
 import { useMemo, useState } from 'react';
 import { type Athlete, athleteLabel, entryLabel, linkEntry } from '../../athletes/matching';
-import { athleteMatches, athleteTotals, athleteTrend } from '../../athletes/history';
-import { evaluationShares } from '../../report/chart-data';
-import { formatDate, formatRating, formatSigned } from '../../report/format';
+import { athleteMatches, athleteTotals } from '../../athletes/history';
+import { formatDate, formatRating } from '../../report/format';
 import { useI18n } from '../../i18n';
-import { EvaluationChart } from '../charts/EvaluationChart';
-import { TrendChart } from '../charts/TrendChart';
-import { percent } from '../charts/tokens';
 import { inSquad } from '../../athletes/squads';
 import { useAthletesData } from '../athletes-data';
 import { MatchChoices } from '../components/MatchChoices';
-import { ProfileChart } from '../charts/ProfileChart';
-import { meaningfulAxes, profileOf, teamProfile } from '../../athletes/profile';
+import { profileOf, teamProfile } from '../../athletes/profile';
+import { AthleteCard } from '../components/AthleteCard';
 import { PointsCells, SkillCells, SkillGroups, SkillHeaders } from '../components/TabellinoTable';
 import { href, navigate } from '../routes';
-
-function Tile({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="vr-tile">
-      <span className="vr-tile-label">{label}</span>
-      <span className="vr-tile-value">{value}</span>
-    </div>
-  );
-}
 
 /** Name and note, saved when the field is left. */
 function AthleteFields({ athlete, onSave }: { athlete: Athlete; onSave: (a: Athlete) => void }) {
@@ -65,13 +52,6 @@ export default function AthleteView({ id }: { id: string }) {
   const totals = useMemo(() => athleteTotals(chosen), [chosen]);
   const team = useMemo(() => teamProfile(chosen.map((x) => x.record)), [chosen]);
   const last = chosen.at(-1);
-  const profileSeries = [
-    { kind: 'athlete' as const, name: m.profile.own, values: profileOf(totals.stats) },
-    ...(last && chosen.length > 1
-      ? [{ kind: 'last' as const, name: `${m.profile.last}: ${formatDate(last.record.date)} ${last.record.opponentName || m.common.opponent}`, values: profileOf(last.stats) }]
-      : []),
-    { kind: 'team' as const, name: m.profile.team, values: team },
-  ];
 
   if (!data || !archive) return <p className="vr-note">{m.common.loading}</p>;
   if (!athlete) {
@@ -178,37 +158,21 @@ export default function AthleteView({ id }: { id: string }) {
         all.length > 0 && <p className="vr-note">{t.noneSelected}</p>
       ) : (
         <>
-          <div className="vr-tiles">
-            <Tile label={t.matches} value={String(totals.matches)} />
-            <Tile label={t.sets} value={String(totals.sets)} />
-            <Tile label={t.meanRating} value={formatRating(totals.rating)} />
-            <Tile label={m.charts.points} value={String(totals.line.points.total)} />
-            <Tile label={m.charts.balance} value={formatSigned(totals.line.points.balance)} />
-            <Tile label={m.charts.receptionPos} value={totals.stats.reception.total ? percent(totals.stats.reception.positivity) : '.'} />
-            <Tile label={m.charts.attackPt} value={totals.stats.attack.total ? percent(totals.stats.attack.pointRate) : '.'} />
-          </div>
-
-          <section className="vr-card">
-            <div className="vr-card-head">
-              <div>
-                <h2>{m.profile.title}</h2>
-                <p>{m.profile.text}</p>
-              </div>
-            </div>
-            <ProfileChart series={profileSeries} axes={meaningfulAxes(totals.stats)} label={m.profile.label(athlete.name.trim() || title)} />
-          </section>
-
-          {chosen.length > 1 && (
-            <section className="vr-card">
-              <div className="vr-card-head">
-                <div>
-                  <h2>{t.trendTitle}</h2>
-                  <p>{t.trendText}</p>
-                </div>
-              </div>
-              <TrendChart rows={athleteTrend(chosen)} firstColumn={t.match} label={t.trendLabel} />
-            </section>
-          )}
+          <AthleteCard
+            heading={m.profile.chosen}
+            card={{
+              id,
+              title: athlete.name.trim() || title,
+              subtitle: m.profile.summary(totals.matches, totals.sets, formatRating(totals.rating)),
+              stats: totals.stats,
+              own: { name: m.profile.own, values: profileOf(totals.stats) },
+              ...(last && chosen.length > 1 && { last: { name: `${m.profile.last} ${formatDate(last.record.date)}`, values: profileOf(last.stats) } }),
+              team: { name: m.profile.team, values: team },
+              trend: chosen.map((x) => ({ label: [formatDate(x.record.date), x.record.opponentName].filter(Boolean).join(' '), values: profileOf(x.stats) })),
+              trendTitle: m.profile.trendMatches,
+              trendColumn: t.match,
+            }}
+          />
 
           <section className="vr-card">
             <div className="vr-card-head">
@@ -265,14 +229,6 @@ export default function AthleteView({ id }: { id: string }) {
             </div>
           </section>
 
-          <section className="vr-card">
-            <div className="vr-card-head">
-              <div>
-                <h2>{t.evaluationsTitle}</h2>
-              </div>
-            </div>
-            <EvaluationChart rows={evaluationShares(totals.stats, { skills: m.skills, opponentErrors: m.charts.opponentErrors })} title={t.evaluationsLabel} />
-          </section>
         </>
       )}
     </>

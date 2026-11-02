@@ -22,7 +22,7 @@ export type ShareKind = 'match' | 'history';
 /** The parts of the page that can be left out of a shared report. */
 export const SHARE_SECTIONS = {
   match: ['tabellino', 'sets', 'team', 'players'],
-  history: ['matches', 'table', 'team', 'athleteCharts', 'profiles'],
+  history: ['matches', 'table', 'team', 'athleteCharts'],
 } as const satisfies Record<ShareKind, readonly string[]>;
 
 export type ShareSection = (typeof SHARE_SECTIONS)[ShareKind][number];

@@ -55,7 +55,7 @@ export function squadCharts(records: readonly MatchRecord[]): { team: StatLine; 
     trend: stats.map(({ record, stats }) => ({
       set: [formatDate(record.date), record.opponentName].filter(Boolean).join(' '),
       receptionPositivity: stats.team.match.reception.total > 0 ? stats.team.match.reception.positivity : null,
-      attackPointRate: stats.team.match.attack.total > 0 ? stats.team.match.attack.pointRate : null,
+      attackEfficiency: stats.team.match.attack.total > 0 ? stats.team.match.attack.efficiency : null,
     })),
   };
 }

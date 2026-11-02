@@ -154,7 +154,8 @@ export function AthletesView({ squadId }: { squadId: string | null }) {
       <header className="vr-hero">
         <p className="vr-eyebrow">{t.eyebrow}</p>
         <h1>{squad ? t.titleOf(squad.name || t.noTeamName) : t.title}</h1>
-        <p className="vr-lead">{t.lead}</p>
+        {/* How links work matters while there are shirts to link, not when reading the statistics. */}
+        {(listed.length === 0 || unlinked.length > 0) && <p className="vr-lead">{t.lead}</p>}
         {data.squads.length > 1 && squad && (
           <label className="vr-field vr-squad-choice">
             <span>{t.squad}</span>

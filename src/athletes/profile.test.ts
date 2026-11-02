@@ -3,7 +3,7 @@
 
 import { emptySet, newMatchRecord, type MatchRecord } from '../matches/record';
 import { athleteMatches, athleteTotals } from './history';
-import { meaningfulAxes, onScale, profileOf, teamProfile } from './profile';
+import { meaningfulAxes, playedAxes, profileOf, rangeOf, teamProfile } from './profile';
 
 /** A match with one row per player: [number, athlete, counts]. */
 function match(players: readonly [number, string, Record<string, number>][]): MatchRecord {
@@ -22,9 +22,10 @@ const record = match([
   [4, 'centrale', { 'A#': 3, 'A-': 2, 'M#': 3, 'M-': 2 }],
 ]);
 
-test('a libero has a single meaningful indicator: no radar, bars', () => {
+test('a libero has a single indicator: reception', () => {
   const totals = athleteTotals(athleteMatches([record], 'libero'));
   expect(meaningfulAxes(totals.stats)).toEqual(['reception']);
+  expect(playedAxes(athleteTotals(athleteMatches([record], 'banda')).stats)).toEqual(['serve', 'reception', 'attack', 'block']);
   expect(profileOf(totals.stats)).toMatchObject({ reception: 0.75, attack: null, serve: null, block: null });
 });
 
@@ -35,8 +36,8 @@ test('the team counts only the touches made: its reception is the one of who rec
   expect(team.attack).not.toBeNull();
 });
 
-test('values are placed on fixed scales and held at the edges', () => {
-  expect(onScale('reception', 0.5)).toBe(0.5);
-  expect(onScale('attack', 0.9)).toBe(1);
-  expect(onScale('serve', -1)).toBe(0);
+test('a chart keeps the usual range of its indicator and widens it to hold every value', () => {
+  expect(rangeOf('reception', [0.5, 0.7])).toEqual({ min: 0, max: 1 });
+  expect(rangeOf('attack', [0.1, 0.75])).toEqual({ min: -0.2, max: 0.8 });
+  expect(rangeOf('attack', [-0.35, null])).toEqual({ min: -0.4, max: 0.6 });
 });

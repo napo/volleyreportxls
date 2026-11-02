@@ -6,12 +6,13 @@
  * side by side, then one row per athlete with the totals of those matches.
  */
 import { useMemo, useState } from 'react';
-import { athleteTrend, matchesByAthlete } from '../../athletes/history';
+import { matchesByAthlete } from '../../athletes/history';
+import type { AthleteCardData } from '../../athletes/card';
 import { rowPoints, squadCharts, squadLine, squadRows } from '../../athletes/squad-history';
-import { evaluationShares } from '../../report/chart-data';
-import { EvaluationChart } from '../charts/EvaluationChart';
 import { WonLostChart } from '../charts/WonLostChart';
-import { TrendChart } from '../charts/TrendChart';
+import { AthleteTable } from './AthleteTable';
+import { TeamSummary } from './TeamSummary';
+import { teamSummary } from '../../athletes/summary';
 import { TeamCharts } from './TeamCharts';
 import type { MatchRecord } from '../../matches/record';
 import { useI18n } from '../../i18n';
@@ -19,13 +20,11 @@ import { href } from '../routes';
 import { MatchChoices } from './MatchChoices';
 import { type NameOption, NamePicker } from './NamePicker';
 import { StatsTable } from './StatsTable';
-import { ProfileChart } from '../charts/ProfileChart';
-import { meaningfulAxes, profileOf, teamProfile } from '../../athletes/profile';
-import { formatDate } from '../../report/format';
+import { profileOf, teamProfile } from '../../athletes/profile';
+import { formatDate, formatRating } from '../../report/format';
 import { type ShareSection, forSharing } from '../../share/payload';
 import { ShareBox, ShareButton } from './ShareDialog';
 import { ReportPdfButton, reportFileName } from './ReportPdfButton';
-import type { ProfileSeries } from '../charts/ProfileChart';
 
 interface Props {
   /** The matches of the squad. */
@@ -63,20 +62,28 @@ export function SquadHistory({ records, athletes, title, shared }: Props) {
   const chosenRecords = useMemo(() => played.filter((r) => chosenMatch(r.id)), [played, excluded]);
   const team = useMemo(() => teamProfile(chosenRecords), [chosenRecords]);
   const charts = useMemo(() => squadCharts(chosenRecords), [chosenRecords]);
-  const names = { skills: m.skills, opponentErrors: m.charts.opponentErrors };
-  // Each athlete against the own last match and the team, as in the athlete's page.
-  const profiles = useMemo(
+  const summary = useMemo(() => teamSummary(chosenRecords), [chosenRecords]);
+  // The choice of matches and roster stays folded: the page opens on the answers.
+  const [choosing, setChoosing] = useState(false);
+  // The card of each athlete: against the own last match and the team, match by match.
+  const cards = useMemo(
     () =>
-      rows.map((row) => {
-        const last = chosenOf(row.id).at(-1);
-        const series: ProfileSeries[] = [
-          { kind: 'athlete', name: m.profile.own, values: profileOf(row.totals.stats) },
-          ...(last && row.totals.matches > 1
-            ? [{ kind: 'last' as const, name: `${m.profile.last}: ${formatDate(last.record.date)}`, values: profileOf(last.stats) }]
-            : []),
-          { kind: 'team', name: m.profile.team, values: team },
-        ];
-        return { id: row.id, title: row.label, series, axes: meaningfulAxes(row.totals.stats) };
+      rows.map((row): AthleteCardData => {
+        const matches = chosenOf(row.id);
+        const last = matches.at(-1);
+        const p = m.profile;
+        return {
+          id: row.id,
+          title: row.label || `n. ${row.numbers.join(', ')}`,
+          subtitle: `n. ${row.numbers.join(', ')} · ${p.summary(row.totals.matches, row.totals.sets, formatRating(row.totals.rating))}`,
+          stats: row.totals.stats,
+          own: { name: p.own, values: profileOf(row.totals.stats) },
+          ...(last && matches.length > 1 && { last: { name: `${p.last} ${formatDate(last.record.date)}`, values: profileOf(last.stats) } }),
+          team: { name: p.team, values: team },
+          trend: matches.map((x) => ({ label: [formatDate(x.record.date), x.record.opponentName].filter(Boolean).join(' '), values: profileOf(x.stats) })),
+          trendTitle: p.trendMatches,
+          trendColumn: m.athletes.match,
+        };
       }),
     [rows, byAthlete, excluded, team, m],
   );
@@ -89,7 +96,7 @@ export function SquadHistory({ records, athletes, title, shared }: Props) {
   const pdf = async (sections: ReadonlySet<ShareSection>) => {
     const { historyReportPdf } = await import('../report-pdf-export');
     const summary = m.share.summary(chosenRecords.length, formatDate(dates[0] ?? ''), formatDate(dates.at(-1) ?? ''));
-    return historyReportPdf({ title: m.share.historyTitle(title), summary, records: chosenRecords, rows, total, profiles, trends: new Map(rows.map((r) => [r.id, athleteTrend(chosenOf(r.id))])) }, sections, m);
+    return historyReportPdf({ title: m.share.historyTitle(title), summary, records: chosenRecords, rows, total, cards }, sections, m);
   };
 
   return (
@@ -102,6 +109,17 @@ export function SquadHistory({ records, athletes, title, shared }: Props) {
       )}
 
       {shown('matches') && (
+        <div className="vr-choice-summary">
+          <span>
+            {m.summary.choice(chosenRecords.length, formatDate(dates[0] ?? ''), formatDate(dates.at(-1) ?? ''), rows.length, athletes.length)}
+          </span>
+          <button type="button" className="vr-btn vr-btn-secondary vr-btn-small" aria-expanded={choosing} onClick={() => setChoosing(!choosing)}>
+            {choosing ? m.summary.close : m.summary.change}
+          </button>
+        </div>
+      )}
+
+      {shown('matches') && choosing && (
         <section className="vr-card">
           <div className="vr-card-head">
             <div>
@@ -119,81 +137,56 @@ export function SquadHistory({ records, athletes, title, shared }: Props) {
         </section>
       )}
 
+      {shown('team') && chosenRecords.length > 0 && (
+        <>
+          <h2 className="vr-section-title">{m.summary.teamTitle}</h2>
+          <TeamSummary summary={summary} />
+        </>
+      )}
+
       {shown('table') && (
         <section className="vr-card">
           <div className="vr-card-head">
             <div>
-              <h2>{t.listTitle}</h2>
-              <p>{shared ? t.sharedListText : t.listText}</p>
+              <h2>{m.summary.athletesTitle}</h2>
+              <p>{m.summary.athletesText}</p>
             </div>
           </div>
           {rows.length === 0 ? (
             <p className="vr-note">{t.noneChosen}</p>
           ) : (
-            <StatsTable rows={rows} total={total} matches={played.filter((r) => chosenMatch(r.id)).length} link={athleteHref} />
+            <>
+              <AthleteTable rows={rows} cards={cards} team={team} open={shown('athleteCharts')} />
+              <details className="vr-more">
+                <summary>{m.summary.allColumns}</summary>
+                <StatsTable rows={rows} total={total} matches={chosenRecords.length} link={athleteHref} />
+              </details>
+            </>
           )}
         </section>
       )}
 
       {shown('team') && chosenRecords.length > 0 && (
-        <>
-          <h2 className="vr-section-title">{m.charts.team}</h2>
+        <details className="vr-more vr-more-section">
+          <summary>{m.summary.teamCharts}</summary>
           <TeamCharts
             team={charts.team}
             opponentErrors={charts.opponentErrors}
             trend={charts.trend}
             trendTexts={{ title: t.trendTitle, text: t.trendText, label: t.trendLabel, firstColumn: t.match }}
           />
-        </>
-      )}
-
-      {shown('athleteCharts') && rows.length > 0 && (
-        <>
-          <h2 className="vr-section-title">{m.share.sectionNames.athleteCharts}</h2>
-          <section className="vr-card">
-            <div className="vr-card-head">
-              <div>
-                <h2>{m.charts.compareTitle}</h2>
-                <p>{m.charts.compareText}</p>
+          {rows.length > 1 && (
+            <section className="vr-card">
+              <div className="vr-card-head">
+                <div>
+                  <h2>{m.charts.compareTitle}</h2>
+                  <p>{m.charts.compareText}</p>
+                </div>
               </div>
-            </div>
-            <WonLostChart rows={rowPoints(rows)} title={m.charts.compareLabel} firstColumn={m.charts.player} />
-          </section>
-          <div className="vr-grid-2">
-            {rows.map((row) => (
-              <section key={row.id} className="vr-card">
-                <h3>{row.label || `n. ${row.numbers.join(', ')}`}</h3>
-                <EvaluationChart rows={evaluationShares(row.totals.stats, names)} title={m.charts.playerEvaluations(row.label)} />
-                {row.totals.matches > 1 && (
-                  <>
-                    <h3>{t.trendTitle}</h3>
-                    <p className="vr-note">{t.trendText}</p>
-                    <TrendChart rows={athleteTrend(chosenOf(row.id))} firstColumn={t.match} label={`${t.trendLabel}: ${row.label}`} />
-                  </>
-                )}
-              </section>
-            ))}
-          </div>
-        </>
-      )}
-
-      {shown('profiles') && rows.length > 0 && (
-        <section className="vr-card">
-          <div className="vr-card-head">
-            <div>
-              <h2>{m.profile.title}</h2>
-              <p>{m.profile.text}</p>
-            </div>
-          </div>
-          <div className="vr-profiles">
-            {profiles.map((p) => (
-              <div key={p.id}>
-                <h3>{shared ? p.title : <a href={href('atleta', p.id)}>{p.title}</a>}</h3>
-                <ProfileChart series={p.series} axes={p.axes} label={m.profile.label(p.title)} />
-              </div>
-            ))}
-          </div>
-        </section>
+              <WonLostChart rows={rowPoints(rows)} title={m.charts.compareLabel} firstColumn={m.charts.player} />
+            </section>
+          )}
+        </details>
       )}
 
       {rows.length > 0 && (

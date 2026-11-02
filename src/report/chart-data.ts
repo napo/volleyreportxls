@@ -73,14 +73,15 @@ export interface SetTrendRow {
   /** Reception Pos% (# + +), null when no reception. */
   readonly receptionPositivity: number | null;
   /** Attack Pt% (#), null when no attack. */
-  readonly attackPointRate: number | null;
+  /** Attack efficiency: kills minus blocked and errors, over the attacks (it can be negative). */
+  readonly attackEfficiency: number | null;
 }
 
 export function setTrend(stats: MatchStats): SetTrendRow[] {
   return stats.sets.map((set) => ({
     set: `Set ${set.setNumber}`,
     receptionPositivity: set.team.reception.total > 0 ? set.team.reception.positivity : null,
-    attackPointRate: set.team.attack.total > 0 ? set.team.attack.pointRate : null,
+    attackEfficiency: set.team.attack.total > 0 ? set.team.attack.efficiency : null,
   }));
 }
 
@@ -91,7 +92,7 @@ export function playerSetTrend(player: MatchStats['players'][number]): SetTrendR
     return {
       set: `Set ${n}`,
       receptionPositivity: line.reception.total > 0 ? line.reception.positivity : null,
-      attackPointRate: line.attack.total > 0 ? line.attack.pointRate : null,
+      attackEfficiency: line.attack.total > 0 ? line.attack.efficiency : null,
     };
   });
 }
