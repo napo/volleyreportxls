@@ -36,8 +36,9 @@ function SharedMatch({ payload }: { payload: SharePayload }) {
   const report = useMemo(() => reportOf(toMatch(payload.matches[0]!), null), [payload]);
   return (
     <>
-      <TabellinoView report={report} shared={payload} />
+      {/* The summary first, then the scoresheet. */}
       <GraficiView report={report} shared={payload} />
+      <TabellinoView report={report} shared={payload} />
     </>
   );
 }

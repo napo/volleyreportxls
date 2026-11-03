@@ -15,6 +15,7 @@ import { formatSigned } from '../../report/format';
 import { useI18n } from '../../i18n';
 import { EvaluationChart } from '../charts/EvaluationChart';
 import { IndicatorTrendChart, formatIndicator } from '../charts/IndicatorTrendChart';
+import { useA11y } from '../a11y';
 
 interface Props {
   readonly card: AthleteCardData;
@@ -28,6 +29,7 @@ export function AthleteCard({ card, heading }: Props) {
   const axes = playedAxes(card.stats);
   const meaningful = meaningfulAxes(card.stats);
   const [chosen, setChosen] = useState<ProfileAxis | null>(null);
+  const { explain } = useA11y();
   const axis = chosen && axes.includes(chosen) ? chosen : (meaningful[0] ?? axes[0] ?? null);
   const figures = keyFigures(card.stats);
   const columns = [card.own, ...(card.last ? [card.last] : []), card.team];
@@ -77,7 +79,10 @@ export function AthleteCard({ card, heading }: Props) {
               <tbody>
                 {axes.map((a) => (
                   <tr key={a}>
-                    <td>{t.axes[a]}</td>
+                    <td title={t.help[a]}>
+                      {t.axes[a]}
+                      {explain && <small className="vr-cell-help">{t.help[a]}</small>}
+                    </td>
                     {columns.map((c, i) => (
                       <td key={c.name} className={`num${i === 0 && few(a) ? ' vr-few' : ''}`}>
                         {formatIndicator(a, c.values[a])}

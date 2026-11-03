@@ -17,7 +17,7 @@ import { it } from '../i18n/it';
 import type { ChartImage } from './charts-pdf';
 import { type PdfFontFiles, drawableText, embedPdfFonts } from './fonts';
 import { MARGIN, MM, MUTED, NAVY, PAGE, ROW, RULE, Writer, footer } from './pdf-page';
-import { type CellFill, type Group, drawTable } from './tabellino-pdf';
+import { type CellStyle, type Group, drawTable } from './tabellino-pdf';
 
 export type ReportBlock =
   | { readonly kind: 'section'; readonly title: string }
@@ -53,9 +53,9 @@ export function tableBlock<T>(
   rows: readonly T[],
   strong: (row: T) => boolean,
   note?: string,
-  fill?: CellFill<T>,
+  style?: CellStyle<T>,
 ): ReportBlock {
-  return { kind: 'table', title, ...(note && { note }), rows: rows.length, draw: (w, top, start, end) => drawTable(w, top, groups, rows.slice(start, end), strong, fill) };
+  return { kind: 'table', title, ...(note && { note }), rows: rows.length, draw: (w, top, start, end) => drawTable(w, top, groups, rows.slice(start, end), strong, style) };
 }
 
 const WIDTH = PAGE.width - 2 * MARGIN;

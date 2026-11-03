@@ -19,7 +19,7 @@ test('the last three matches against all of them: the reception gets worse', () 
   expect(s.recent?.reception).toBeCloseTo(0.5);
   expect(direction(s.values.reception, s.recent!.reception)).toBe('down');
   expect(s.balance.total).toBe(10);
-  expect(s.balance.perMatch).toBe(2);
+  expect(s.balance.perUnit).toBe(2);
 });
 
 test('with three matches or fewer there is no direction', () => {

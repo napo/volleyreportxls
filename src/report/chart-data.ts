@@ -85,18 +85,6 @@ export function setTrend(stats: MatchStats): SetTrendRow[] {
   }));
 }
 
-/** Reception Pos% and attack Pt% of a player, set by set over the sets played. */
-export function playerSetTrend(player: MatchStats['players'][number]): SetTrendRow[] {
-  return player.setsPlayed.map((n) => {
-    const line = player.bySet[n];
-    return {
-      set: `Set ${n}`,
-      receptionPositivity: line.reception.total > 0 ? line.reception.positivity : null,
-      attackEfficiency: line.attack.total > 0 ? line.attack.efficiency : null,
-    };
-  });
-}
-
 export interface PlayerPointsRow {
   readonly playerId: string;
   readonly label: string;

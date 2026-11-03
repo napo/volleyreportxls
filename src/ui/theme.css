@@ -9,6 +9,13 @@
  */
 
 :root {
+  /* Better and worse than expected (Accessibility can turn them into blue and orange). */
+  --vr-good: #2e7d32;
+  --vr-good-soft: #e3f3e5;
+  --vr-good-ink: #1b5e20;
+  --vr-bad: #c62828;
+  --vr-bad-soft: #fbe4e4;
+  --vr-bad-ink: #8e1c1c;
   /* Logo palette */
   --vr-navy: #062845;
   --vr-navy-deep: #001026;
@@ -772,11 +779,11 @@ a {
 }
 
 .vr-table .positive {
-  color: #2e7d32;
+  color: var(--vr-good);
 }
 
 .vr-table .negative {
-  color: #c62828;
+  color: var(--vr-bad);
 }
 
 /* Scoreboard */
@@ -2152,7 +2159,7 @@ button.vr-score-teams.selected {
     margin-left: 0;
   }
 
-  .vr-lang {
+  .vr-nav-tools {
     position: absolute;
     top: 0.85rem;
     right: 1.25rem;
@@ -3254,11 +3261,11 @@ button.vr-score-teams.selected {
 }
 
 .vr-figures strong.positive {
-  color: #2e7d32;
+  color: var(--vr-good);
 }
 
 .vr-figures strong.negative {
-  color: #c62828;
+  color: var(--vr-bad);
 }
 
 .vr-figures small {
@@ -3326,23 +3333,29 @@ button.vr-score-teams.selected {
 }
 
 .vr-direction.up {
-  color: #2e7d32;
+  color: var(--vr-good);
 }
 
 .vr-direction.down {
-  color: #c62828;
+  color: var(--vr-bad);
 }
 
 .vr-athlete-table td.vr-above,
 .vr-key.vr-above {
-  background: #e3f3e5;
-  color: #1b5e20;
+  background: var(--vr-good-soft);
+  color: var(--vr-good-ink);
 }
 
 .vr-athlete-table td.vr-below,
 .vr-key.vr-below {
-  background: #fbe4e4;
-  color: #8e1c1c;
+  background: var(--vr-bad-soft);
+  color: var(--vr-bad-ink);
+}
+
+/* The colour never says it alone: a triangle next to the value. */
+.vr-mark {
+  margin-right: 0.3rem;
+  font-size: 0.75em;
 }
 
 .vr-key {
@@ -3439,5 +3452,214 @@ button.vr-score-teams.selected {
   .vr-compare thead tr:first-child th {
     letter-spacing: 0;
     text-transform: none;
+  }
+}
+
+/* On a phone the navigation takes two lines: the opened card stops below it. */
+@media (max-width: 760px) {
+  .vr-opened-card {
+    scroll-margin-top: 8.5rem;
+  }
+}
+
+/* Accessibility (see a11y.ts): the choices are data attributes on <html>. */
+
+/* The highly legible typeface: declared here, downloaded by the browser only when used. */
+@font-face {
+  font-family: 'Atkinson Hyperlegible Next';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url('../assets/fonts/AtkinsonHyperlegibleNext-latin-ext-wght.woff2') format('woff2-variations');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Atkinson Hyperlegible Next';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url('../assets/fonts/AtkinsonHyperlegibleNext-latin-wght.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root[data-legible] {
+  --vr-font-sans: 'Atkinson Hyperlegible Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  --vr-font-nav: var(--vr-font-sans);
+  --vr-font-heading: var(--vr-font-sans);
+}
+
+/* Blue for better, orange for worse: told apart by every common kind of colour blindness (Okabe-Ito). */
+:root[data-colorblind] {
+  --vr-good: #005a8d;
+  --vr-good-soft: #dbeaf6;
+  --vr-good-ink: #003f63;
+  --vr-bad: #a85a00;
+  --vr-bad-soft: #fde7c8;
+  --vr-bad-ink: #6e3b00;
+}
+
+:root[data-text='1'] {
+  font-size: 115%;
+}
+
+:root[data-text='2'] {
+  font-size: 130%;
+}
+
+:root[data-contrast] {
+  --vr-text: #222222;
+  --vr-heading: #111111;
+  --vr-muted: #4a4a4a;
+  --vr-border: rgba(6, 40, 69, 0.45);
+  --vr-border-hover: rgba(6, 40, 69, 0.65);
+}
+
+:root[data-contrast] .vr-table th,
+:root[data-contrast] .vr-table td {
+  border-bottom-color: #8a959e;
+}
+
+/* With high contrast a value on few touches stays readable: underlined instead of faded. */
+:root[data-contrast] .vr-table td.vr-few {
+  opacity: 1;
+  color: var(--vr-text);
+  text-decoration: underline dotted;
+}
+
+:root[data-still] *,
+:root[data-still] *::before,
+:root[data-still] *::after {
+  scroll-behavior: auto !important;
+  transition: none !important;
+  animation: none !important;
+}
+
+/* For everybody: what has the keyboard focus is always clearly marked. */
+:focus-visible {
+  outline: 3px solid var(--vr-blue);
+  outline-offset: 2px;
+}
+
+/* Explanations always in view (Accessibility). */
+.vr-tile-help,
+.vr-cell-help {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.78rem;
+  font-weight: 400;
+  line-height: 1.35;
+  white-space: normal;
+  color: var(--vr-muted);
+}
+
+.vr-explain {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.5rem 1.25rem;
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+}
+
+.vr-explain dt {
+  font-weight: 700;
+  color: var(--vr-heading);
+}
+
+.vr-explain dd {
+  margin: 0;
+  color: var(--vr-muted);
+}
+
+/* Accessibility and language, side by side at the top right. */
+.vr-nav-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.vr-access {
+  position: relative;
+}
+
+.vr-access > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  padding: 0;
+  border: 1px solid var(--vr-border-hover);
+  border-radius: 999px;
+  background: var(--vr-surface);
+  color: var(--vr-navy);
+  cursor: pointer;
+}
+
+.vr-access > button[aria-expanded='true'] {
+  background: var(--vr-blue-soft);
+}
+
+.vr-access-panel {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  z-index: 30;
+  width: min(22rem, calc(100vw - 2rem));
+  padding: 1rem;
+  border: 1px solid var(--vr-border-hover);
+  border-radius: 0.75rem;
+  background: var(--vr-surface);
+  box-shadow: 0 10px 28px rgba(6, 40, 69, 0.18);
+  text-align: left;
+}
+
+.vr-access-title {
+  margin: 0 0 0.25rem;
+  font-family: var(--vr-font-heading);
+  font-weight: 800;
+  color: var(--vr-heading);
+}
+
+.vr-access-text {
+  margin: 0.75rem 0;
+  padding: 0;
+  border: none;
+}
+
+.vr-access-text legend {
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+  color: var(--vr-heading);
+}
+
+.vr-access-switch {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0.55rem 0;
+  color: var(--vr-heading);
+}
+
+.vr-access-switch input {
+  margin-top: 0.2rem;
+}
+
+.vr-access-switch small {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--vr-muted);
+}
+
+/* On a phone the panel takes the width of the screen, below the bar. */
+@media (max-width: 760px) {
+  .vr-access-panel {
+    position: fixed;
+    top: 4.5rem;
+    right: 1rem;
+    left: 1rem;
+    width: auto;
+    max-height: calc(100dvh - 6rem);
+    overflow-y: auto;
   }
 }

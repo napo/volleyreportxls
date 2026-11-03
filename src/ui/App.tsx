@@ -5,6 +5,7 @@ import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import logo from '../assets/volleyreportxls-logo.png';
 import { LICENSE_URL, PRIVACY_URL, SOURCE_REPOSITORY_URL, VOLLEYREPORTXLS_URL, WEB_APP_URL, releaseUrl } from '../config';
 import { sharedPart } from '../share/payload';
+import { scrollBehavior } from './a11y';
 import { ExternalLink } from '../platform/ExternalLink';
 import { APP_VERSION } from '../version';
 import { ArchiveProvider, useSync } from './archive-context';
@@ -21,6 +22,7 @@ import { MatchEditorView } from './views/MatchEditorView';
 import { AcquisitionView } from './acquisition/AcquisitionView';
 import { LANGUAGES, setLang, useI18n } from '../i18n';
 import { LanguageFlag } from './components/LanguageFlag';
+import { AccessibilityMenu } from './components/AccessibilityMenu';
 import { TabellinoView } from './views/TabellinoView';
 
 // Charts (ECharts) are loaded only when the tab is opened.
@@ -205,7 +207,10 @@ function SharedApp({ encoded }: { encoded: string }) {
             <img src={logo} alt="" />
             VolleyReport
           </ExternalLink>
-          <LanguageMenu />
+          <div className="vr-nav-tools">
+            <AccessibilityMenu />
+            <LanguageMenu />
+          </div>
         </div>
       </nav>
       <main className="vr-shell">
@@ -239,7 +244,7 @@ export function App() {
   // Scroll to the linked section, or to the top when changing page.
   useEffect(() => {
     const section = document.getElementById(route.name);
-    if (section && isSectionPage(route)) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (section && isSectionPage(route)) section.scrollIntoView({ behavior: scrollBehavior(), block: 'start' });
     else window.scrollTo({ top: 0 });
   }, [route]);
 
@@ -276,7 +281,10 @@ export function App() {
               </li>
             ))}
           </ul>
-          <LanguageMenu />
+          <div className="vr-nav-tools">
+            <AccessibilityMenu />
+            <LanguageMenu />
+          </div>
         </div>
       </nav>
 

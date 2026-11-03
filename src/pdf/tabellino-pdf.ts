@@ -135,8 +135,18 @@ export function setGroups(t: Texts): Group<TabellinoSetRow>[] {
 }
 
 
-/** Background of a cell, e.g. green above the team; none by default. */
-export type CellFill<T> = (row: T, column: Column<T>) => ReturnType<typeof rgb> | undefined;
+/**
+ * How a cell stands out, e.g. above the team: a background and a triangle
+ * (up or down) before the value, so that the colour is never the only sign.
+ */
+export type CellStyle<T> = (row: T, column: Column<T>) => { readonly fill?: ReturnType<typeof rgb>; readonly mark?: 'up' | 'down' } | undefined;
+
+/** A small triangle at the left of a cell, drawn (the fonts have no such symbol). */
+function drawMark(w: Writer, x: number, baseline: number, mark: 'up' | 'down') {
+  const size = 1.9 * MM;
+  const path = mark === 'up' ? `M0,${size} L${size / 2},0 L${size},${size} Z` : `M0,0 L${size},0 L${size / 2},${size} Z`;
+  w.page.drawSvgPath(path, { x, y: baseline + size, color: NAVY });
+}
 
 /** Draws a grouped table and returns the y below it. */
 export function drawTable<T>(
@@ -145,7 +155,7 @@ export function drawTable<T>(
   groups: readonly Group<T>[],
   rows: readonly T[],
   emphasise: (row: T) => boolean,
-  fill?: CellFill<T>,
+  style?: CellStyle<T>,
 ): number {
   const cellPad = 0.8 * MM;
   const width = groups.flatMap((g) => g.columns).reduce((sum, c) => sum + c.width * MM, 0);
@@ -177,8 +187,14 @@ export function drawTable<T>(
     if (strong) w.line(MARGIN, y, MARGIN + width, y, 1.2, NAVY);
     x = MARGIN;
     for (const column of groups.flatMap((g) => g.columns)) {
-      const background = fill?.(row, column);
-      if (background) w.rect(x, y - ROW, column.width * MM, ROW, background);
+      const look = style?.(row, column);
+      if (look?.fill) w.rect(x, y - ROW, column.width * MM, ROW, look.fill);
+      if (look?.mark) {
+        // Just before a value aligned on the right, at the start of the cell otherwise.
+        const font = strong ? w.fonts.bold : w.fonts.regular;
+        const end = x + column.width * MM - cellPad - font.widthOfTextAtSize(column.value(row), 7.5);
+        drawMark(w, column.align === 'right' ? end - 3 * MM : x + cellPad, y - ROW + 1.4 * MM, look.mark);
+      }
       w.text(column.value(row), x + cellPad, y - ROW + 1.4 * MM, 7.5, {
         bold: strong,
         align: column.align,

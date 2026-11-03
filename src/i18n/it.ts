@@ -22,7 +22,7 @@ export const it = {
     opponent: 'Squadra avversaria',
     pdfError: 'Non è stato possibile creare il PDF. Ricarica la pagina e riprova.',
     pdfReady: 'PDF pronto. Se il download non è partito, tocca qui per aprirlo',
-    downloadPdf: 'Scarica PDF (A4)',
+    downloadPdf: 'Tabellino in PDF',
     example: 'partita d’esempio',
     match: 'partita',
   },
@@ -75,12 +75,12 @@ export const it = {
       },
       {
         title: 'Controlla cosa riconosce l’app',
-        text: 'Controlla set, numeri di divisa, punteggio e caselle incerte. Nella rosa, scegliendo un atleta dall’archivio il suo nome riempie il campo. Per la stessa squadra e campionato, i numeri già associati propongono il nome nelle partite successive.',
+        text: 'Controlla set, numeri di divisa, punteggio e caselle incerte. Nella rosa, scegliendo dall’archivio l’atleta di riferimento, il nome riempie il campo. Per la stessa squadra e campionato, i numeri già associati propongono il nome nelle partite successive.',
         alt: 'La verifica del foglio letto dalla foto: set, punteggio finale e numeri di divisa trascritti accanto ai ritagli',
       },
       {
         title: 'Ottieni il tabellino',
-        text: 'Tabellino e grafici della partita, per la squadra e per ogni divisa, da scaricare in PDF.',
+        text: 'Tabellino e grafici della partita: la squadra e ogni atleta a confronto con la squadra. Scegli cosa mettere nel PDF, oppure condividi la pagina con un link, anche su WhatsApp.',
         alt: 'Il tabellino della partita',
       },
     ],
@@ -178,7 +178,7 @@ export const it = {
     them: 'Avversari',
     playersTitle: 'Rosa',
     playersText:
-      'I nomi sono facoltativi. Inserisci squadra e campionato per scegliere tra gli atleti già abbinati in questa rosa e collegarli allo storico. I numeri di divisa già associati propongono il nome nelle partite successive. Puoi sempre scrivere un nome a mano.',
+      'I nomi sono facoltativi. Inserisci squadra e campionato per scegliere tra i nomi già abbinati in questa rosa e collegarli allo storico. I numeri di divisa già associati propongono il nome nelle partite successive. Puoi sempre scrivere un nome a mano.',
     noNumbers: 'Nessun numero di divisa inserito.',
     namePlaceholder: 'Nome (facoltativo)',
     athlete: 'Abbinamento',
@@ -309,7 +309,7 @@ export const it = {
   /** Synchronisation of the archive with the user's cloud service (chosen by the user, device by device). */
   sync: {
     title: 'Sincronizza i dati',
-    text: 'Una copia dell’archivio (partite, rose, atleti) nel tuo spazio cloud, sempre aggiornata: se cambi dispositivo o ne usi più di uno, ritrovi gli stessi dati.',
+    text: 'Una copia dell’archivio (partite, rose e abbinamenti) nel tuo spazio cloud, sempre aggiornata: se cambi dispositivo o ne usi più di uno, ritrovi gli stessi dati.',
     exclusive: 'Su ogni dispositivo puoi usare un solo servizio alla volta: Google Drive, Dropbox oppure OneDrive. Per cambiare, scollega quello attuale e collega il nuovo: i dati del dispositivo passano al nuovo servizio, mentre la copia sul vecchio resta dov’è e non si aggiorna più. I dispositivi collegati a servizi diversi non si scambiano i dati: per averli allineati, collegali tutti allo stesso servizio e allo stesso account.',
     connect: (service: string) => `Collega ${service}`,
     confirmTitle: 'Prima di collegare',
@@ -516,22 +516,14 @@ export const it = {
     trendLabel: 'Andamento per set di positività della ricezione ed efficienza dell’attacco',
     libero: 'Libero',
     setsPlayed: (sets: string) => `Set giocati: ${sets || 'nessuno'}`,
-    setsPlayedShort: 'Set giocati',
     none: 'nessuno',
     rating: 'Voto',
     points: 'Punti',
     playerEvaluations: (player: string) => `Valutazioni di ${player} per fondamentale`,
-    choosePlayers: 'Scegli le divise da vedere',
-    selectPlayers: 'Seleziona almeno una divisa.',
-    tableText: 'Una riga per divisa scelta, con i dati di questa partita. Clicca un’intestazione per ordinare.',
     compareTitle: 'Confronto: punti vinti e persi',
     compareText: 'Vinti in battuta, attacco e muro; persi in battuta, ricezione, attacco e muro.',
     compareLabel: 'Punti vinti e persi delle divise selezionate',
     player: 'Divisa',
-    pdfIntro: (n: number) =>
-      n === 0
-        ? 'Il PDF (A4) contiene solo i grafici della squadra: scegli più sotto le divise da aggiungere.'
-        : `Il PDF (A4) contiene i grafici della squadra e delle divise scelte più sotto (${n}).`,
     won: 'Punti vinti',
     lost: 'Punti persi',
     wonShort: 'vinti',
@@ -666,7 +658,7 @@ export const it = {
           {
             id: 'shirts',
             q: 'Ogni atleta può cambiare numero o giocare in due campionati: come unisco i dati?',
-            a: ['Nella pagina Storico abbina entrambe le divise allo stesso atleta di riferimento: i dati vengono uniti qualunque sia il numero. Il nome può anche mancare. Con due nomi uguali, usa la nota per distinguerli, per esempio con l’anno di nascita.'],
+            a: ['Nella pagina Storico abbina entrambe le divise all’atleta di riferimento: i dati vengono uniti qualunque sia il numero. Il nome può anche mancare. Con due nomi uguali, usa la nota per distinguerli, per esempio con l’anno di nascita.'],
           },
           {
             id: 'squads',
@@ -696,7 +688,9 @@ export const it = {
           {
             id: 'charts',
             q: 'Quali grafici ci sono e come li leggo?',
-            a: ['Nella pagina Grafici, per ogni partita: le valutazioni per fondamentale, i punti vinti e persi, l’andamento per set, e gli stessi dati per le divise che scegli, con un confronto. «Mostra i dati» apre i valori in tabella. Il PDF contiene i grafici della squadra e delle divise scelte.'],
+            a: [
+              'La pagina Grafici si apre con la squadra (positività di battuta e ricezione, efficienza di attacco e muro, vinti meno persi, con la tendenza dell’ultimo set) e con una tabella per atleta colorata rispetto alla squadra: verde sopra, rosso sotto. Un clic su un nome apre la scheda dell’atleta, con l’andamento set per set. Più sotto si aprono la tabella completa e i grafici della squadra: valutazioni per fondamentale, punti vinti e persi, andamento per set. «Mostra i dati» apre i valori in tabella. Con «Genera PDF» scegli i blocchi da mettere nel documento.',
+            ],
           },
           {
             id: 'colours',
@@ -872,6 +866,22 @@ export const it = {
   },
 
   language: { label: 'Lingua' },
+  a11y: {
+    label: 'Accessibilità',
+    intro: 'Le scelte restano su questo dispositivo. Contrasto e movimento seguono le impostazioni del sistema finché non li cambi qui.',
+    colorblind: 'Colori per daltonismo',
+    colorblindHelp: 'Blu e arancio al posto di verde e rosso, anche nei PDF.',
+    text: 'Dimensione del testo',
+    textSizes: ['Normale', 'Grande', 'Molto grande'],
+    contrast: 'Contrasto alto',
+    still: 'Meno movimento',
+    legible: 'Carattere ad alta leggibilità',
+    legibleHelp: 'Atkinson Hyperlegible Next, pensato per chi vede poco.',
+    tables: 'Dati dei grafici sempre in tabella',
+    explain: 'Spiegazioni sempre visibili',
+    reset: 'Torna alle impostazioni del sistema',
+    close: 'Chiudi',
+  },
   profile: {
     chosen: 'Nelle partite scelte',
     own: 'Atleta',
@@ -894,6 +904,12 @@ export const it = {
     none: 'Nessun tocco nei fondamentali.',
     summary: (matches: number, sets: number, rating: string) => `${matches === 1 ? '1 partita' : `${matches} partite`} · ${sets} set · voto medio ${rating}`,
     axes: { serve: 'Positività battuta', reception: 'Positività ricezione', attack: 'Efficienza attacco', block: 'Efficienza muro' },
+    help: {
+      serve: 'Battute #, +, ! e / sul totale delle battute.',
+      reception: 'Ricezioni perfette (#) e positive (+) sul totale.',
+      attack: 'Attacchi vincenti meno murati ed errori, sul totale.',
+      block: 'Muri punto e positivi meno invasioni ed errori, sul totale.',
+    },
   },
   summary: {
     choice: (matches: number, from: string, to: string, chosen: number, roster: number) =>
@@ -906,6 +922,8 @@ export const it = {
     recent: (n: number) => `ultime ${n} partite`,
     direction: { up: 'in crescita', down: 'in calo', steady: 'stabile' },
     perMatch: (value: string) => `${value} a partita`,
+    lastSet: 'ultimo set',
+    perSet: (value: string) => `${value} a set`,
     standing: { above: 'Sopra la squadra', level: 'In linea con la squadra', below: 'Sotto la squadra' },
     legend: 'rispetto alla media della squadra (almeno 3 punti di differenza). In grigio i valori su meno di 5 tocchi.',
     allColumns: 'Tutte le colonne del tabellino',
@@ -959,11 +977,11 @@ export const it = {
     summary: (n: number, from: string, to: string) => (n === 1 ? `1 partita, ${from}` : `${n} partite dal ${from} al ${to}`),
   },
   reportPdf: {
-    button: 'PDF',
-    title: 'Crea il PDF',
+    button: 'Genera PDF',
+    title: 'Genera il PDF',
     intro: 'Scegli cosa mettere nel PDF. Ogni pagina ha in alto il nome dell’analisi e il periodo, in basso VolleyReport e il numero di pagina; l’ultima pagina è la legenda.',
     blocks: 'Cosa mettere nel PDF',
-    create: 'Crea il PDF',
+    create: 'Genera il PDF',
     preparing: 'Preparazione…',
     none: 'Scegli almeno un blocco.',
     matchesTitle: 'Partite',
@@ -976,7 +994,8 @@ export const it = {
     detailsTitle: 'Partite e tabellino',
     allMatches: 'Tutte le partite',
     direction: 'Tendenza',
-    colours: 'In verde i valori sopra la media della squadra, in rosso quelli sotto (almeno 3 punti di differenza).',
+    colours: (colorblind: boolean) =>
+      `${colorblind ? 'In blu' : 'In verde'} e con il triangolo in su i valori sopra la media della squadra, ${colorblind ? 'in arancio' : 'in rosso'} e con il triangolo in giù quelli sotto (almeno 3 punti di differenza).`,
     legend: [
       { term: 'Tot', text: 'Tocchi del fondamentale.' },
       { term: 'Err', text: 'Errori (valutazione =).' },

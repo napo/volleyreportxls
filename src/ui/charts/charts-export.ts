@@ -2,32 +2,19 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 /**
- * The charts PDF: the same charts as the Grafici page (team, then the
- * athletes selected there), drawn as images and laid out on A4.
+ * Charts of the report PDF, drawn as images with the same options as on the
+ * page: those of the team and the comparison of the athletes.
  */
-import { type ChartsPdfBlock, chartsFileName, renderChartsPdf } from '../../pdf/charts-pdf';
-import { formatRating, formatSigned, playerLabel } from '../../report/format';
-import { type PlayerPointsRow, type SetTrendRow, evaluationShares, playerPoints, playerSetTrend, pointsBySkill, setTrend } from '../../report/chart-data';
+import type { ChartsPdfBlock } from '../../pdf/charts-pdf';
+import { formatSigned } from '../../report/format';
+import { type PlayerPointsRow, type SetTrendRow, evaluationShares, pointsBySkill } from '../../report/chart-data';
 import type { StatLine } from '../../domain/stats/aggregate';
-import { saveFile } from '../../platform/save-file';
 import type { Messages } from '../../i18n';
-import type { MatchReport } from '../match-report';
-import { loadLogoPng, loadPdfFonts } from '../pdf-assets';
 import { PDF_CHART_WIDTH, chartImage } from './chart-images';
 import { evaluationChartHeight, evaluationChartOption, minLabelledShareFor } from './EvaluationChart';
 import { percent } from './tokens';
 import { TREND_CHART_HEIGHT, trendChartOption } from './TrendChart';
 import { wonLostChartHeight, wonLostChartOption } from './WonLostChart';
-
-async function chartBlocks(report: MatchReport, playerIds: readonly string[], m: Messages): Promise<ChartsPdfBlock[]> {
-  const { stats } = report;
-  const blocks: ChartsPdfBlock[] = [
-    { kind: 'section', title: m.charts.team },
-    ...(await teamChartBlocks({ team: stats.team.match, opponentErrors: stats.opponentErrors, trend: setTrend(stats) }, m)),
-  ];
-  if (playerIds.length) blocks.push({ kind: 'section', title: m.charts.players }, ...(await playerChartBlocks(report, playerIds, m)));
-  return blocks;
-}
 
 export interface TeamChartData {
   readonly team: StatLine;
@@ -85,57 +72,4 @@ export async function teamChartBlocks({ team, opponentErrors, trend, trendTexts 
 export async function comparisonBlock(rows: readonly PlayerPointsRow[], m: Messages): Promise<ChartsPdfBlock> {
   const t = m.charts;
   return { kind: 'chart', title: t.compareTitle, note: t.compareText, image: await chartImage(wonLostChartOption(rows, m), wonLostChartHeight(rows)) };
-}
-
-const trendBlock = async (title: string, note: string, rows: readonly SetTrendRow[], m: Messages): Promise<ChartsPdfBlock> => ({
-  kind: 'chart',
-  title,
-  note,
-  image: await chartImage(trendChartOption(rows, m), TREND_CHART_HEIGHT),
-});
-
-/** The charts of the chosen athletes: points won and lost side by side, then the evaluations of each. */
-export async function playerChartBlocks(report: MatchReport, playerIds: readonly string[], m: Messages): Promise<ChartsPdfBlock[]> {
-  const t = m.charts;
-  const names = { skills: m.skills, opponentErrors: t.opponentErrors };
-  const { stats, tabellino } = report;
-  const minShare = minLabelledShareFor(PDF_CHART_WIDTH);
-  const blocks: ChartsPdfBlock[] = [];
-  if (playerIds.length) {
-    const comparison = playerPoints(stats, playerIds);
-    blocks.push({
-      kind: 'chart',
-      title: t.compareTitle,
-      note: t.compareText,
-      image: await chartImage(wonLostChartOption(comparison, m), wonLostChartHeight(comparison)),
-    });
-    for (const id of playerIds) {
-      const player = stats.players.find((p) => p.player.id === id);
-      const row = tabellino.players.find((p) => p.player.id === id);
-      if (!player || !row) continue;
-      const rows = evaluationShares(player.match, names);
-      if (!rows.length) continue;
-      blocks.push({
-        kind: 'chart',
-        title: `${playerLabel(player.player)}${player.player.role === 'L' ? ` (${t.libero})` : ''}`,
-        figures: [
-          [t.rating, formatRating(row.rating)],
-          [t.points, String(player.match.summary.pointsWon)],
-          [t.balance, formatSigned(player.match.summary.balance)],
-          [t.setsPlayedShort, player.setsPlayed.join(', ') || t.none],
-        ],
-        image: await chartImage(evaluationChartOption(rows, minShare, m), evaluationChartHeight(rows)),
-      });
-      const trend = playerSetTrend(player);
-      if (trend.length > 1) blocks.push(await trendBlock(`${t.trendTitle} · ${playerLabel(player.player)}`, t.trendText, trend, m));
-    }
-  }
-  return blocks;
-}
-
-export function exportChartsPdf(report: MatchReport, playerIds: readonly string[], m: Messages) {
-  return saveFile(chartsFileName(report.tabellino, m.charts.title), async () => {
-    const [fonts, logoPng, blocks] = await Promise.all([loadPdfFonts(), loadLogoPng(), chartBlocks(report, playerIds, m)]);
-    return renderChartsPdf(report.tabellino, blocks, { fonts, logoPng, title: m.charts.title, texts: m.scoresheet });
-  });
 }

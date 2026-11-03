@@ -9,6 +9,7 @@
 import { useMemo } from 'react';
 import { type ProfileAxis, rangeOf } from '../../athletes/profile';
 import { type Messages, useI18n } from '../../i18n';
+import { useA11y } from '../a11y';
 import { DataTable } from './DataTable';
 import { EChart } from './EChart';
 import { Legend } from './Legend';
@@ -96,7 +97,8 @@ interface Props {
 
 export function IndicatorTrendChart({ points, axis, own, team, firstColumn, label }: Props) {
   const { m } = useI18n();
-  const option = useMemo(() => indicatorTrendOption(points, axis, own, team, m), [points, axis, own, team, m]);
+  const access = useA11y();
+  const option = useMemo(() => indicatorTrendOption(points, axis, own, team, m), [points, axis, own, team, m, access]);
   return (
     <>
       <Legend mark="line" items={lines(m).map((l) => ({ label: l.name, color: l.color, ...(l.dash && { dash: l.dash }) }))} />

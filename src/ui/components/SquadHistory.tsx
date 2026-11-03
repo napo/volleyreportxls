@@ -174,6 +174,7 @@ export function SquadHistory({ records, athletes, title, shared }: Props) {
             opponentErrors={charts.opponentErrors}
             trend={charts.trend}
             trendTexts={{ title: t.trendTitle, text: t.trendText, label: t.trendLabel, firstColumn: t.match }}
+            tiles={false}
           />
           {rows.length > 1 && (
             <section className="vr-card">

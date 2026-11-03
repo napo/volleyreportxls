@@ -171,7 +171,7 @@ export function AthletesView({ squadId }: { squadId: string | null }) {
       </header>
 
       {listed.length > 0 ? (
-        <SquadHistory key={squad?.id} title={squad?.name || t.noTeamName} records={squadRecords} athletes={listed.map((a) => ({
+        <SquadHistory key={`history-${squad?.id}`} title={squad?.name || t.noTeamName} records={squadRecords} athletes={listed.map((a) => ({
             id: a.id,
             label: label(a),
             hint: `n. ${[...new Set(entries.filter((e) => e.athleteId === a.id).map((e) => e.number))].join(', ')}`,

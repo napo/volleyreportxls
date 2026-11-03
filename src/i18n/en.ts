@@ -23,7 +23,7 @@ export const en: Messages = {
     opponent: 'Opponent',
     pdfError: 'The PDF could not be created. Reload the page and try again.',
     pdfReady: 'PDF ready. If the download did not start, tap here to open it',
-    downloadPdf: 'Download PDF (A4)',
+    downloadPdf: 'Scoresheet as PDF',
     example: 'example match',
     match: 'match',
   },
@@ -81,7 +81,7 @@ export const en: Messages = {
       },
       {
         title: 'Get the scoresheet',
-        text: 'Scoresheet and charts of the match, for the team and for every player, to download as PDF.',
+        text: 'Scoresheet and charts of the match: the team, and every athlete against the team. Choose what goes into the PDF, or share the page with a link, on WhatsApp too.',
         alt: 'The match scoresheet',
       },
     ],
@@ -551,22 +551,14 @@ export const en: Messages = {
     trendLabel: 'Reception positivity and attack efficiency set by set',
     libero: 'Libero',
     setsPlayed: (sets: string) => `Sets played: ${sets || 'none'}`,
-    setsPlayedShort: 'Sets played',
     none: 'none',
     rating: 'Vote',
     points: 'Points',
     playerEvaluations: (player: string) => `Ratings of ${player} by skill`,
-    choosePlayers: 'Choose the players to show',
-    selectPlayers: 'Select one or more players.',
-    tableText: 'One row per chosen shirt, with the data of this match. Click a heading to sort.',
     compareTitle: 'Comparison: points won and lost',
     compareText: 'Won in serve, attack and block; lost in serve, reception, attack and block.',
     compareLabel: 'Points won and lost by the selected players',
     player: 'Player',
-    pdfIntro: (n: number) =>
-      n === 0
-        ? 'The PDF (A4) contains the team charts and no player: choose the players below.'
-        : `The PDF (A4) contains the team charts and those of the players chosen below (${n}).`,
     won: 'Points won',
     lost: 'Points lost',
     wonShort: 'won',
@@ -730,7 +722,9 @@ export const en: Messages = {
           {
             id: 'charts',
             q: 'Which charts are there and how do I read them?',
-            a: ['On the Charts page, for each match: ratings by skill, points won and lost, the set trend, and the same data for the shirts you choose, with a comparison. “Show the data” opens the values in a table. The PDF contains the charts of the team and of the chosen shirts.'],
+            a: [
+              'The Charts page opens on the team (serve and reception positivity, attack and block efficiency, won minus lost, with the direction of the last set) and on a table by athlete coloured against the team: green above, red below. A click on a name opens the card of the athlete, with the trend set by set. Further down open the full table and the team charts: evaluations by skill, points won and lost, trend by set. “Show the data” opens the values in a table. With “Create PDF” you choose the blocks to put in the document.',
+            ],
           },
           {
             id: 'colours',
@@ -905,6 +899,22 @@ export const en: Messages = {
   },
 
   language: { label: 'Language' },
+  a11y: {
+    label: 'Accessibility',
+    intro: 'The choices stay on this device. Contrast and motion follow the system settings until you change them here.',
+    colorblind: 'Colours for colour blindness',
+    colorblindHelp: 'Blue and orange instead of green and red, in the PDFs too.',
+    text: 'Text size',
+    textSizes: ['Normal', 'Large', 'Larger'],
+    contrast: 'High contrast',
+    still: 'Less motion',
+    legible: 'Highly legible typeface',
+    legibleHelp: 'Atkinson Hyperlegible Next, designed for low vision.',
+    tables: 'Chart data always as tables',
+    explain: 'Explanations always in view',
+    reset: 'Back to the system settings',
+    close: 'Close',
+  },
   profile: {
     chosen: 'In the chosen matches',
     own: 'Athlete',
@@ -927,6 +937,12 @@ export const en: Messages = {
     none: 'No touch in the skills.',
     summary: (matches: number, sets: number, rating: string) => `${matches === 1 ? '1 match' : `${matches} matches`} · ${sets} sets · mean rating ${rating}`,
     axes: { serve: 'Serve positivity', reception: 'Reception positivity', attack: 'Attack efficiency', block: 'Block efficiency' },
+    help: {
+      serve: 'Serves #, +, ! and / over all serves.',
+      reception: 'Perfect (#) and positive (+) receptions over the total.',
+      attack: 'Kills minus blocked attacks and errors, over the total.',
+      block: 'Block points and positive blocks minus net touches and errors, over the total.',
+    },
   },
   summary: {
     choice: (matches: number, from: string, to: string, chosen: number, roster: number) =>
@@ -939,6 +955,8 @@ export const en: Messages = {
     recent: (n: number) => `last ${n} matches`,
     direction: { up: 'improving', down: 'declining', steady: 'steady' },
     perMatch: (value: string) => `${value} per match`,
+    lastSet: 'last set',
+    perSet: (value: string) => `${value} per set`,
     standing: { above: 'Above the team', level: 'In line with the team', below: 'Below the team' },
     legend: 'against the team average (at least 3 points apart). Greyed out: values on fewer than 5 touches.',
     allColumns: 'All the columns of the scoresheet',
@@ -992,7 +1010,7 @@ export const en: Messages = {
     summary: (n: number, from: string, to: string) => (n === 1 ? `1 match, ${from}` : `${n} matches from ${from} to ${to}`),
   },
   reportPdf: {
-    button: 'PDF',
+    button: 'Create PDF',
     title: 'Create the PDF',
     intro: 'Choose what goes into the PDF. Every page has the name of the analysis and the period on top, VolleyReport and the page number at the bottom; the last page is the legend.',
     blocks: 'What goes into the PDF',
@@ -1009,7 +1027,8 @@ export const en: Messages = {
     detailsTitle: 'Matches and scoresheet',
     allMatches: 'All the matches',
     direction: 'Direction',
-    colours: 'Green: values above the team average; red: below it (at least 3 points apart).',
+    colours: (colorblind: boolean) =>
+      `${colorblind ? 'Blue' : 'Green'} with a triangle up: above the team average; ${colorblind ? 'orange' : 'red'} with a triangle down: below it (at least 3 points apart).`,
     legend: [
       { term: 'Tot', text: 'Touches of the skill.' },
       { term: 'Err', text: 'Errors (evaluation =).' },

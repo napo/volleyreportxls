@@ -8,8 +8,9 @@
  */
 import { type AthleteCardData, keyFigures } from '../athletes/card';
 import { type ProfileAxis, meaningfulAxes, playedAxes, touchesOf } from '../athletes/profile';
-import { type Direction, INDICATORS, RECENT_MATCHES, STEADY_BALANCE, type Standing, direction, standing, teamSummary } from '../athletes/summary';
+import { type Direction, INDICATORS, RECENT_MATCHES, STEADY_BALANCE, type Standing, type TeamSummary, direction, matchSummary, standing, teamSummary } from '../athletes/summary';
 import { rgb } from 'pdf-lib';
+import { a11y } from './a11y';
 import { EVALUATION_SCALES, type Skill } from '../domain/codes';
 import type { Messages } from '../i18n';
 import type { MatchRecord } from '../matches/record';
@@ -137,7 +138,7 @@ async function render(blocks: readonly ReportBlock[], title: string, summary: st
 
 export interface MatchPdf {
   readonly report: MatchReport;
-  /** Rows and cards of the athletes chosen on the page. */
+  /** Rows and cards of the athletes who played. */
   readonly rows: readonly SquadRow[];
   readonly total: TabellinoLine;
   readonly playerIds: readonly string[];
@@ -148,10 +149,15 @@ export async function matchReportPdf(data: MatchPdf, sections: ReadonlySet<Share
   const { report } = data;
   const { tabellino } = report;
   const t = m.scoresheet;
-  const blocks: ReportBlock[] = [];
+  const blocks: ReportBlock[] = [
+    ...summaryBlocks({ summary: matchSummary(report.stats), rows: data.rows, cards: data.cards, team: sections.has('team'), athletes: sections.has('players') }, m),
+  ];
+  // After the summary, the scoresheet under a heading of its own.
+  if (blocks.length && (sections.has('tabellino') || sections.has('sets'))) blocks.push({ kind: 'section', title: t.title });
   if (sections.has('tabellino')) {
     const rows: PlayerOrTotal[] = [...tabellino.players, { ...tabellino.totals, total: true }];
-    blocks.push(tableBlock(t.title, playerGroups(tabellino, t), rows, (r) => 'total' in r, t.pdfLegend));
+    // Under the section title, the table is named after the team, as in the PDF of the scoresheet.
+    blocks.push(tableBlock(blocks.length ? tabellino.teamName : t.title, playerGroups(tabellino, t), rows, (r) => 'total' in r, t.pdfLegend));
   }
   if (sections.has('sets')) blocks.push(tableBlock(t.setStats, setGroups(t), tabellino.sets, () => false, t.opponentErrorsTotal(tabellino.opponentErrors)));
   if (sections.has('team')) {
@@ -183,20 +189,30 @@ export interface HistoryPdf {
 
 const capitalised = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
-const ABOVE = rgb(0.89, 0.95, 0.9);
-const BELOW = rgb(0.98, 0.89, 0.89);
+/** Backgrounds of better and worse: green and red, or blue and orange for colour blindness (Accessibility). */
+const above = () => (a11y().colorblind ? rgb(0.86, 0.92, 0.96) : rgb(0.89, 0.95, 0.9));
+const below = () => (a11y().colorblind ? rgb(0.99, 0.91, 0.78) : rgb(0.98, 0.89, 0.89));
+
+interface SummaryInput {
+  readonly summary: TeamSummary;
+  readonly rows: readonly SquadRow[];
+  readonly cards: readonly AthleteCardData[];
+  readonly team: boolean;
+  readonly athletes: boolean;
+}
 
 /** The first page, as the page opens: the team with its direction, then every athlete against the team. */
-function summaryBlocks(data: HistoryPdf, sections: ReadonlySet<ShareSection>, m: Messages): ReportBlock[] {
+function summaryBlocks({ summary, rows, cards, team, athletes }: SummaryInput, m: Messages): ReportBlock[] {
   const t = m.summary;
   const p = m.profile;
-  const summary = teamSummary(data.records);
   const blocks: ReportBlock[] = [];
-  const fillOf = (to: Direction | null) => (to === 'up' ? ABOVE : to === 'down' ? BELOW : undefined);
+  const styleOf = (to: Direction | null) => (to === 'up' ? { fill: above(), mark: 'up' as const } : to === 'down' ? { fill: below(), mark: 'down' as const } : undefined);
+  // A history compares the last matches, a match its last set.
+  const bySet = summary.unit === 'set';
 
-  if (sections.has('team') && data.records.length) {
+  if (team) {
     type Line = { label: string; all: string; recent: string; to: Direction | null };
-    const perMatch = (v: number) => t.perMatch(formatSigned(Math.round(v * 10) / 10));
+    const perMatch = (v: number) => (bySet ? t.perSet : t.perMatch)(formatSigned(Math.round(v * 10) / 10));
     const lines: Line[] = [
       ...INDICATORS.flatMap((a) => {
         const value = summary.values[a];
@@ -206,9 +222,9 @@ function summaryBlocks(data: HistoryPdf, sections: ReadonlySet<ShareSection>, m:
       }),
       {
         label: p.balance,
-        all: `${formatSigned(summary.balance.total)} (${perMatch(summary.balance.perMatch)})`,
-        recent: summary.balance.recentPerMatch === null ? '.' : perMatch(summary.balance.recentPerMatch),
-        to: direction(summary.balance.perMatch, summary.balance.recentPerMatch, STEADY_BALANCE),
+        all: `${formatSigned(summary.balance.total)} (${perMatch(summary.balance.perUnit)})`,
+        recent: summary.balance.recentPerUnit === null ? '.' : perMatch(summary.balance.recentPerUnit),
+        to: direction(summary.balance.perUnit, summary.balance.recentPerUnit, STEADY_BALANCE),
       },
     ];
     const groups: Group<Line>[] = [
@@ -216,23 +232,24 @@ function summaryBlocks(data: HistoryPdf, sections: ReadonlySet<ShareSection>, m:
         title: '',
         columns: [
           { header: p.indicator, width: 60, align: 'left', value: (r) => r.label },
-          { header: m.reportPdf.allMatches, width: 45, align: 'right', value: (r) => r.all },
-          { header: capitalised(t.recent(RECENT_MATCHES)), width: 40, align: 'right', value: (r) => r.recent },
+          { header: bySet ? m.profile.match : m.reportPdf.allMatches, width: 45, align: 'right', value: (r) => r.all },
+          { header: capitalised(bySet ? t.lastSet : t.recent(RECENT_MATCHES)), width: 40, align: 'right', value: (r) => r.recent },
           { header: m.reportPdf.direction, width: 30, align: 'left', value: (r) => (r.to ? t.direction[r.to] : '') },
         ],
       },
     ];
-    blocks.push(tableBlock(t.teamTitle, groups, lines, () => false, undefined, (r, c) => (c.header === m.reportPdf.direction ? fillOf(r.to) : undefined)));
+    blocks.push(tableBlock(t.teamTitle, groups, lines, () => false, undefined, (r, c) => (c.header === m.reportPdf.direction ? styleOf(r.to) : undefined)));
   }
 
-  if (sections.has('table') && data.rows.length) {
+  if (athletes && rows.length) {
     type Line = { label: string; matches: string; points: string; balance: string; values: Partial<Record<ProfileAxis, string>>; places: Partial<Record<ProfileAxis, Standing | null>>; team?: true };
-    const lines: Line[] = data.rows.map((row) => {
+    const lines: Line[] = rows.map((row) => {
       const s = row.totals.stats;
-      const own = data.cards.find((c) => c.id === row.id)?.own.values;
+      const own = cards.find((c) => c.id === row.id)?.own.values;
       return {
         label: row.label || `n. ${row.numbers.join(', ')}`,
-        matches: String(row.totals.matches),
+        // Matches in a history, sets played in a match.
+        matches: String(bySet ? row.totals.sets : row.totals.matches),
         points: String(s.summary.pointsWon),
         balance: formatSigned(s.summary.balance),
         values: Object.fromEntries(INDICATORS.map((a) => [a, touchesOf(s, a) > 0 ? formatIndicator(a, own?.[a] ?? null) : '.'])),
@@ -253,7 +270,7 @@ function summaryBlocks(data: HistoryPdf, sections: ReadonlySet<ShareSection>, m:
         title: '',
         columns: [
           { header: m.athletes.athlete, width: 42, align: 'left', value: (r) => r.label },
-          { header: m.athletes.matchesShort.slice(0, 4), width: 13, align: 'right', value: (r) => r.matches },
+          { header: bySet ? m.scoresheet.set : m.athletes.matchesShort.slice(0, 4), width: 13, align: 'right', value: (r) => r.matches },
           { header: p.points, width: 13, align: 'right', value: (r) => r.points },
           { header: m.scoresheet.balance, width: 14, align: 'right', value: (r) => r.balance },
           ...INDICATORS.map((a) => ({ header: p.axes[a], width: 27, align: 'right' as const, value: (r: Line) => r.values[a] ?? '' })),
@@ -264,16 +281,21 @@ function summaryBlocks(data: HistoryPdf, sections: ReadonlySet<ShareSection>, m:
     const fill = (r: Line, c: { header: string }) => {
       const a = axisOf(c.header);
       const place = a && r.places[a];
-      return place === 'above' ? ABOVE : place === 'below' ? BELOW : undefined;
+      return place === 'above' ? styleOf('up') : place === 'below' ? styleOf('down') : undefined;
     };
-    blocks.push(tableBlock(t.athletesTitle, groups, lines, (r) => r.team === true, m.reportPdf.colours, fill));
+    blocks.push(tableBlock(t.athletesTitle, groups, lines, (r) => r.team === true, m.reportPdf.colours(a11y().colorblind), fill));
   }
   return blocks.length ? [{ kind: 'section', title: m.reportPdf.summaryTitle }, ...blocks] : [];
 }
 
 export async function historyReportPdf(data: HistoryPdf, sections: ReadonlySet<ShareSection>, m: Messages): Promise<Uint8Array> {
   const t = m.reportPdf;
-  const blocks: ReportBlock[] = [...summaryBlocks(data, sections, m)];
+  const blocks: ReportBlock[] = [
+    ...summaryBlocks(
+      { summary: teamSummary(data.records), rows: data.rows, cards: data.cards, team: sections.has('team') && data.records.length > 0, athletes: sections.has('table') },
+      m,
+    ),
+  ];
   // After the summary, the full tables under a heading of their own.
   if (sections.has('matches') || (sections.has('table') && data.rows.length)) blocks.push({ kind: 'section', title: t.detailsTitle });
   if (sections.has('matches')) {

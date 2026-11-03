@@ -5,14 +5,16 @@ import { useMemo, useRef } from 'react';
 import { EVALUATION_SCALES, type Evaluation } from '../../domain/codes';
 import { type Messages, useI18n } from '../../i18n';
 import type { EvaluationShareRow } from '../../report/chart-data';
+import { useA11y } from '../a11y';
 import { DataTable } from './DataTable';
 import { EChart } from './EChart';
 import { useWidth } from './useWidth';
 import {
   BASE_OPTION,
   GRID,
-  SCALE_COLORS,
-  SCALE_LABELS,
+  chartSize,
+  scaleColors,
+  scaleLabels,
   TEXT_PRIMARY,
   escapeHtml,
   percent,
@@ -31,7 +33,7 @@ export const evaluationChartHeight = (rows: readonly EvaluationShareRow[]) => 20
 export const minLabelledShareFor = (width: number) => (width > 0 ? LABEL_PX / Math.max(1, width - AXIS_LABELS_PX) : 1);
 
 /** One series per place on the scale: the same place holds different symbols in different skills (serve "/" is second). */
-const PLACES = SCALE_COLORS.map((_, i) => i);
+const PLACES = [0, 1, 2, 3, 4, 5];
 const evaluationAt = (row: EvaluationShareRow, place: number): Evaluation => EVALUATION_SCALES[row.skill][place]!;
 
 export function evaluationChartOption(rows: readonly EvaluationShareRow[], minLabelledShare: number, m: Messages) {
@@ -73,12 +75,12 @@ export function evaluationChartOption(rows: readonly EvaluationShareRow[], minLa
       type: 'bar',
       stack: 'share',
       barMaxWidth: 24,
-      itemStyle: { color: SCALE_COLORS[place], borderColor: '#ffffff', borderWidth: 1 },
+      itemStyle: { color: scaleColors()[place], borderColor: '#ffffff', borderWidth: 1 },
       emphasis: { focus: 'none', itemStyle: { opacity: 0.85 } },
       label: {
         show: true,
-        color: SCALE_LABELS[place],
-        fontSize: 11,
+        color: scaleLabels()[place],
+        fontSize: chartSize(11),
         formatter: (p: { value: number; dataIndex: number }) =>
           p.value >= minLabelledShare ? `${evaluationAt(rows[p.dataIndex]!, place)} ${percent(p.value)}` : '',
       },
@@ -102,7 +104,8 @@ export function EvaluationChart({ rows, title }: { rows: readonly EvaluationShar
   const width = useWidth(box);
   // Label a segment only when the label fits inside it; otherwise tooltip and table carry the value.
   const minLabelledShare = minLabelledShareFor(width);
-  const option = useMemo(() => evaluationChartOption(rows, minLabelledShare, m), [rows, minLabelledShare, m]);
+  const access = useA11y();
+  const option = useMemo(() => evaluationChartOption(rows, minLabelledShare, m), [rows, minLabelledShare, m, access]);
 
   if (rows.length === 0) return <p className="vr-note">{m.charts.noTouches}</p>;
   return (
@@ -130,7 +133,7 @@ function ScaleLegend({ m }: { m: Messages }) {
     <p className="vr-legend vr-scale-legend">
       <span>{m.charts.scaleBest}</span>
       <span className="vr-scale-keys" aria-hidden="true">
-        {SCALE_COLORS.map((color) => (
+        {scaleColors().map((color) => (
           <span key={color} className="vr-legend-key bar" style={{ background: color }} />
         ))}
       </span>

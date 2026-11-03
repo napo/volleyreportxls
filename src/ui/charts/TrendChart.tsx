@@ -4,6 +4,7 @@
 import { useMemo } from 'react';
 import { type Messages, useI18n } from '../../i18n';
 import type { SetTrendRow } from '../../report/chart-data';
+import { useA11y } from '../a11y';
 import { DataTable } from './DataTable';
 import { EChart } from './EChart';
 import { Legend } from './Legend';
@@ -60,7 +61,8 @@ export function trendChartOption(rows: readonly SetTrendRow[], m: Messages) {
 /** Reception Pos% and attack Pt% set by set (or match by match): one percentage axis, end-labelled lines. */
 export function TrendChart({ rows, firstColumn, label }: { rows: readonly SetTrendRow[]; firstColumn?: string; label?: string }) {
   const { m } = useI18n();
-  const option = useMemo(() => trendChartOption(rows, m), [rows, m]);
+  const access = useA11y();
+  const option = useMemo(() => trendChartOption(rows, m), [rows, m, access]);
 
   return (
     <>

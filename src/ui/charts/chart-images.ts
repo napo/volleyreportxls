@@ -9,7 +9,7 @@
 import { CanvasRenderer } from 'echarts/renderers';
 import type { ChartImage } from '../../pdf/charts-pdf';
 import { type EChartsCoreOption, echarts } from './echarts';
-import { FONT, TEXT_PRIMARY } from './tokens';
+import { TEXT_PRIMARY, chartFont, chartSize } from './tokens';
 
 echarts.use([CanvasRenderer]);
 
@@ -36,7 +36,7 @@ export async function chartImage(option: EChartsCoreOption, height: number, lege
       animation: false,
       ...(legend && {
         grid: { ...grid, top: (grid.top ?? 0) + LEGEND_HEIGHT },
-        legend: { ...(option as { legend?: object }).legend, show: true, top: 0, left: 0, itemWidth: 14, itemHeight: 10, textStyle: { fontFamily: FONT, color: TEXT_PRIMARY, fontSize: 12 } },
+        legend: { ...(option as { legend?: object }).legend, show: true, top: 0, left: 0, itemWidth: 14, itemHeight: 10, textStyle: { fontFamily: chartFont(), color: TEXT_PRIMARY, fontSize: chartSize(12) } },
       }),
     });
     const png = bytesOf(chart.getDataURL({ type: 'png', pixelRatio: PIXEL_RATIO, backgroundColor: '#ffffff' }));

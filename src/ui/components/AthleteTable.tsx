@@ -15,10 +15,14 @@ import { formatSigned } from '../../report/format';
 import { useI18n } from '../../i18n';
 import { formatIndicator } from '../charts/IndicatorTrendChart';
 import { AthleteCard } from './AthleteCard';
+import { scrollBehavior, useA11y } from '../a11y';
 
 type Column = 'name' | 'matches' | 'points' | 'balance' | ProfileAxis;
 
 const SORT_MARK = { ascending: '▲', descending: '▼' } as const;
+
+/** Next to the colour, so that it is not the only sign. */
+const MARK = { above: '▲', below: '▼' } as const;
 
 interface Props {
   readonly rows: readonly SquadRow[];
@@ -26,24 +30,27 @@ interface Props {
   readonly team: Profile;
   /** Whether a name opens the card. */
   readonly open: boolean;
+  /** The second column: matches (a history) or sets played (a match). */
+  readonly unit?: 'matches' | 'sets';
 }
 
-export function AthleteTable({ rows, cards, team, open }: Props) {
+export function AthleteTable({ rows, cards, team, open, unit = 'matches' }: Props) {
   const { m } = useI18n();
   const t = m.summary;
   const [sort, setSort] = useState<{ column: Column; descending: boolean }>({ column: 'name', descending: false });
   const [shown, setShown] = useState<string | null>(null);
+  const { explain } = useA11y();
   const opened = cards.find((c) => c.id === shown) ?? null;
   const cardRef = useRef<HTMLDivElement>(null);
   // The card opens under the table: bring it into view.
   useEffect(() => {
-    if (shown) cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (shown) cardRef.current?.scrollIntoView({ behavior: scrollBehavior(), block: 'start' });
   }, [shown]);
 
   const value = (row: SquadRow, column: Column): number | string | null => {
     const s = row.totals.stats;
     if (column === 'name') return row.label || `n. ${row.numbers.join(', ')}`;
-    if (column === 'matches') return row.totals.matches;
+    if (column === 'matches') return unit === 'sets' ? row.totals.sets : row.totals.matches;
     if (column === 'points') return s.summary.pointsWon;
     if (column === 'balance') return s.summary.balance;
     // An indicator on few touches is not ranked with the others.
@@ -58,10 +65,10 @@ export function AthleteTable({ rows, cards, team, open }: Props) {
     });
   }, [rows, cards, sort]);
 
-  const header = (column: Column, label: string) => {
+  const header = (column: Column, label: string, help?: string) => {
     const active = sort.column === column ? (sort.descending ? 'descending' : 'ascending') : undefined;
     return (
-      <th key={column} className={column === 'name' ? undefined : 'num'} aria-sort={active ?? 'none'}>
+      <th key={column} className={column === 'name' ? undefined : 'num'} aria-sort={active ?? 'none'} title={help}>
         <button
           type="button"
           className="vr-sort"
@@ -76,15 +83,25 @@ export function AthleteTable({ rows, cards, team, open }: Props) {
 
   return (
     <>
+      {explain && (
+        <dl className="vr-explain">
+          {INDICATORS.map((a) => (
+            <div key={a}>
+              <dt>{m.profile.axes[a]}</dt>
+              <dd>{m.profile.help[a]}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
       <div className="vr-scroll">
         <table className="vr-table vr-athlete-table">
           <thead>
             <tr>
               {header('name', m.athletes.athlete)}
-              {header('matches', m.athletes.matchesShort)}
+              {header('matches', unit === 'sets' ? m.scoresheet.set : m.athletes.matchesShort)}
               {header('points', m.profile.points)}
               {header('balance', m.profile.balance)}
-              {INDICATORS.map((a) => header(a, m.profile.axes[a]))}
+              {INDICATORS.map((a) => header(a, m.profile.axes[a], m.profile.help[a]))}
             </tr>
           </thead>
           <tbody>
@@ -105,7 +122,7 @@ export function AthleteTable({ rows, cards, team, open }: Props) {
                         <strong>{name}</strong>
                       )}
                     </td>
-                    <td className="num">{row.totals.matches}</td>
+                    <td className="num">{unit === 'sets' ? row.totals.sets : row.totals.matches}</td>
                     <td className="num">{row.totals.stats.summary.pointsWon}</td>
                     <td className={`num ${balance > 0 ? 'positive' : balance < 0 ? 'negative' : ''}`}>{formatSigned(balance)}</td>
                     {INDICATORS.map((a) => {
@@ -114,6 +131,14 @@ export function AthleteTable({ rows, cards, team, open }: Props) {
                       const place = standing(own, team[a], touches);
                       return (
                         <td key={a} className={`num${place ? ` vr-${place}` : ''}${touches > 0 && touches < 5 ? ' vr-few' : ''}`} title={place ? t.standing[place] : undefined}>
+                          {place && place !== 'level' && (
+                            <>
+                              <span className="vr-mark" aria-hidden="true">
+                                {MARK[place]}
+                              </span>
+                              <span className="vr-visually-hidden">{t.standing[place]}: </span>
+                            </>
+                          )}
                           {touches > 0 ? formatIndicator(a, own) : '.'}
                         </td>
                       );
@@ -152,7 +177,13 @@ export function AthleteTable({ rows, cards, team, open }: Props) {
         </div>
       )}
       <p className="vr-note">
-        <span className="vr-key vr-above">{t.standing.above}</span> <span className="vr-key vr-below">{t.standing.below}</span> {t.legend}
+        <span className="vr-key vr-above">
+          {MARK.above} {t.standing.above}
+        </span>{' '}
+        <span className="vr-key vr-below">
+          {MARK.below} {t.standing.below}
+        </span>{' '}
+        {t.legend}
       </p>
     </>
   );

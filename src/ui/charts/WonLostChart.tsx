@@ -6,7 +6,8 @@ import { type Messages, useI18n } from '../../i18n';
 import { DataTable } from './DataTable';
 import { EChart } from './EChart';
 import { Legend } from './Legend';
-import { BASE_OPTION, GRID, LOST, TEXT_PRIMARY, WON, escapeHtml } from './tokens';
+import { useA11y } from '../a11y';
+import { BASE_OPTION, GRID, TEXT_PRIMARY, escapeHtml, lostColor, wonColor } from './tokens';
 
 export interface WonLostRow {
   readonly label: string;
@@ -57,8 +58,8 @@ export function wonLostChartOption(rows: readonly WonLostRow[], m: Messages) {
         const key = (color: string) => `<span style="display:inline-block;width:12px;height:2px;background:${color};vertical-align:middle;margin-right:6px"></span>`;
         return (
           `${escapeHtml(row.label)}<br>` +
-          `${key(WON)}<strong>${row.won}</strong> ${t.wonShort}<br>` +
-          `${key(LOST)}<strong>${row.lost}</strong> ${t.lostShort}<br>` +
+          `${key(wonColor())}<strong>${row.won}</strong> ${t.wonShort}<br>` +
+          `${key(lostColor())}<strong>${row.lost}</strong> ${t.lostShort}<br>` +
           `<span style="color:#7d7d7d">${t.net} ${row.won - row.lost > 0 ? '+' : ''}${row.won - row.lost}</span>`
         );
       },
@@ -69,7 +70,7 @@ export function wonLostChartOption(rows: readonly WonLostRow[], m: Messages) {
         type: 'bar',
         stack: 'balance',
         barMaxWidth: 20,
-        itemStyle: { color: WON, borderRadius: [0, 4, 4, 0] },
+        itemStyle: { color: wonColor(), borderRadius: [0, 4, 4, 0] },
         label: endLabel('right'),
         data: rows.map((r) => r.won),
       },
@@ -78,7 +79,7 @@ export function wonLostChartOption(rows: readonly WonLostRow[], m: Messages) {
         type: 'bar',
         stack: 'balance',
         barMaxWidth: 20,
-        itemStyle: { color: LOST, borderRadius: [4, 0, 0, 4] },
+        itemStyle: { color: lostColor(), borderRadius: [4, 0, 0, 4] },
         label: endLabel('left'),
         data: rows.map((r) => -r.lost),
       },
@@ -86,16 +87,17 @@ export function wonLostChartOption(rows: readonly WonLostRow[], m: Messages) {
   };
 }
 
-/** Diverging bars: points won to the right (blue), points lost to the left (orange). */
+/** Diverging bars: points won to the right, points lost to the left. */
 export function WonLostChart({ rows, title, firstColumn }: { rows: readonly WonLostRow[]; title: string; firstColumn: string }) {
   const { m } = useI18n();
   const t = m.charts;
-  const option = useMemo(() => wonLostChartOption(rows, m), [rows, m]);
+  const access = useA11y();
+  const option = useMemo(() => wonLostChartOption(rows, m), [rows, m, access]);
 
   if (rows.length === 0) return <p className="vr-note">{t.noPoints}</p>;
   return (
     <>
-      <Legend mark="bar" items={[{ label: t.won, color: WON }, { label: t.lost, color: LOST }]} />
+      <Legend mark="bar" items={[{ label: t.won, color: wonColor() }, { label: t.lost, color: lostColor() }]} />
       <EChart option={option} height={wonLostChartHeight(rows)} label={title} />
       <DataTable head={[firstColumn, t.wonCol, t.lostCol, t.netCol]} rows={rows.map((r) => [r.label, r.won, r.lost, r.won - r.lost])} />
     </>

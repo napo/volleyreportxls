@@ -3,10 +3,12 @@
 
 import { type ReactNode, useEffect, useRef } from 'react';
 import { useI18n } from '../../i18n';
+import { useA11y } from '../a11y';
 
 /** The table twin of a chart: every value readable without hovering, and on paper (it opens for printing). */
 export function DataTable({ head, rows }: { head: readonly string[]; rows: readonly (readonly ReactNode[])[] }) {
   const { m } = useI18n();
+  const { tables } = useA11y();
   const ref = useRef<HTMLDetailsElement>(null);
 
   useEffect(() => {
@@ -27,7 +29,8 @@ export function DataTable({ head, rows }: { head: readonly string[]; rows: reado
   }, []);
 
   return (
-    <details className="vr-data" ref={ref}>
+    // Remounted when the choice changes, so that it opens (or closes) every table.
+    <details className="vr-data" ref={ref} key={String(tables)} open={tables}>
       <summary>{m.charts.showData}</summary>
       <div className="vr-scroll">
         <table className="vr-table">

@@ -22,6 +22,7 @@ import type { TabellinoLine } from '../../report/tabellino';
 import { formatBracketedPercent, formatCount, formatPercent, formatRating, formatSigned } from '../../report/format';
 import { useI18n } from '../../i18n';
 import { PointsCells, SkillCells, SkillGroups } from './TabellinoTable';
+import { useA11y } from '../a11y';
 
 type Format = 'count' | 'rating' | 'signed' | 'percent' | 'bracketed';
 
@@ -97,6 +98,7 @@ export function StatsTable({ rows, total, matches, link }: Props) {
   const t = m.athletes;
   const s = m.scoresheet;
   const [sort, setSort] = useState<SquadSort>(DEFAULT_SQUAD_SORT);
+  const { explain } = useA11y();
   const sorted = useMemo(() => sortSquadRows(rows, sort), [rows, sort]);
   const columns = matches === undefined ? COLUMNS.filter((c) => c.id !== 'matches') : COLUMNS;
 
@@ -184,6 +186,7 @@ export function StatsTable({ rows, total, matches, link }: Props) {
         </table>
       </div>
       <p className="vr-note">{t.fewNote(FEW_TOUCHES)}</p>
+      {explain && <p className="vr-note">{s.legend}</p>}
     </>
   );
 }

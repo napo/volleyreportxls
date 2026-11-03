@@ -28,22 +28,26 @@ interface Props {
   readonly trend: readonly SetTrendRow[];
   /** Title, text, label and first column of the trend, when it is not set by set. */
   readonly trendTexts?: { readonly title: string; readonly text: string; readonly label: string; readonly firstColumn: string };
+  /** The key figures on top; left out where the summary of the team already shows them. */
+  readonly tiles?: boolean;
 }
 
 /** The charts of the team: key figures, evaluations, points won and lost by skill, trend. */
-export function TeamCharts({ team, opponentErrors, trend, trendTexts }: Props) {
+export function TeamCharts({ team, opponentErrors, trend, trendTexts, tiles = true }: Props) {
   const { m } = useI18n();
   const t = m.charts;
   const names = { skills: m.skills, opponentErrors: t.opponentErrors };
   return (
     <>
-      <div className="vr-tiles">
-        <Tile label={t.directPoints} value={String(team.summary.pointsWon)} note={t.directPointsNote} />
-        <Tile label={t.balance} value={formatSigned(team.summary.balance)} note={t.wonLost(team.summary.pointsWon, team.summary.pointsLost)} />
-        <Tile label={t.opponentErrors} value={String(opponentErrors)} />
-        <Tile label={t.receptionPos} value={percent(team.reception.positivity)} note={t.receptions(team.reception.total)} />
-        <Tile label={t.attackEff} value={`${formatSigned(Math.round(team.attack.efficiency * 100))}%`} note={t.attacks(team.attack.total)} />
-      </div>
+      {tiles && (
+        <div className="vr-tiles">
+          <Tile label={t.directPoints} value={String(team.summary.pointsWon)} note={t.directPointsNote} />
+          <Tile label={t.balance} value={formatSigned(team.summary.balance)} note={t.wonLost(team.summary.pointsWon, team.summary.pointsLost)} />
+          <Tile label={t.opponentErrors} value={String(opponentErrors)} />
+          <Tile label={t.receptionPos} value={percent(team.reception.positivity)} note={t.receptions(team.reception.total)} />
+          <Tile label={t.attackEff} value={`${formatSigned(Math.round(team.attack.efficiency * 100))}%`} note={t.attacks(team.attack.total)} />
+        </div>
+      )}
 
       <section className="vr-card">
         <div className="vr-card-head">

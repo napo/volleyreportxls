@@ -68,22 +68,25 @@ export function TabellinoView({ report, shared }: Props) {
   const date = formatDate(tabellino.date);
   return (
     <>
-      <header className="vr-hero">
-        <p className="vr-eyebrow">
-          {shared ? m.share.eyebrow : `${t.eyebrow} · ${report.recordId ? m.common.match : m.common.example}`}
-          {tabellino.set && ` · ${t.set} ${tabellino.set}`}
-        </p>
-        <h1>
-          {tabellino.teamName} – {tabellino.opponentName}
-        </h1>
-        <ul className="vr-meta">
-          {[tabellino.competition, tabellino.venue, date]
-            .filter((text) => text.trim() !== '')
-            .map((text) => (
-              <li key={text}>{text}</li>
-            ))}
-        </ul>
-      </header>
+      {/* A shared report opens on the summary, which has the title. */}
+      {!shared && (
+        <header className="vr-hero">
+          <p className="vr-eyebrow">
+            {t.eyebrow} · {report.recordId ? m.common.match : m.common.example}
+            {tabellino.set && ` · ${t.set} ${tabellino.set}`}
+          </p>
+          <h1>
+            {tabellino.teamName} – {tabellino.opponentName}
+          </h1>
+          <ul className="vr-meta">
+            {[tabellino.competition, tabellino.venue, date]
+              .filter((text) => text.trim() !== '')
+              .map((text) => (
+                <li key={text}>{text}</li>
+              ))}
+          </ul>
+        </header>
+      )}
 
       {report.recordId && (
         <section className={`vr-card${report.anomalies.length ? ' vr-warning' : ''}`}>
