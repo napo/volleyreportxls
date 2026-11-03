@@ -2,8 +2,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 /**
- * The indicators of an athlete, all "higher is better": positivity of serve
- * and reception, efficiency of attack and block. They compare the athlete
+ * The indicators of an athlete, all "higher is better": positivity and
+ * efficiency of serve and reception, efficiency of attack and block.
+ * Positivity is the default of the DataVolley tables (system of the Italian
+ * national team); efficiency is DataVolley's "classic" one, winning minus
+ * losing touches over all of them (manual §2.3.4.4): # − = for the serve,
+ * and for the reception # − =, as the manual suggests. They compare the athlete
  * with the team (and with the last match), and follow the athlete match by
  * match. Every indicator is a ratio of touches, so the team value is
  * comparable with the athlete's: the team reception counts only who received.
@@ -17,13 +21,17 @@ import { FEW_TOUCHES } from './squad-history';
 
 export const PROFILE_AXES = [
   /** Serve positivity: the share of positive serves (#, +, ! and /), as the evaluation tables count serve efficiency. */
-  { id: 'serve', min: 0, max: 1 },
+  { id: 'serve', skill: 'serve', min: 0, max: 1 },
+  /** Serve efficiency: (# − =) / total. */
+  { id: 'serveEfficiency', skill: 'serve', min: -0.3, max: 0.3 },
   /** Reception positivity. */
-  { id: 'reception', min: 0, max: 1 },
+  { id: 'reception', skill: 'reception', min: 0, max: 1 },
+  /** Reception efficiency: (# − =) / total. */
+  { id: 'receptionEfficiency', skill: 'reception', min: -0.2, max: 0.6 },
   /** Attack efficiency. */
-  { id: 'attack', min: -0.2, max: 0.6 },
+  { id: 'attack', skill: 'attack', min: -0.2, max: 0.6 },
   /** Block efficiency. */
-  { id: 'block', min: -0.5, max: 0.5 },
+  { id: 'block', skill: 'block', min: -0.5, max: 0.5 },
 ] as const;
 
 export type ProfileAxis = (typeof PROFILE_AXES)[number]['id'];
@@ -32,7 +40,10 @@ export type Profile = Readonly<Record<ProfileAxis, number | null>>;
 /** The indicators of a stat line; null where there are no touches. */
 export function profileOf(stats: StatLine): Profile {
   const rate = (total: number, value: number) => (total > 0 ? value : null);
+  const classic = (s: { total: number; counts: Readonly<Record<string, number>> }) => rate(s.total, (s.counts['#']! - s.counts['=']!) / s.total);
   return {
+    serveEfficiency: classic(stats.serve),
+    receptionEfficiency: classic(stats.reception),
     // For the serve the tables count only positive evaluations: this is a share, from 0 to 1.
     serve: rate(stats.serve.total, stats.serve.efficiency),
     reception: rate(stats.reception.total, stats.reception.positivity),
@@ -42,7 +53,7 @@ export function profileOf(stats: StatLine): Profile {
 }
 
 /** Touches of the skill of an indicator. */
-export const touchesOf = (stats: StatLine, axis: ProfileAxis): number => stats[axis].total;
+export const touchesOf = (stats: StatLine, axis: ProfileAxis): number => stats[PROFILE_AXES.find((a) => a.id === axis)!.skill].total;
 
 /** The indicators of the skills the athlete played at all. */
 export const playedAxes = (stats: StatLine): ProfileAxis[] => PROFILE_AXES.map((a) => a.id).filter((id) => touchesOf(stats, id) > 0);

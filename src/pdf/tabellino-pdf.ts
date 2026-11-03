@@ -195,10 +195,12 @@ export function drawTable<T>(
         const end = x + column.width * MM - cellPad - font.widthOfTextAtSize(column.value(row), 7.5);
         drawMark(w, column.align === 'right' ? end - 3 * MM : x + cellPad, y - ROW + 1.4 * MM, look.mark);
       }
-      w.text(column.value(row), x + cellPad, y - ROW + 1.4 * MM, 7.5, {
+      // A triangle at the start of a cell aligned on the left pushes the text after it.
+      const shift = look?.mark && column.align !== 'right' ? 3 * MM : 0;
+      w.text(column.value(row), x + cellPad + shift, y - ROW + 1.4 * MM, 7.5, {
         bold: strong,
         align: column.align,
-        width: column.width * MM - 2 * cellPad,
+        width: column.width * MM - 2 * cellPad - shift,
       });
       x += column.width * MM;
     }

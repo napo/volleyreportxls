@@ -92,11 +92,18 @@ export interface PlayerPointsRow {
   readonly lost: number;
 }
 
-/** Points won and lost (the V-P components) of the given players, in the given order. */
+/**
+ * Whether the touches can win points: some serve, attack or block. Who only
+ * received (usually the libero) can lose points but never win one, so points
+ * won and lost say nothing about them.
+ */
+export const scoresPoints = (line: StatLine) => line.serve.total + line.attack.total + line.block.total > 0;
+
+/** Points won and lost (the V-P components) of the given players, in the given order; not those who cannot score. */
 export function playerPoints(stats: MatchStats, playerIds: readonly string[]): PlayerPointsRow[] {
   return playerIds.flatMap((id) => {
     const p = stats.players.find((x) => x.player.id === id);
-    return p
+    return p && scoresPoints(p.match)
       ? [{ playerId: id, label: playerLabel(p.player), won: p.match.summary.pointsWon, lost: p.match.summary.pointsLost }]
       : [];
   });

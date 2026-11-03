@@ -3,7 +3,7 @@
 
 import { calculateMatchStats } from '../domain';
 import { line, match, set, team } from '../domain/testing';
-import { activePlayers, evaluationShares, playerPoints, pointsBySkill, setTrend } from './chart-data';
+import { activePlayers, evaluationShares, playerPoints, pointsBySkill, scoresPoints, setTrend } from './chart-data';
 
 const game = match(team([[7, 'Alice'], [9, 'Bea'], [3, 'Cleo']]), [
   set(1, { team: 25, opponent: 20 }, [line(7, 'A# A# A= R# R+ R='), line(9, 'B# B= M#')]),
@@ -44,4 +44,11 @@ test('active players sorted by touches; player points in the requested order', (
     { playerId: 'p9', label: '9 Bea', won: 2, lost: 1 },
     { playerId: 'p7', label: '7 Alice', won: 2, lost: 3 },
   ]);
+});
+
+test('who only received cannot score: left out of points won and lost', () => {
+  const receiver = match(team([[1, 'Libera'], [7, 'Alice']]), [set(1, { team: 25, opponent: 20 }, [line(1, 'R# R+ R='), line(7, 'A# A=')])]);
+  const s = calculateMatchStats(receiver);
+  expect(scoresPoints(s.players.find((p) => p.player.number === 1)!.match)).toBe(false);
+  expect(playerPoints(s, ['p1', 'p7']).map((r) => r.playerId)).toEqual(['p7']);
 });

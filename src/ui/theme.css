@@ -701,6 +701,8 @@ a {
 /* Tables */
 
 .vr-scroll {
+  /* Positioned: what is placed inside it (texts for screen readers) stays inside and scrolls with it. */
+  position: relative;
   overflow-x: auto;
 }
 
@@ -3662,4 +3664,25 @@ button.vr-score-teams.selected {
     max-height: calc(100dvh - 6rem);
     overflow-y: auto;
   }
+}
+
+/* A tile of the team on few touches: the value is faded, the note says why. */
+.vr-few-tile .vr-tile-value {
+  color: var(--vr-muted);
+}
+
+/* The names stay in view while the table by athlete scrolls sideways. */
+.vr-athlete-table tr > :first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--vr-surface);
+}
+
+.vr-athlete-table thead tr > :first-child {
+  background: var(--vr-blue-soft);
+}
+
+.vr-athlete-table tr.expanded > :first-child {
+  background: var(--vr-blue-soft);
 }

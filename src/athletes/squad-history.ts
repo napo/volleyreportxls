@@ -9,7 +9,7 @@
 
 import { type MatchStats, type StatLine, calculateMatchStats, calculateStatLine } from '../domain/stats/aggregate';
 import { type MatchRecord, toMatch } from '../matches/record';
-import type { PlayerPointsRow, SetTrendRow } from '../report/chart-data';
+import { type PlayerPointsRow, type SetTrendRow, scoresPoints } from '../report/chart-data';
 import { formatDate } from '../report/format';
 import { type TabellinoLine, tabellinoLine } from '../report/tabellino';
 import { type AthleteMatch, type AthleteTotals, athleteTotals } from './history';
@@ -60,9 +60,9 @@ export function squadCharts(records: readonly MatchRecord[]): { team: StatLine; 
   };
 }
 
-/** Points won and lost by every row, for the comparison chart. */
+/** Points won and lost by every row that can score, for the comparison chart. */
 export const rowPoints = (rows: readonly SquadRow[]): PlayerPointsRow[] =>
-  rows.map((r) => ({
+  rows.filter((r) => scoresPoints(r.totals.stats)).map((r) => ({
     playerId: r.id,
     label: r.label || `n. ${r.numbers.join(', ')}`,
     won: r.totals.stats.summary.pointsWon,

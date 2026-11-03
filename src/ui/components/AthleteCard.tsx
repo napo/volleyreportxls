@@ -10,7 +10,7 @@ import { type ReactNode, useState } from 'react';
 import { type AthleteCardData, keyFigures } from '../../athletes/card';
 import { type ProfileAxis, meaningfulAxes, playedAxes, touchesOf } from '../../athletes/profile';
 import { FEW_TOUCHES } from '../../athletes/squad-history';
-import { evaluationShares } from '../../report/chart-data';
+import { evaluationShares, scoresPoints } from '../../report/chart-data';
 import { formatSigned } from '../../report/format';
 import { useI18n } from '../../i18n';
 import { EvaluationChart } from '../charts/EvaluationChart';
@@ -44,21 +44,38 @@ export function AthleteCard({ card, heading }: Props) {
         </div>
       </div>
 
-      <ul className="vr-figures">
-        <li>
-          <span>{t.points}</span>
-          <strong>{figures.points}</strong>
-        </li>
-        <li>
-          <span>{t.errors}</span>
-          <strong>{figures.errors}</strong>
-          {figures.aces > 0 && <small>{t.aces(figures.aces)}</small>}
-        </li>
-        <li>
-          <span>{t.balance}</span>
-          <strong className={figures.balance > 0 ? 'positive' : figures.balance < 0 ? 'negative' : undefined}>{formatSigned(figures.balance)}</strong>
-        </li>
-      </ul>
+      {scoresPoints(card.stats) ? (
+        <ul className="vr-figures">
+          <li>
+            <span>{t.points}</span>
+            <strong>{figures.points}</strong>
+          </li>
+          <li>
+            <span>{t.errors}</span>
+            <strong>{figures.errors}</strong>
+            {figures.aces > 0 && <small>{t.aces(figures.aces)}</small>}
+          </li>
+          <li>
+            <span>{t.balance}</span>
+            <strong className={figures.balance > 0 ? 'positive' : figures.balance < 0 ? 'negative' : undefined}>{formatSigned(figures.balance)}</strong>
+          </li>
+        </ul>
+      ) : (
+        // Who only received: the receptions and the aces conceded, not a balance that can only be negative.
+        <>
+          <ul className="vr-figures">
+            <li>
+              <span>{t.receptions}</span>
+              <strong>{card.stats.reception.total}</strong>
+            </li>
+            <li>
+              <span>{t.acesConceded}</span>
+              <strong>{figures.aces}</strong>
+            </li>
+          </ul>
+          <p className="vr-note">{t.receiverOnly}</p>
+        </>
+      )}
 
       {axes.length === 0 ? (
         <p className="vr-note">{t.none}</p>

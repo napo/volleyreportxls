@@ -10,7 +10,7 @@
 
 import type { ScoutCodeString } from '../domain/codes';
 import type { SetNumber } from '../domain/model';
-import { type FormLayout, type FormSkill, type Rect, type RowKind, CURRENT_FORM_LAYOUT, FORM_LAYOUTS, cellCode, formLayout } from '../pdf/layout';
+import { type FormLayout, type FormSkill, type Rect, type RowKind, CURRENT_FORM_LAYOUT, FORM_LAYOUTS, cellCode } from '../pdf/layout';
 import type { FormPageId } from '../pdf/scouting-form';
 import { BUBBLE_MARKED, readCell } from './cells';
 import { type GrayImage, sample } from './gray';

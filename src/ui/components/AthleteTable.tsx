@@ -15,6 +15,7 @@ import { formatSigned } from '../../report/format';
 import { useI18n } from '../../i18n';
 import { formatIndicator } from '../charts/IndicatorTrendChart';
 import { AthleteCard } from './AthleteCard';
+import { scoresPoints } from '../../report/chart-data';
 import { scrollBehavior, useA11y } from '../a11y';
 
 type Column = 'name' | 'matches' | 'points' | 'balance' | ProfileAxis;
@@ -51,8 +52,9 @@ export function AthleteTable({ rows, cards, team, open, unit = 'matches' }: Prop
     const s = row.totals.stats;
     if (column === 'name') return row.label || `n. ${row.numbers.join(', ')}`;
     if (column === 'matches') return unit === 'sets' ? row.totals.sets : row.totals.matches;
-    if (column === 'points') return s.summary.pointsWon;
-    if (column === 'balance') return s.summary.balance;
+    // Who only received cannot score: no points, no balance.
+    if (column === 'points') return scoresPoints(s) ? s.summary.pointsWon : null;
+    if (column === 'balance') return scoresPoints(s) ? s.summary.balance : null;
     // An indicator on few touches is not ranked with the others.
     return touchesOf(s, column) > 0 ? cards.find((c) => c.id === row.id)?.own.values[column] ?? null : null;
   };
@@ -123,8 +125,14 @@ export function AthleteTable({ rows, cards, team, open, unit = 'matches' }: Prop
                       )}
                     </td>
                     <td className="num">{unit === 'sets' ? row.totals.sets : row.totals.matches}</td>
-                    <td className="num">{row.totals.stats.summary.pointsWon}</td>
-                    <td className={`num ${balance > 0 ? 'positive' : balance < 0 ? 'negative' : ''}`}>{formatSigned(balance)}</td>
+                    <td className="num">{scoresPoints(row.totals.stats) ? row.totals.stats.summary.pointsWon : '.'}</td>
+                    {scoresPoints(row.totals.stats) ? (
+                      <td className={`num ${balance > 0 ? 'positive' : balance < 0 ? 'negative' : ''}`}>{formatSigned(balance)}</td>
+                    ) : (
+                      <td className="num" title={m.profile.receiverOnly}>
+                        .
+                      </td>
+                    )}
                     {INDICATORS.map((a) => {
                       const own = card?.own.values[a] ?? null;
                       const touches = touchesOf(row.totals.stats, a);

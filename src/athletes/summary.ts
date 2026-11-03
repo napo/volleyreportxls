@@ -8,9 +8,9 @@
  * stands against the team.
  */
 
-import { type MatchStats, calculateMatchStats, calculateStatLine } from '../domain/stats/aggregate';
+import { type MatchStats, type StatLine, calculateMatchStats, calculateStatLine } from '../domain/stats/aggregate';
 import { type MatchRecord, toMatch } from '../matches/record';
-import { type Profile, type ProfileAxis, PROFILE_AXES, profileOf } from './profile';
+import { type Profile, type ProfileAxis, PROFILE_AXES, profileOf, touchesOf } from './profile';
 import { FEW_TOUCHES } from './squad-history';
 
 /** The last matches compared with all the chosen ones. */
@@ -26,6 +26,8 @@ export interface TeamSummary {
   /** What is compared: matches (a history) or sets (a match). */
   readonly unit: 'match' | 'set';
   readonly values: Profile;
+  /** Touches behind each indicator: below FEW_TOUCHES a value says little. */
+  readonly touches: Readonly<Record<ProfileAxis, number>>;
   /** The last RECENT_MATCHES matches, or the last set; null when there is nothing before them to compare with. */
   readonly recent: Profile | null;
   /** Points won minus lost: in all, per match (or set), per match in the last matches (or in the last set). */
@@ -41,6 +43,7 @@ export function teamSummary(records: readonly MatchRecord[]): TeamSummary {
   return {
     unit: 'match',
     values: profileOf(all),
+    touches: touchesAll(all),
     recent: recent && profileOf(recent),
     balance: {
       total: all.summary.balance,
@@ -57,6 +60,7 @@ export function matchSummary(stats: MatchStats): TeamSummary {
   return {
     unit: 'set',
     values: profileOf(team),
+    touches: touchesAll(team),
     recent: last && profileOf(last),
     balance: {
       total: team.summary.balance,
@@ -65,6 +69,8 @@ export function matchSummary(stats: MatchStats): TeamSummary {
     },
   };
 }
+
+const touchesAll = (line: StatLine) => Object.fromEntries(PROFILE_AXES.map((a) => [a.id, touchesOf(line, a.id)])) as Record<ProfileAxis, number>;
 
 /** Up, down or steady from `from` to `to`; null when one is missing. */
 export function direction(from: number | null, to: number | null, steady = STEADY): Direction | null {

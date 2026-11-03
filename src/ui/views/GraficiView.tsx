@@ -126,7 +126,7 @@ export default function GraficiView({ report, shared }: Props) {
       {shown('team') && (
         <details className="vr-more vr-more-section">
           <summary>{m.summary.teamCharts}</summary>
-          <TeamCharts team={stats.team.match} opponentErrors={stats.opponentErrors} trend={setTrend(stats)} tiles={false} />
+          <TeamCharts team={stats.team.match} opponentErrors={stats.opponentErrors} trend={setTrend(stats)} />
           {rows.length > 1 && (
             <section className="vr-card">
               <div className="vr-card-head">

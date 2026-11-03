@@ -10,6 +10,7 @@ import { formatSigned } from '../../report/format';
 import { useI18n } from '../../i18n';
 import { formatIndicator } from '../charts/IndicatorTrendChart';
 import { useA11y } from '../a11y';
+import { FEW_TOUCHES } from '../../athletes/squad-history';
 
 const ARROW: Record<Direction, string> = { up: '↑', down: '↓', steady: '→' };
 
@@ -35,11 +36,13 @@ export function TeamSummary({ summary }: { summary: Summary }) {
     <div className="vr-tiles vr-team-summary">
       {INDICATORS.map((a) =>
         values[a] === null ? null : (
-          <div key={a} className="vr-tile">
+          <div key={a} className={`vr-tile${summary.touches[a] < FEW_TOUCHES ? ' vr-few-tile' : ''}`}>
             <span className="vr-tile-label" title={m.profile.help[a]}>
               {m.profile.axes[a]}
             </span>
             <span className="vr-tile-value">{formatIndicator(a, values[a])}</span>
+            {/* Few touches (often the block): the value says little, and the tile says so. */}
+            {summary.touches[a] < FEW_TOUCHES && <span className="vr-tile-note">{m.summary.fewTouches(summary.touches[a])}</span>}
             <Trend to={direction(values[a], recent?.[a] ?? null)} value={formatIndicator(a, recent?.[a] ?? null)} recent={recentLabel} />
             {explain && <span className="vr-tile-help">{m.profile.help[a]}</span>}
           </div>

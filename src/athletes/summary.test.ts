@@ -34,3 +34,9 @@ test('an athlete above, level with or below the team; nothing on few touches', (
   expect(standing(0.5, 0.6, 20)).toBe('below');
   expect(standing(0.9, 0.6, 3)).toBeNull();
 });
+
+test('the touches behind each indicator of the team, to say when they are few', () => {
+  const s = teamSummary([match('a', 3, 1)]);
+  expect(s.touches.reception).toBe(4);
+  expect(s.touches.block).toBe(0);
+});

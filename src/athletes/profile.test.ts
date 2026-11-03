@@ -22,11 +22,18 @@ const record = match([
   [4, 'centrale', { 'A#': 3, 'A-': 2, 'M#': 3, 'M-': 2 }],
 ]);
 
-test('a libero has a single indicator: reception', () => {
+test('a libero has the indicators of the reception only: positivity and efficiency', () => {
   const totals = athleteTotals(athleteMatches([record], 'libero'));
-  expect(meaningfulAxes(totals.stats)).toEqual(['reception']);
-  expect(playedAxes(athleteTotals(athleteMatches([record], 'banda')).stats)).toEqual(['serve', 'reception', 'attack', 'block']);
-  expect(profileOf(totals.stats)).toMatchObject({ reception: 0.75, attack: null, serve: null, block: null });
+  expect(meaningfulAxes(totals.stats)).toEqual(['reception', 'receptionEfficiency']);
+  // R# 3, R+ 3, R- 2: positivity 6/8, efficiency (# − =) 3/8.
+  expect(profileOf(totals.stats)).toMatchObject({ reception: 0.75, receptionEfficiency: 0.375, attack: null, serve: null, serveEfficiency: null, block: null });
+});
+
+test('serve efficiency is the classic DataVolley one: aces minus errors, over all serves', () => {
+  const banda = athleteTotals(athleteMatches([record], 'banda')).stats;
+  expect(playedAxes(banda)).toEqual(['serve', 'serveEfficiency', 'reception', 'receptionEfficiency', 'attack', 'block']);
+  // B# 1, B- 4: positivity counts only # (1 of 5), efficiency 1 ace and no error.
+  expect(profileOf(banda)).toMatchObject({ serveEfficiency: 0.2 });
 });
 
 test('the team counts only the touches made: its reception is the one of who received', () => {

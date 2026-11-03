@@ -5,21 +5,9 @@
 import type { StatLine } from '../../domain/stats/aggregate';
 import { useI18n } from '../../i18n';
 import { type SetTrendRow, evaluationShares, pointsBySkill } from '../../report/chart-data';
-import { formatSigned } from '../../report/format';
 import { EvaluationChart } from '../charts/EvaluationChart';
 import { TrendChart } from '../charts/TrendChart';
 import { WonLostChart } from '../charts/WonLostChart';
-import { percent } from '../charts/tokens';
-
-export function Tile({ label, value, note }: { label: string; value: string; note?: string }) {
-  return (
-    <div className="vr-tile">
-      <span className="vr-tile-label">{label}</span>
-      <span className="vr-tile-value">{value}</span>
-      {note && <span className="vr-tile-note">{note}</span>}
-    </div>
-  );
-}
 
 interface Props {
   readonly team: StatLine;
@@ -28,26 +16,15 @@ interface Props {
   readonly trend: readonly SetTrendRow[];
   /** Title, text, label and first column of the trend, when it is not set by set. */
   readonly trendTexts?: { readonly title: string; readonly text: string; readonly label: string; readonly firstColumn: string };
-  /** The key figures on top; left out where the summary of the team already shows them. */
-  readonly tiles?: boolean;
 }
 
-/** The charts of the team: key figures, evaluations, points won and lost by skill, trend. */
-export function TeamCharts({ team, opponentErrors, trend, trendTexts, tiles = true }: Props) {
+/** The charts of the team: evaluations, points won and lost by skill, trend (the key figures are in the summary above). */
+export function TeamCharts({ team, opponentErrors, trend, trendTexts }: Props) {
   const { m } = useI18n();
   const t = m.charts;
   const names = { skills: m.skills, opponentErrors: t.opponentErrors };
   return (
     <>
-      {tiles && (
-        <div className="vr-tiles">
-          <Tile label={t.directPoints} value={String(team.summary.pointsWon)} note={t.directPointsNote} />
-          <Tile label={t.balance} value={formatSigned(team.summary.balance)} note={t.wonLost(team.summary.pointsWon, team.summary.pointsLost)} />
-          <Tile label={t.opponentErrors} value={String(opponentErrors)} />
-          <Tile label={t.receptionPos} value={percent(team.reception.positivity)} note={t.receptions(team.reception.total)} />
-          <Tile label={t.attackEff} value={`${formatSigned(Math.round(team.attack.efficiency * 100))}%`} note={t.attacks(team.attack.total)} />
-        </div>
-      )}
 
       <section className="vr-card">
         <div className="vr-card-head">

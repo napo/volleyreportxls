@@ -22,8 +22,8 @@ import type { TabellinoLine } from '../report/tabellino';
 import type { ShareSection } from '../share/payload';
 import { chartImage } from './charts/chart-images';
 import { comparisonBlock, teamChartBlocks } from './charts/charts-export';
-import { playerPoints, setTrend } from '../report/chart-data';
-import { type SquadRow, rowPoints, squadCharts } from '../athletes/squad-history';
+import { playerPoints, scoresPoints, setTrend } from '../report/chart-data';
+import { FEW_TOUCHES, type SquadRow, rowPoints, squadCharts } from '../athletes/squad-history';
 import { INDICATOR_TREND_HEIGHT, formatIndicator, indicatorTrendOption } from './charts/IndicatorTrendChart';
 import type { MatchReport } from './match-report';
 import { loadLogoPng, loadPdfFonts } from './pdf-assets';
@@ -41,11 +41,11 @@ async function cardBlocks(cards: readonly AthleteCardData[], m: Messages): Promi
   const blocks: ReportBlock[] = [];
   for (const card of cards) {
     const f = keyFigures(card.stats);
-    const figures = [
-      `${t.points} ${f.points}`,
-      `${t.errors} ${f.errors}${f.aces ? ` (${t.aces(f.aces)})` : ''}`,
-      `${t.balance} ${formatSigned(f.balance)}`,
-    ].join(' · ');
+    const figures = (
+      scoresPoints(card.stats)
+        ? [`${t.points} ${f.points}`, `${t.errors} ${f.errors}${f.aces ? ` (${t.aces(f.aces)})` : ''}`, `${t.balance} ${formatSigned(f.balance)}`]
+        : [`${t.receptions} ${card.stats.reception.total}`, `${t.acesConceded} ${f.aces}`]
+    ).join(' · ');
     const columns = [card.own, ...(card.last ? [card.last] : []), card.team];
     const rows = playedAxes(card.stats).map((axis) => ({ label: t.axes[axis], values: columns.map((c) => formatIndicator(axis, c.values[axis])) }));
     const groups: Group<(typeof rows)[number]>[] = [
@@ -218,7 +218,8 @@ function summaryBlocks({ summary, rows, cards, team, athletes }: SummaryInput, m
         const value = summary.values[a];
         if (value === null) return [];
         const recent = summary.recent?.[a] ?? null;
-        return [{ label: p.axes[a], all: formatIndicator(a, value), recent: formatIndicator(a, recent), to: direction(value, recent) }];
+        const all = formatIndicator(a, value) + (summary.touches[a] < FEW_TOUCHES ? ` (${t.fewTouches(summary.touches[a])})` : '');
+        return [{ label: p.axes[a], all, recent: formatIndicator(a, recent), to: direction(value, recent) }];
       }),
       {
         label: p.balance,
@@ -250,8 +251,8 @@ function summaryBlocks({ summary, rows, cards, team, athletes }: SummaryInput, m
         label: row.label || `n. ${row.numbers.join(', ')}`,
         // Matches in a history, sets played in a match.
         matches: String(bySet ? row.totals.sets : row.totals.matches),
-        points: String(s.summary.pointsWon),
-        balance: formatSigned(s.summary.balance),
+        points: scoresPoints(s) ? String(s.summary.pointsWon) : '.',
+        balance: scoresPoints(s) ? formatSigned(s.summary.balance) : '.',
         values: Object.fromEntries(INDICATORS.map((a) => [a, touchesOf(s, a) > 0 ? formatIndicator(a, own?.[a] ?? null) : '.'])),
         places: Object.fromEntries(INDICATORS.map((a) => [a, standing(own?.[a] ?? null, summary.values[a], touchesOf(s, a))])),
       };
@@ -269,15 +270,16 @@ function summaryBlocks({ summary, rows, cards, team, athletes }: SummaryInput, m
       {
         title: '',
         columns: [
-          { header: m.athletes.athlete, width: 42, align: 'left', value: (r) => r.label },
-          { header: bySet ? m.scoresheet.set : m.athletes.matchesShort.slice(0, 4), width: 13, align: 'right', value: (r) => r.matches },
-          { header: p.points, width: 13, align: 'right', value: (r) => r.points },
-          { header: m.scoresheet.balance, width: 14, align: 'right', value: (r) => r.balance },
-          ...INDICATORS.map((a) => ({ header: p.axes[a], width: 27, align: 'right' as const, value: (r: Line) => r.values[a] ?? '' })),
+          { header: m.athletes.athlete, width: 34, align: 'left', value: (r) => r.label },
+          { header: bySet ? m.scoresheet.set : m.athletes.matchesShort.slice(0, 4), width: 10, align: 'right', value: (r) => r.matches },
+          { header: p.points, width: 11, align: 'right', value: (r) => r.points },
+          { header: m.scoresheet.balance, width: 12, align: 'right', value: (r) => r.balance },
+          // Six indicators in 190 mm: short names, explained in the legend.
+          ...INDICATORS.map((a) => ({ header: p.axesShort[a], width: 20.5, align: 'right' as const, value: (r: Line) => r.values[a] ?? '' })),
         ],
       },
     ];
-    const axisOf = (header: string) => INDICATORS.find((a) => p.axes[a] === header);
+    const axisOf = (header: string) => INDICATORS.find((a) => p.axesShort[a] === header);
     const fill = (r: Line, c: { header: string }) => {
       const a = axisOf(c.header);
       const place = a && r.places[a];
