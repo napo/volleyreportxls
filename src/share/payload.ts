@@ -10,12 +10,13 @@
  * Reading never trusts the link, as for a .vrp file.
  */
 
-import { deflateSync, inflateSync, strFromU8, strToU8 } from 'fflate';
+import { deflateSync, inflateSync, strFromU8 } from 'fflate';
+import { BINARY_VERSION, readBinary, writeBinary } from './binary';
 import { type MatchRecord, rowIsUsed } from '../matches/record';
 import { isObject, readMatchRecord, text } from '../matches/vrp';
 
-/** Version of the format: a newer app keeps reading the links of older ones. */
-export const SHARE_VERSION = 1;
+/** Version of the format: a newer app keeps reading the links of older ones (1: JSON, 2: bytes, see binary.ts). */
+export const SHARE_VERSION = BINARY_VERSION;
 
 export type ShareKind = 'match' | 'history';
 
@@ -91,8 +92,12 @@ function fromBase64Url(s: string): Uint8Array {
 }
 
 export function encodeShare(p: SharePayload): string {
-  const json = { v: SHARE_VERSION, k: p.kind, e: p.expires, t: p.title, h: p.hidden, m: p.matches, a: p.athletes, n: p.numbers };
-  return toBase64Url(deflateSync(strToU8(JSON.stringify(json)), { level: 9 }));
+  return toBase64Url(deflateSync(writeBinary(p), { level: 9 }));
+}
+
+/** Version 1: the content as JSON. */
+function readJson(bytes: Uint8Array): unknown {
+  return JSON.parse(strFromU8(bytes));
 }
 
 export type ShareError = 'invalid' | 'newer';
@@ -101,7 +106,14 @@ export type ShareError = 'invalid' | 'newer';
 export function decodeShare(s: string): SharePayload | ShareError {
   let v: unknown;
   try {
-    v = JSON.parse(strFromU8(inflateSync(fromBase64Url(s))));
+    const bytes = inflateSync(fromBase64Url(s));
+    // Version 1 is JSON (it starts with "{"); later versions start with their number.
+    if (bytes[0] === 0x7b) v = readJson(bytes);
+    else if ((bytes[0] ?? 0) > SHARE_VERSION) return 'newer';
+    else {
+      const b = readBinary(bytes);
+      v = { v: BINARY_VERSION, k: b.kind, e: b.expires, t: b.title, h: b.hidden, a: b.athletes, n: b.numbers, m: b.matches.map((m, i) => ({ ...m, id: `m${String(i).padStart(3, '0')}` })) };
+    }
   } catch {
     return 'invalid';
   }

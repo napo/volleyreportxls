@@ -116,6 +116,7 @@ export function readMatchRecord(v: unknown): MatchRecord | null {
     venue: text(v.venue),
     players,
     sets: (sets as SetRecord[]).sort((a, b) => a.number - b.number),
+    ...(count(v.opponentErrors) !== null && { opponentErrors: count(v.opponentErrors)! }),
   };
 }
 

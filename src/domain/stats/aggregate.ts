@@ -203,6 +203,6 @@ export function calculateMatchStats(match: Match, options: StatsOptions = {}): M
     ),
     sets,
     scoreboard: calculateScoreboard(match),
-    opponentErrors: sets.reduce((sum, s) => sum + (s.opponentErrors?.count ?? 0), 0),
+    opponentErrors: match.opponentErrors ?? sets.reduce((sum, s) => sum + (s.opponentErrors?.count ?? 0), 0),
   };
 }

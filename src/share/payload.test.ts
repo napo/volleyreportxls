@@ -39,7 +39,8 @@ test('a shared match comes back with the same statistics, in a link of a couple 
   const record = fullMatch();
   const { matches } = forSharing([record], [], true);
   const encoded = encodeShare(payload(matches));
-  expect(encoded.length).toBeLessThan(2500);
+  // Four sets of twelve shirts: about 1 KB in version 1, a few hundred characters now.
+  expect(encoded.length).toBeLessThan(700);
   expect(encoded).toMatch(/^[A-Za-z0-9_-]+$/);
 
   const back = decodeShare(encoded);
@@ -71,4 +72,67 @@ test('the link: address of the web app, then the report after #v/', () => {
   expect(url).toBe('https://report.volleyserve.it/#v/abc');
   expect(sharedPart(new URL(url).hash)).toBe('abc');
   expect(sharedPart('#tabellino/esempio')).toBeNull();
+});
+
+test('the content comes back as it was: sections, shirts, athletes, names, expiry to the minute', () => {
+  const shared = forSharing([fullMatch(), { ...fullMatch(), opponentName: 'Brescia', date: '2026-10-12' }], [{ id: 'athlete6', label: 'Nome Cognome 7' }], true);
+  const p = payload(shared.matches, { kind: 'history', title: 'Volley Trento', hidden: ['team'], athletes: shared.athletes, numbers: [] });
+  const back = decodeShare(encodeShare(p));
+  if (typeof back === 'string') throw new Error(back);
+  expect(back).toMatchObject({ kind: 'history', title: 'Volley Trento', hidden: ['team'], athletes: [{ id: 'a000', label: 'Nome Cognome 7' }], expires: '2026-11-09T23:59:00.000Z' });
+  expect(back.matches.map((m) => [m.opponentName, m.date])).toEqual([
+    ['Itas', ''],
+    ['Brescia', '2026-10-12'],
+  ].map(([o, d]) => [o, d || shared.matches[0]!.date]));
+  // In a history the name of a linked shirt travels once, with the athlete.
+  expect(back.matches[0]!.players.find((p) => p.number === 7)).toEqual({ number: 7, name: '', athleteId: 'a000' });
+});
+
+test('links of version 1 (JSON) still open', () => {
+  const { matches } = forSharing([fullMatch()], [], false);
+  const json = { v: 1, k: 'match', e: '2026-11-09T23:59:59.000Z', t: '', h: ['sets'], m: matches, a: [], n: [7] };
+  const old = btoa(String.fromCharCode(...deflateSync(strToU8(JSON.stringify(json))))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const back = decodeShare(old);
+  if (typeof back === 'string') throw new Error(back);
+  expect(back).toMatchObject({ kind: 'match', hidden: ['sets'], numbers: [7] });
+});
+
+test('a link cut short is not read', () => {
+  const encoded = encodeShare(payload(forSharing([fullMatch()], [], true).matches));
+  expect(decodeShare(encoded.slice(0, encoded.length / 2))).toBe('invalid');
+});
+
+test('a shared history shows the same as the archive: athletes, sets played, votes, team, opponent errors', () => {
+  const ids = Array.from({ length: 12 }, (_, i) => `athlete${i}`);
+  // A match where an athlete sits out set 2, and a row without shirt number.
+  const record = fullMatch();
+  const sets = record.sets.map((s) =>
+    s.number === 2 ? { ...s, rows: s.rows.filter((r) => r.playerNumber !== 7) } : s.number === 3 ? { ...s, rows: [...s.rows, { id: 'x', kind: 'player' as const, playerNumber: null, counts: { 'A#': 3 } }] } : s,
+  );
+  const records = [{ ...record, sets }, { ...fullMatch(), opponentName: 'Brescia' }];
+  const shared = forSharing(records, ids.map((id) => ({ id, label: id })), true);
+  const back = decodeShare(encodeShare(payload(shared.matches, { kind: 'history', athletes: shared.athletes })));
+  if (typeof back === 'string') throw new Error(back);
+  const view = (rs: readonly MatchRecord[]) =>
+    rs.map((r) => {
+      const s = calculateMatchStats(toMatch(r));
+      return {
+        team: s.team.match,
+        opponentErrors: s.opponentErrors,
+        sets: r.sets.filter((x) => x.score).map((x) => x.score),
+        players: s.players.map((p) => ({ number: p.player.number, sets: p.setsPlayed, line: p.match, rating: p.rating.overall })),
+      };
+    });
+  expect(view(back.matches)).toEqual(view(shared.matches));
+  expect(back.matches[0]!.players.find((p) => p.number === 7)?.athleteId).toBe('a006');
+});
+
+test('counts of any size come back: half a byte below 15, then 15 plus a number', () => {
+  const record = fullMatch();
+  const counts = { 'B#': 14, 'R+': 15, 'A#': 16, 'M#': 200, 'P=': 1 };
+  const sets = record.sets.map((s) => (s.number === 1 ? { ...s, rows: [{ ...s.rows[0]!, counts }] } : { ...s, rows: [] }));
+  const { matches } = forSharing([{ ...record, sets }], [], true);
+  const back = decodeShare(encodeShare(payload(matches)));
+  if (typeof back === 'string') throw new Error(back);
+  expect(back.matches[0]!.sets[0]!.rows[0]!.counts).toEqual(counts);
 });

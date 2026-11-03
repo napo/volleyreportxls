@@ -16,13 +16,13 @@ import { type MatchRecord, toMatch } from '../matches/record';
 import { FEW_TOUCHES } from './squad-history';
 
 export const PROFILE_AXES = [
-  /** Battuta Pos%: the share of positive serves (#, +, ! and /), as the evaluation tables count serve efficiency. */
+  /** Serve positivity: the share of positive serves (#, +, ! and /), as the evaluation tables count serve efficiency. */
   { id: 'serve', min: 0, max: 1 },
-  /** Ricezione Pos%. */
+  /** Reception positivity. */
   { id: 'reception', min: 0, max: 1 },
-  /** Attacco E%. */
+  /** Attack efficiency. */
   { id: 'attack', min: -0.2, max: 0.6 },
-  /** Muro E%. */
+  /** Block efficiency. */
   { id: 'block', min: -0.5, max: 0.5 },
 ] as const;
 

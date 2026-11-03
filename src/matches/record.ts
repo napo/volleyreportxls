@@ -49,6 +49,8 @@ export interface MatchRecord {
   /** Names known for the shirt numbers of the team. */
   readonly players: readonly PlayerRecord[];
   readonly sets: readonly SetRecord[];
+  /** Only in a shared history, whose touches are put together by match: see Match.opponentErrors. */
+  readonly opponentErrors?: number;
 }
 
 /** Rows of a new set: as on the paper form. */
@@ -170,6 +172,7 @@ export function toMatch(record: MatchRecord): Match {
       score: set.score,
       lines: set.rows.filter(rowIsUsed).map((row) => tallyLine({ id: row.id, playerNumber: row.playerNumber, counts: row.counts })),
     })),
+    ...(record.opponentErrors !== undefined && { opponentErrors: record.opponentErrors }),
   };
 }
 

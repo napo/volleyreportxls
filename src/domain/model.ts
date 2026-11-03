@@ -64,6 +64,12 @@ export interface Match {
   readonly team: Team;
   readonly opponentName: string;
   readonly sets: readonly MatchSet[];
+  /**
+   * The opponent errors of the match when they are known but cannot be
+   * worked out set by set: a shared history carries the touches of each
+   * athlete for the whole match, not set by set.
+   */
+  readonly opponentErrors?: number;
 }
 
 /** Location of a cell on the scouting sheet. */
