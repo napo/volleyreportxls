@@ -28,6 +28,14 @@ export interface SetRecord {
   readonly rows: readonly TallyRowRecord[];
   /** Who starts the set, for the keypad of the live sheet; absent when not given. */
   readonly lineup?: Lineup;
+  /** The substitutions of the set, in order (keypad of the live sheet); liberos are not substitutions. */
+  readonly subs?: readonly Substitution[];
+}
+
+/** A substitution: the shirt number leaving the court and the one entering in its place. */
+export interface Substitution {
+  readonly out: number;
+  readonly in: number;
 }
 
 /** The six shirt numbers on court at the start of a set, and the liberos (up to two). */

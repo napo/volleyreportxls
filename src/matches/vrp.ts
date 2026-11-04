@@ -19,7 +19,7 @@ import { EVALUATIONS, SKILLS, type ScoutCodeString, formatScoutCode, isAllowed, 
 import { SET_NUMBERS, type SetNumber } from '../domain/model';
 import type { Athlete } from '../athletes/matching';
 import { type Squad, normalizeTeam } from '../athletes/squads';
-import { type Lineup, type MatchRecord, OPTIONAL_CODES, type PlayerRecord, type SetRecord, type TallyRowRecord } from './record';
+import { type Lineup, type MatchRecord, type Substitution, OPTIONAL_CODES, type PlayerRecord, type SetRecord, type TallyRowRecord } from './record';
 
 export const VRP_EXTENSION = 'vrp';
 export const VRP_MEDIA_TYPE = 'application/zip';
@@ -107,13 +107,33 @@ function readLineup(v: unknown): Lineup | null {
   return court.length || liberos.length ? { court, liberos } : null;
 }
 
+/** The substitutions of a set: pairs of different shirt numbers, at most 50. */
+function readSubs(v: unknown): Substitution[] {
+  if (!Array.isArray(v)) return [];
+  return v
+    .flatMap((s) => {
+      if (!isObject(s)) return [];
+      const out = shirt(s.out);
+      const enter = shirt(s.in);
+      return out !== null && enter !== null && out !== enter ? [{ out, in: enter }] : [];
+    })
+    .slice(0, 50);
+}
+
 function readSet(v: unknown): SetRecord | null {
   if (!isObject(v) || !SET_NUMBERS.includes(v.number as SetNumber) || !Array.isArray(v.rows)) return null;
   const score = isObject(v.score) && count(v.score.team) !== null && count(v.score.opponent) !== null
     ? { team: count(v.score.team)!, opponent: count(v.score.opponent)! }
     : null;
   const lineup = readLineup(v.lineup);
-  return { number: v.number as SetNumber, score, rows: v.rows.map(readRow).filter((r): r is TallyRowRecord => r !== null), ...(lineup && { lineup }) };
+  const subs = readSubs(v.subs);
+  return {
+    number: v.number as SetNumber,
+    score,
+    rows: v.rows.map(readRow).filter((r): r is TallyRowRecord => r !== null),
+    ...(lineup && { lineup }),
+    ...(subs.length && { subs }),
+  };
 }
 
 /** A MatchRecord rebuilt from untrusted JSON, or null when it is not one. */

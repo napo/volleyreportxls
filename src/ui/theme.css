@@ -3872,3 +3872,133 @@ button.vr-score-teams.selected {
     min-height: 6rem;
   }
 }
+
+/* Keypad substitution: who leaves on the left, who comes in on the right, each with up and down arrows. */
+.vr-sub {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.vr-sub-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.vr-sub-label {
+  font-weight: 700;
+}
+
+.vr-sub-arrow {
+  width: 4.5rem;
+  min-height: 2.6rem;
+  border: 2px solid var(--vr-live-line);
+  border-radius: 0.6rem;
+  background: var(--vr-surface);
+  color: var(--vr-navy);
+  font-size: 1.1rem;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.vr-sub-arrow:disabled {
+  opacity: 0.35;
+}
+
+.vr-sub-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4.5rem;
+  height: 4rem;
+  border: 2px solid var(--vr-navy);
+  border-radius: 0.6rem;
+  background: var(--vr-surface);
+  color: var(--vr-navy);
+  font: inherit;
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.vr-sub-swap {
+  font-size: 2rem;
+  color: var(--vr-navy);
+}
+
+.vr-sub-due {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.vr-sub-due .vr-chip.active {
+  border-color: var(--vr-navy);
+  background: var(--vr-navy);
+  color: #fff;
+}
+
+.vr-keypad-count {
+  font-weight: 400;
+}
+
+.vr-keypad-key .vr-keypad-name {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 0.7rem;
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.vr-lineup > span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.vr-lineup input.vr-lineup-name {
+  padding: 0.3rem;
+  font-size: 0.75rem;
+}
+
+.vr-lineup {
+  grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
+}
+
+.vr-sub-enter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.vr-sub-name {
+  width: 6.5rem;
+  padding: 0.35rem;
+  border: 2px solid var(--vr-live-line);
+  border-radius: 0.5rem;
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+output.vr-sub-name {
+  display: block;
+  overflow: hidden;
+  border-color: transparent;
+  color: var(--vr-text-secondary, #5b6670);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Substitution window: a number already part of a substitution of the set. */
+.vr-sub-number.marked {
+  border-color: #8a959e;
+  background: #e6eaed;
+  color: #4a555e;
+}

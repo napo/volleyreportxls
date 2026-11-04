@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { bump, checkScore, closeSet, currentSet, playerName, reachableSets, setMatchDetails, setPlayerName, setShirtNumber, undoTouch , bumpShirt, proposedLineup, setLineup} from './live';
+import { bump, checkScore, closeSet, currentSet, playerName, reachableSets, setMatchDetails, setPlayerName, setShirtNumber, undoTouch , bumpShirt, proposedLineup, setLineup, benchNumbers, courtNow, returnsDue, substitute, undoSubstitution, placeNumbers, canEnter, canLeave, substitutionState} from './live';
 import { type MatchRecord, newMatchRecord } from './record';
 
 const firstRow = (record: MatchRecord, set = 1) => record.sets.find((s) => s.number === set)!.rows[0]!;
@@ -115,5 +115,74 @@ describe('keypad: touches by shirt number and lineups', () => {
     record = setLineup(record, 1, lineup);
     expect(proposedLineup(record, 1)).toEqual(lineup);
     expect(proposedLineup(record, 3)).toEqual(lineup);
+  });
+});
+
+describe('keypad: substitutions', () => {
+  const start = () => setLineup(newMatchRecord(), 1, { court: [1, 2, 3, 4, 5, 6], liberos: [9] });
+  const set1 = (r: ReturnType<typeof start>) => r.sets[0]!;
+
+  it('the one coming in takes the place of the one leaving', () => {
+    const record = substitute(start(), 1, { out: 4, in: 10 });
+    expect(courtNow(set1(record))).toEqual([1, 2, 3, 10, 5, 6]);
+    expect(courtNow(set1(undoSubstitution(record, 1)))).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(set1(undoSubstitution(record, 1)).subs).toBeUndefined();
+  });
+
+  it('proposes the return of the one who left, until the pair has swapped back', () => {
+    let record = substitute(start(), 1, { out: 4, in: 10 });
+    expect(returnsDue(set1(record))).toEqual([{ out: 10, in: 4 }]);
+    record = substitute(record, 1, { out: 10, in: 4 });
+    expect(courtNow(set1(record))).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(returnsDue(set1(record))).toEqual([]);
+  });
+
+  it('the bench is the numbers of the match neither on court nor liberos', () => {
+    let record = start();
+    record = { ...record, players: [{ number: 10, name: '' }, { number: 1, name: '' }, { number: 9, name: '' }, { number: 14, name: '' }] };
+    expect(benchNumbers(record, 1)).toEqual([10, 14]);
+    record = substitute(record, 1, { out: 4, in: 10 });
+    expect(benchNumbers(record, 1)).toEqual([4, 14]);
+  });
+});
+
+test('keypad: the numbers of the lineup go on the rows of the sheet, liberos on theirs', () => {
+  let record = newMatchRecord();
+  record = placeNumbers(record, 1, [1, 3, 5], 'player');
+  record = placeNumbers(record, 1, [12], 'libero');
+  record = placeNumbers(record, 1, [3], 'player');
+  const rows = record.sets[0]!.rows;
+  expect(rows.filter((r) => r.kind === 'player' && r.playerNumber !== null).map((r) => r.playerNumber)).toEqual([1, 3, 5]);
+  expect(rows.find((r) => r.playerNumber === 12)!.kind).toBe('libero');
+});
+
+describe('keypad: substitution rules', () => {
+  const start = () => ({
+    ...setLineup(newMatchRecord(), 1, { court: [1, 2, 3, 4, 5, 6], liberos: [9] }),
+    players: [10, 11, 20].map((number) => ({ number, name: '' })),
+  });
+
+  it('whoever came in can leave only for the one they replaced', () => {
+    const record = substitute(start(), 1, { out: 5, in: 10 });
+    expect(canEnter(record, 1, 10)).toEqual({ locked: true, options: [5] });
+    // Another one on court can take only numbers never part of a substitution.
+    expect(canEnter(record, 1, 2)).toEqual({ locked: false, options: [11, 20] });
+  });
+
+  it('after the return the pair is closed: neither can be substituted again in the set', () => {
+    let record = substitute(start(), 1, { out: 5, in: 10 });
+    record = substitute(record, 1, { out: 10, in: 5 });
+    const set = record.sets[0]!;
+    expect([...substitutionState(set).closed].sort()).toEqual([10, 5].sort());
+    expect(canLeave(set)).toEqual([1, 2, 3, 4, 6]);
+    expect(canEnter(record, 1, 1).options).toEqual([11, 20]);
+  });
+
+  it('every set starts afresh', () => {
+    let record = substitute(start(), 1, { out: 5, in: 10 });
+    record = substitute(record, 1, { out: 10, in: 5 });
+    record = setLineup(record, 2, { court: [1, 2, 3, 4, 5, 6], liberos: [9] });
+    expect(canLeave(record.sets[1]!)).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(canEnter(record, 2, 5).options).toContain(10);
   });
 });

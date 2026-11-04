@@ -13,7 +13,7 @@
 
 import type { ScoutCodeString } from '../domain/codes';
 import type { SetNumber, SetScore } from '../domain/model';
-import { type Lineup, type MatchRecord, type PlayerRecord, type RowKind, type SetRecord, emptyRow, matchWinner, setIsPlayed, setScoreIsFinal, withNumbersFromPreviousSet } from './record';
+import { type Lineup, type MatchRecord, type Substitution, type PlayerRecord, type RowKind, type SetRecord, emptyRow, matchWinner, setIsPlayed, setScoreIsFinal, withNumbersFromPreviousSet } from './record';
 
 /** One change of a count, kept to undo it. */
 export interface Touch {
@@ -163,17 +163,139 @@ export function bumpShirt(
 ): { record: MatchRecord; touch: Touch } | null {
   const target = record.sets.find((s) => s.number === set);
   if (!target) return null;
+  const current = placeNumbers(record, set, [playerNumber], kind, known);
+  const row = current.sets.find((s) => s.number === set)!.rows.find((r) => r.kind === kind && r.playerNumber === playerNumber)!;
+  return bump(current, set, row.id, code, 1);
+}
+
+/** The six on court now: the lineup of the set with its substitutions applied, place by place. */
+export function courtNow(set: SetRecord): number[] {
+  const court = [...(set.lineup?.court ?? [])];
+  for (const sub of set.subs ?? []) {
+    const place = court.indexOf(sub.out);
+    if (place >= 0 && !court.includes(sub.in)) court[place] = sub.in;
+  }
+  return court;
+}
+
+/** A substitution in a set: the entering number takes the place of the leaving one. */
+export function substitute(record: MatchRecord, set: SetNumber, sub: Substitution): MatchRecord {
+  const target = record.sets.find((s) => s.number === set);
+  return target ? replaceSet(record, { ...target, subs: [...(target.subs ?? []), sub] }) : record;
+}
+
+/** Takes back the last substitution of a set. */
+export function undoSubstitution(record: MatchRecord, set: SetNumber): MatchRecord {
+  const target = record.sets.find((s) => s.number === set);
+  if (!target?.subs?.length) return record;
+  const subs = target.subs.slice(0, -1);
+  const { subs: _, ...rest } = target;
+  return replaceSet(record, subs.length ? { ...target, subs } : rest);
+}
+
+/**
+ * The substitutions the rules expect next: whoever came in for someone can
+ * leave only for that someone, who comes back in. One per pair still open
+ * (the one who came in is on court, the one who left is not, and they have
+ * not swapped back yet). A suggestion: nothing is forbidden.
+ */
+export function returnsDue(set: SetRecord): Substitution[] {
+  const court = courtNow(set);
+  const subs = set.subs ?? [];
+  return subs.flatMap((s, i) => {
+    const back = subs.slice(i + 1).some((later) => later.out === s.in && later.in === s.out);
+    // A return closes its pair: it opens no new one.
+    const isReturn = subs.slice(0, i).some((earlier) => earlier.out === s.in && earlier.in === s.out);
+    return !back && !isReturn && court.includes(s.in) && !court.includes(s.out) ? [{ out: s.in, in: s.out }] : [];
+  });
+}
+
+/** Shirt numbers of the match that are not on court nor liberos in this set: who can come in. */
+export function benchNumbers(record: MatchRecord, set: SetNumber): number[] {
+  const target = record.sets.find((s) => s.number === set);
+  if (!target) return [];
+  const away = new Set([...courtNow(target), ...(target.lineup?.liberos ?? [])]);
+  const known = [
+    ...record.players.map((p) => p.number),
+    ...record.sets.flatMap((s) => s.rows.filter((r) => r.kind === 'player' && r.playerNumber !== null).map((r) => r.playerNumber!)),
+    ...(target.subs ?? []).flatMap((s) => [s.out, s.in]),
+  ];
+  return [...new Set(known)].filter((n) => !away.has(n)).sort((a, b) => a - b);
+}
+
+/**
+ * Puts shirt numbers on the rows of a set, so that the sheet shows them: a
+ * number already on a row of its kind stays there, the others take the first
+ * empty rows of their kind, or new ones.
+ */
+export function placeNumbers(
+  record: MatchRecord,
+  set: SetNumber,
+  numbers: readonly number[],
+  kind: RowKind,
+  known: readonly PlayerRecord[] = [],
+): MatchRecord {
   let current = record;
-  let row = target.rows.find((r) => r.kind === kind && r.playerNumber === playerNumber);
-  if (!row) {
-    const free = target.rows.find((r) => r.kind === kind && r.playerNumber === null && Object.keys(r.counts).length === 0);
-    if (free) {
-      row = free;
-    } else {
+  for (const number of numbers) {
+    const target = current.sets.find((s) => s.number === set);
+    if (!target || target.rows.some((r) => r.kind === kind && r.playerNumber === number)) continue;
+    let row = target.rows.find((r) => r.kind === kind && r.playerNumber === null && Object.keys(r.counts).length === 0);
+    if (!row) {
       row = emptyRow(kind);
       current = replaceSet(current, { ...target, rows: [...target.rows, row] });
     }
-    current = setShirtNumber(current, set, row.id, playerNumber, known);
+    current = setShirtNumber(current, set, row.id, number, known);
   }
-  return bump(current, set, row.id, code, 1);
+  return current;
+}
+
+/**
+ * Where the substitutions of a set stand, by the rules: whoever comes in for
+ * someone can leave only for that someone, who comes back in; after that
+ * return the pair is closed and neither can be substituted again in the set.
+ * Liberos are not substitutions. Each set starts afresh.
+ */
+export interface SubstitutionState {
+  /** Pairs still open: who came in (on court) → who left and can come back only for them. */
+  readonly partner: ReadonlyMap<number, number>;
+  /** Numbers of closed pairs: no more substitutions for them in this set. */
+  readonly closed: ReadonlySet<number>;
+  /** Every number already part of a substitution of the set. */
+  readonly involved: ReadonlySet<number>;
+}
+
+export function substitutionState(set: SetRecord): SubstitutionState {
+  const partner = new Map<number, number>();
+  const closed = new Set<number>();
+  const involved = new Set<number>();
+  for (const sub of set.subs ?? []) {
+    involved.add(sub.out).add(sub.in);
+    if (partner.get(sub.out) === sub.in) {
+      partner.delete(sub.out);
+      closed.add(sub.out).add(sub.in);
+    } else {
+      partner.set(sub.in, sub.out);
+    }
+  }
+  return { partner, closed, involved };
+}
+
+/** Who can leave the court now: everyone on court but the closed pairs. */
+export const canLeave = (set: SetRecord): number[] => {
+  const { closed } = substitutionState(set);
+  return courtNow(set).filter((n) => !closed.has(n));
+};
+
+/**
+ * Who can come in for `out`: only the one they replaced, when they came in
+ * with a substitution (locked); otherwise the numbers on the bench never part
+ * of a substitution of the set (and any new number, typed).
+ */
+export function canEnter(record: MatchRecord, set: SetNumber, out: number): { readonly locked: boolean; readonly options: number[] } {
+  const target = record.sets.find((s) => s.number === set);
+  if (!target) return { locked: false, options: [] };
+  const { partner, involved } = substitutionState(target);
+  const back = partner.get(out);
+  if (back !== undefined) return { locked: true, options: [back] };
+  return { locked: false, options: benchNumbers(record, set).filter((n) => !involved.has(n)) };
 }

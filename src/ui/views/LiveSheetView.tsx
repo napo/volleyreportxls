@@ -17,16 +17,24 @@ import {
   type Touch,
   bump,
   bumpShirt,
+  canEnter,
+  canLeave,
   checkScore,
   closeSet,
+  courtNow,
   currentSet,
+  placeNumbers,
   playerName,
   proposedLineup,
   reachableSets,
+  returnsDue,
   setMatchDetails,
   setPlayerName,
   setLineup,
   setShirtNumber,
+  substitute,
+  substitutionState,
+  undoSubstitution,
   undoTouch,
 } from '../../matches/live';
 import { type MatchRecord, type PlayerRecord, type RowKind, type SetRecord, matchWinner, OPTIONAL_CODES, sameContent, setIsPlayed } from '../../matches/record';
@@ -35,7 +43,11 @@ import { useArchive } from '../archive-context';
 import { codeOf, parseShirtNumber, skillColumns } from '../components/counts-columns';
 import { evaluationTint } from '../../report/evaluation-colors';
 import { href } from '../routes';
-import { LineupDialog, LiveKeypad } from './LiveKeypad';
+import { LineupDialog, LiveKeypad, SubstitutionDialog } from './LiveKeypad';
+
+/** What "Undo" takes back: a touch, or a substitution of the keypad. */
+type Step = Touch | { readonly set: SetNumber; readonly sub: true };
+const isTouch = (step: Step | undefined): step is Touch => !!step && 'code' in step;
 
 const LONG_PRESS = 500;
 
@@ -426,7 +438,9 @@ export function LiveSheetView({ id }: { id: string }) {
   const [view, setView] = useState<SetNumber>(1);
   // Closed sets reopened in this session.
   const [reopened, setReopened] = useState<ReadonlySet<SetNumber>>(new Set());
-  const [history, setHistory] = useState<readonly Touch[]>([]);
+  const [history, setHistory] = useState<readonly Step[]>([]);
+  // Open with the number chosen on the keypad (null: none); undefined: closed.
+  const [substituting, setSubstituting] = useState<number | null | undefined>(undefined);
   const [last, setLast] = useState<string | null>(null);
   const [correcting, setCorrecting] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -531,17 +545,31 @@ export function LiveSheetView({ id }: { id: string }) {
     setLast(`${rowId}:${code}`);
   };
 
-  const lastTouch = history.at(-1);
-  const lastSet = lastTouch && record.sets.find((s) => s.number === lastTouch.set);
-  const canUndo = !!lastTouch && !!lastSet && !locked(lastSet);
+  const lastStep = history.at(-1);
+  const lastTouch = isTouch(lastStep) ? lastStep : undefined;
+  const lastSet = lastStep && record.sets.find((s) => s.number === lastStep.set);
+  const canUndo = !!lastStep && !!lastSet && !locked(lastSet);
   const undo = () => {
-    if (!lastTouch || !canUndo) return;
-    setRecord(undoTouch(record, lastTouch));
+    if (!lastStep || !canUndo) return;
     setHistory((h) => h.slice(0, -1));
-    setView(lastTouch.set);
-    setLast(`${lastTouch.rowId}:${lastTouch.code}`);
+    setView(lastStep.set);
+    if (!isTouch(lastStep)) {
+      setRecord(undoSubstitution(record, lastStep.set));
+      setLast(null);
+      return;
+    }
+    setRecord(undoTouch(record, lastStep));
+    setLast(`${lastStep.rowId}:${lastStep.code}`);
   };
-  const undoText = lastTouch && lastSet && canUndo ? t.undoLast(lastTouch.delta, lastTouch.code, lastSet.rows.find((r) => r.id === lastTouch.rowId)?.playerNumber ?? null) : t.undoNothing;
+  const lastSub = lastSet?.subs?.at(-1);
+  const undoText =
+    !lastStep || !lastSet || !canUndo
+      ? t.undoNothing
+      : isTouch(lastStep)
+        ? t.undoLast(lastStep.delta, lastStep.code, lastSet.rows.find((r) => r.id === lastStep.rowId)?.playerNumber ?? null)
+        : lastSub
+          ? t.undoSubstitution(lastSub.out, lastSub.in)
+          : t.undoNothing;
 
   const confirmClose = (team: number, opponent: number) => {
     const closed = closeSet(record, view, { team, opponent });
@@ -700,7 +728,7 @@ export function LiveSheetView({ id }: { id: string }) {
         <LiveKeypad
           key={view}
           set={view}
-          lineup={set.lineup ?? proposedLineup(record, view)}
+          lineup={set.lineup ? { court: courtNow(set), liberos: set.lineup.liberos } : proposedLineup(record, view)}
           untracked={untracked}
           locked={isLocked}
           last={
@@ -714,6 +742,9 @@ export function LiveSheetView({ id }: { id: string }) {
           onUndo={undo}
           onLineup={() => setChoosingLineup(true)}
           onGrid={() => switchMode('grid')}
+          subsCount={set.subs?.length ?? 0}
+          onSubstitute={(chosen) => setSubstituting(chosen)}
+          nameOf={(n) => playerName(record, n)}
         />
       )}
 
@@ -763,10 +794,37 @@ export function LiveSheetView({ id }: { id: string }) {
           key={view}
           set={view}
           proposed={proposedLineup(record, view)}
+          nameOf={(n) => playerName(record, n)}
           onCancel={() => (choosingLineup ? setChoosingLineup(false) : switchMode('grid'))}
-          onConfirm={(lineup) => {
-            setRecord(setLineup(record, view, lineup));
+          onConfirm={(lineup, names) => {
+            // The numbers go on the rows of the sheet too, and the names typed here are those of the sheet.
+            let next = setLineup(record, view, lineup);
+            next = placeNumbers(next, view, lineup.court, 'player', known);
+            next = placeNumbers(next, view, lineup.liberos, 'libero', known);
+            for (const [number, name] of names) next = setPlayerName(next, number, name);
+            setRecord(next);
             setChoosingLineup(false);
+          }}
+        />
+      )}
+      {substituting !== undefined && set.lineup && (
+        <SubstitutionDialog
+          leave={canLeave(set)}
+          enterFor={(out) => canEnter(record, view, out)}
+          court={courtNow(set)}
+          liberos={set.lineup.liberos}
+          due={returnsDue(set)}
+          count={set.subs?.length ?? 0}
+          nameOf={(n) => playerName(record, n)}
+          involved={substitutionState(set).involved}
+          chosen={substituting !== null && courtNow(set).includes(substituting) ? substituting : null}
+          onCancel={() => setSubstituting(undefined)}
+          onConfirm={(sub, name) => {
+            // Who comes in gets a row of the sheet, if not on one yet, and the name written here.
+            const next = placeNumbers(substitute(record, view, sub), view, [sub.in], 'player', known);
+            setRecord(name !== playerName(next, sub.in) ? setPlayerName(next, sub.in, name) : next);
+            setHistory((h) => [...h, { set: view, sub: true as const }].slice(-500));
+            setSubstituting(undefined);
           }}
         />
       )}
