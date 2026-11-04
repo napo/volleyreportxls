@@ -10,7 +10,7 @@ repository is shared. It is rendered from `social-preview.html` in a browser at
 1280 × 640, with next to it:
 
 - `og-logo.png`: `src/assets/volleyreportxls-logo.png`;
-- `og-form-1.png`: page 1 of `docs/examples/modulo-rilevazione.pdf` at 110 dpi;
+- `og-form-1.png`: page 1 of the current form (`dist/forms/modulo-rilevazione.pdf`, made by `npm run build`) at 110 dpi;
 - `og-tab-crop.png`: the scoresheet card of the example match (top part, 2× screenshot);
 - the Montserrat and Roboto `latin-wght-normal.woff2` files from `node_modules/@fontsource-variable`.
 
