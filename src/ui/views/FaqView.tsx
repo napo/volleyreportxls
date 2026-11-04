@@ -3,11 +3,12 @@
 
 /** Frequent questions by topic: one closed answer per question, with the links that answer needs. */
 import { type ReactNode, useState } from 'react';
-import { PAYPAL_DONATION_URL, RELEASES_URL, SOURCE_REPOSITORY_URL, WEB_APP_URL, contactEmail, externalUrl } from '../../config';
+import { PAYPAL_DONATION_URL, SOURCE_REPOSITORY_URL, WEB_APP_URL, contactEmail, externalUrl } from '../../config';
 import { useI18n } from '../../i18n';
 import { ExternalLink } from '../../platform/ExternalLink';
 import { CodeLegend } from '../components/CodeLegend';
 import { DownloadFormButton } from '../components/DownloadFormButton';
+import { LatestDownloadLinks } from '../components/ProjectSections';
 
 /** The address appears only after a tap, so that it is not on the page for those who collect addresses. */
 function ContactEmail() {
@@ -27,6 +28,8 @@ export function FaqView() {
   const { m } = useI18n();
   const t = m.faq;
   const donation = externalUrl(PAYPAL_DONATION_URL);
+  // Questions opened at least once: what they show (the downloads, asked to GitHub) is loaded only then.
+  const [opened, setOpened] = useState<ReadonlySet<string>>(new Set());
   const actions: Readonly<Record<string, ReactNode>> = {
     cost: (
       <>
@@ -34,10 +37,15 @@ export function FaqView() {
         <ExternalLink href={SOURCE_REPOSITORY_URL}>{t.source}</ExternalLink>
       </>
     ),
+    // The files of the current version, one link each: the releases page of GitHub confuses most people.
     download: (
       <>
         <ExternalLink href={WEB_APP_URL}>{t.web}</ExternalLink>
-        <ExternalLink href={RELEASES_URL}>{t.releases}</ExternalLink>
+        {opened.has('download') && (
+          <div className="vr-faq-downloads">
+            <LatestDownloadLinks />
+          </div>
+        )}
       </>
     ),
     evaluations: <CodeLegend />,
@@ -61,7 +69,7 @@ export function FaqView() {
         <section key={group.title} className="vr-card">
           <h2>{group.title}</h2>
           {group.items.map(({ id, q, a }) => (
-            <details key={id} className="vr-faq">
+            <details key={id} className="vr-faq" onToggle={(e) => e.currentTarget.open && setOpened((o) => (o.has(id) ? o : new Set(o).add(id)))}>
               <summary>{q}</summary>
               {a.map((paragraph) => (
                 <p key={paragraph}>{paragraph}</p>

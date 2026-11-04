@@ -26,6 +26,8 @@ export function InfoView() {
 
       <GuideSection />
 
+      <DownloadSection />
+
       <section id="modulo" className="vr-card vr-dropzone">
         <span className="vr-icon-tile" aria-hidden="true">
           ↓
@@ -100,7 +102,6 @@ export function InfoView() {
       </section>
 
       <ProjectSection />
-      <DownloadSection />
       <UpdatesSection />
       <PrivacySection />
     </>

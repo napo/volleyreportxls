@@ -4041,3 +4041,8 @@ output.vr-sub-name {
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
+/* FAQ "where to download": the files of the latest release take the whole width under the links. */
+.vr-faq-downloads {
+  flex-basis: 100%;
+}

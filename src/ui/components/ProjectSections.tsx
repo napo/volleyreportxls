@@ -130,12 +130,11 @@ export function ProjectSection() {
   );
 }
 
-export function DownloadSection() {
-  const t = useI18n().m.info;
+/** The latest release and its files, asked to GitHub when shown (null: not known, offline or rate limit). */
+function useLatestDownloads(): LatestDownloads | null {
   const [latest, setLatest] = useState<LatestDownloads | null>(null);
   useEffect(() => {
     let active = true;
-    // Offline or GitHub not reachable: only the link to the releases page is shown.
     fetchLatestDownloads()
       .then((found) => active && setLatest(found))
       .catch(() => {});
@@ -143,38 +142,72 @@ export function DownloadSection() {
       active = false;
     };
   }, []);
+  return latest;
+}
+
+/**
+ * The files of the latest release, one button each, by platform; then the
+ * public releases as a plain link. When they cannot be listed, the releases
+ * page is the button (`fallback`), so that nobody is left without a download.
+ */
+export function DownloadLinks({ latest, fallback = true }: { latest: LatestDownloads | null; fallback?: boolean }) {
+  const t = useI18n().m.info;
+  const listed = !!latest && latest.groups.length > 0;
+  if (!listed) {
+    return fallback ? (
+      <div className="vr-actions start">
+        <ExternalLink href={RELEASES_URL} className="vr-btn vr-btn-primary">
+          {t.allReleases}
+        </ExternalLink>
+      </div>
+    ) : null;
+  }
+  return (
+    <>
+      <p>{t.chooseFile}</p>
+      <div className="vr-downloads">
+        {latest.groups.map((group) => (
+          <div className="vr-download" key={group.platform}>
+            <h3>{t.platformNames[group.platform] ?? group.platform}</h3>
+            <p>{t.platformNotes[group.note]}</p>
+            <div className="vr-chips">
+              {group.files.map((file) => (
+                <ExternalLink key={file.name} href={file.url} className="vr-btn vr-btn-primary vr-btn-small" title={file.name}>
+                  {file.label}
+                </ExternalLink>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <p>
+        {t.releasesBefore} <ExternalLink href={RELEASES_URL}>{t.releasesLink}</ExternalLink> {t.releasesAfter}
+      </p>
+    </>
+  );
+}
+
+/** The downloads of the latest release, asked to GitHub when this appears (the FAQ shows it once its question is opened). */
+export function LatestDownloadLinks() {
+  return <DownloadLinks latest={useLatestDownloads()} />;
+}
+
+export function DownloadSection() {
+  const t = useI18n().m.info;
+  const latest = useLatestDownloads();
   const app = isTauriApp();
   const date = latest?.date ? formatDate(latest.date.slice(0, 10)) : null;
   return (
     <section className="vr-card" id="download">
       <CardHead title={t.downloadTitle} subtitle={latest ? t.latestRelease(latest.version, date) : undefined} />
-      <div className="vr-actions start">
-        {app && (
+      {app && (
+        <div className="vr-actions start">
           <ExternalLink href={WEB_APP_URL} className="vr-btn vr-btn-primary">
             {t.openWeb}
           </ExternalLink>
-        )}
-        <ExternalLink href={RELEASES_URL} className={`vr-btn ${app ? 'vr-btn-secondary' : 'vr-btn-primary'}`}>
-          {t.allReleases}
-        </ExternalLink>
-      </div>
-      {latest && latest.groups.length > 0 && (
-        <div className="vr-downloads">
-          {latest.groups.map((group) => (
-            <div className="vr-download" key={group.platform}>
-              <h3>{t.platformNames[group.platform] ?? group.platform}</h3>
-              <p>{t.platformNotes[group.note]}</p>
-              <div className="vr-chips">
-                {group.files.map((file) => (
-                  <ExternalLink key={file.name} href={file.url} className="vr-chip" title={file.name}>
-                    {file.label}
-                  </ExternalLink>
-                ))}
-              </div>
-            </div>
-          ))}
         </div>
       )}
+      <DownloadLinks latest={latest} />
       <p className="vr-note">{t.buildsNote}</p>
     </section>
   );

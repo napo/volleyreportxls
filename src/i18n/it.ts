@@ -911,6 +911,10 @@ export const it = {
     latestRelease: (version: string, date: string | null) => `Ultima release: v${version}${date ? ` (${date})` : ''}`,
     openWeb: 'Apri la versione web',
     allReleases: 'Tutte le release su GitHub',
+    chooseFile: 'Scegli il file per il tuo sistema: il download parte subito.',
+    releasesBefore: 'Versioni precedenti, note di ogni versione e file di verifica sono nelle',
+    releasesLink: 'release pubbliche',
+    releasesAfter: 'su GitHub.',
     platformNotes: { installer: 'Installer (.exe / .msi)', disk: 'Immagine disco (.dmg)', linux: 'AppImage, .deb, .rpm', apk: 'Pacchetto APK', ipa: 'IPA non firmato (sideloading)' },
     platformNames: { ios: 'iPhone e iPad' } as Record<string, string>,
     buildsNote:

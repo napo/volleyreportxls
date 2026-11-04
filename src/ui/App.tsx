@@ -96,6 +96,7 @@ function Page({ route }: { route: Route }) {
       return route.param ? <AthleteRoute key={route.param} id={route.param} /> : <AthletesView squadId={null} />;
     case 'informazioni':
     case 'modulo':
+    case 'download':
       return <InfoView />;
     case 'faq':
       return <FaqView />;

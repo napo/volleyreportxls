@@ -946,6 +946,10 @@ export const en: Messages = {
     latestRelease: (version: string, date: string | null) => `Latest release: v${version}${date ? ` (${date})` : ''}`,
     openWeb: 'Open the web version',
     allReleases: 'All releases on GitHub',
+    chooseFile: 'Choose the file for your system: the download starts at once.',
+    releasesBefore: 'Earlier versions, the notes of every version and the files to check them are in the',
+    releasesLink: 'public releases',
+    releasesAfter: 'on GitHub.',
     platformNotes: { installer: 'Installer (.exe / .msi)', disk: 'Disk image (.dmg)', linux: 'AppImage, .deb, .rpm', apk: 'APK package', ipa: 'Unsigned IPA (sideloading)' },
     platformNames: { ios: 'iPhone and iPad' },
     buildsNote:
