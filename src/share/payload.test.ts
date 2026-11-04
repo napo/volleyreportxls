@@ -67,9 +67,10 @@ test('broken, newer and expired links are recognised', () => {
   expect(isExpired(p, new Date('2026-11-10T00:00:01Z'))).toBe(true);
 });
 
-test('the link: address of the web app, then the report after #v/', () => {
+test('the link: the r/ page of the web app, then the report after #v/', () => {
   const url = shareUrl('https://report.volleyserve.it/', 'abc');
-  expect(url).toBe('https://report.volleyserve.it/#v/abc');
+  expect(url).toBe('https://report.volleyserve.it/r/#v/abc');
+  expect(shareUrl('https://example.org/test', 'abc')).toBe('https://example.org/test/r/#v/abc');
   expect(sharedPart(new URL(url).hash)).toBe('abc');
   expect(sharedPart('#tabellino/esempio')).toBeNull();
 });

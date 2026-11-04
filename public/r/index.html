@@ -1,0 +1,40 @@
+<!doctype html>
+<!--
+SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+<!--
+  The address of a shared report: report.volleyserve.it/r/#v/…
+  Link previews (WhatsApp, Telegram…) never see the part after "#", so they
+  show the title and image of this page; a browser goes on to the app with
+  the report, keeping everything after "#".
+-->
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#F4F4F4" />
+    <meta name="robots" content="noindex" />
+    <meta name="description" content="Tabellino, grafici e storico di pallavolo condivisi con VolleyReport: si aprono nel browser, senza installare nulla." />
+    <link rel="icon" href="../favicon.png" type="image/png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="VolleyReport" />
+    <meta property="og:title" content="Report di pallavolo condiviso · VolleyReport" />
+    <meta property="og:description" content="Tabellino, grafici e storico della squadra: si aprono nel browser, senza installare nulla." />
+    <meta property="og:url" content="https://report.volleyserve.it/r/" />
+    <meta property="og:image" content="https://report.volleyserve.it/share-preview.png" />
+    <meta property="og:image:width" content="1280" />
+    <meta property="og:image:height" content="640" />
+    <meta property="og:image:alt" content="VolleyReport: tabellino e grafici di una partita condivisa" />
+    <meta property="og:locale" content="it_IT" />
+    <meta property="og:locale:alternate" content="en_GB" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <title>Report condiviso · VolleyReport</title>
+    <script>
+      location.replace('../' + location.hash);
+    </script>
+  </head>
+  <body>
+    <p><a href="../">VolleyReport</a></p>
+  </body>
+</html>

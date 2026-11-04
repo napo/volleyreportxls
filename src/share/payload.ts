@@ -49,6 +49,8 @@ export interface SharePayload {
 
 /** Base path of the viewer, after the address of the web app. */
 export const SHARE_PREFIX = '#v/';
+/** public/r/index.html */
+export const SHARE_PAGE = 'r/';
 
 const shortId = (prefix: string, i: number) => `${prefix}${String(i).padStart(3, '0')}`;
 
@@ -141,4 +143,9 @@ export const isExpired = (p: SharePayload, now = new Date()) => now.getTime() > 
 /** The shared report in the hash of a page, or null when the page is not a shared report. */
 export const sharedPart = (hash: string): string | null => (hash.startsWith(SHARE_PREFIX) ? hash.slice(SHARE_PREFIX.length) : null);
 
-export const shareUrl = (base: string, encoded: string) => `${base.replace(/#.*$/, '')}${SHARE_PREFIX}${encoded}`;
+/**
+ * The link: the page r/ of the web app (with its own preview for WhatsApp and
+ * the like, which never see the part after "#"), then the report after #v/.
+ * The page goes on to the app keeping the "#" part; links to the app itself still open.
+ */
+export const shareUrl = (base: string, encoded: string) => `${base.replace(/#.*$/, '').replace(/\/?$/, '/')}${SHARE_PAGE}${SHARE_PREFIX}${encoded}`;

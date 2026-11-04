@@ -12,7 +12,7 @@ import type { ScoutEvent, SetNumber } from '../domain/model';
 import { type StatLine, calculateMatchStats, calculateStatLine } from '../domain/stats/aggregate';
 import { filterEvents } from '../domain/stats/counts';
 import { type MatchRecord, toMatch } from '../matches/record';
-import type { SetTrendRow } from '../report/chart-data';
+import { type SetTrendRow, trendRow } from '../report/chart-data';
 import { formatDate } from '../report/format';
 import { type TabellinoLine, tabellinoLine } from '../report/tabellino';
 
@@ -83,11 +83,7 @@ export function athleteTotals(matches: readonly AthleteMatch[]): AthleteTotals {
   };
 }
 
-/** Reception Pos% and attack Pt% match by match (same rows as the set trend). */
+/** The trend of the athlete match by match (same rows as the set trend). */
 export function athleteTrend(matches: readonly AthleteMatch[]): SetTrendRow[] {
-  return matches.map((m) => ({
-    set: [formatDate(m.record.date), m.record.opponentName].filter(Boolean).join(' '),
-    receptionPositivity: m.stats.reception.total > 0 ? m.stats.reception.positivity : null,
-    attackEfficiency: m.stats.attack.total > 0 ? m.stats.attack.efficiency : null,
-  }));
+  return matches.map((m) => trendRow([formatDate(m.record.date), m.record.opponentName].filter(Boolean).join(' '), m.stats));
 }

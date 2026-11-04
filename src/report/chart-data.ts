@@ -68,21 +68,45 @@ export function pointsBySkill(line: StatLine, opponentErrors?: number, names: Ch
   return opponentErrors === undefined ? rows : [...rows, { label: names.opponentErrors, won: opponentErrors, lost: 0 }];
 }
 
+/**
+ * One point of a trend (a set, or a match): positivity of serve, positivity
+ * and efficiency of reception and attack. Null where the skill was not played.
+ * Positivity follows the DataVolley tables (for the attack the only positive
+ * touch is the kill); efficiency is DataVolley's classic one, winning minus
+ * losing touches.
+ */
 export interface SetTrendRow {
   readonly set: string;
-  /** Reception Pos% (# + +), null when no reception. */
+  /** Serves #, +, ! and / over all serves. */
+  readonly servePositivity: number | null;
+  /** Receptions # and + over all receptions. */
   readonly receptionPositivity: number | null;
-  /** Attack Pt% (#), null when no attack. */
-  /** Attack efficiency: kills minus blocked and errors, over the attacks (it can be negative). */
+  /** Receptions # minus = over all receptions. */
+  readonly receptionEfficiency: number | null;
+  /** Kills (#) over all attacks. */
+  readonly attackPositivity: number | null;
+  /** Kills minus blocked and errors, over the attacks (it can be negative). */
   readonly attackEfficiency: number | null;
 }
 
+/** The indicators of a trend, in the order of the action: serve, reception, attack. */
+export const TREND_KEYS = ['servePositivity', 'receptionPositivity', 'receptionEfficiency', 'attackPositivity', 'attackEfficiency'] as const;
+
+export function trendRow(label: string, line: StatLine): SetTrendRow {
+  const share = (total: number, value: number) => (total > 0 ? value : null);
+  const { serve, reception, attack } = line;
+  return {
+    set: label,
+    servePositivity: share(serve.total, serve.efficiency),
+    receptionPositivity: share(reception.total, reception.positivity),
+    receptionEfficiency: share(reception.total, (reception.counts['#'] - reception.counts['=']) / reception.total),
+    attackPositivity: share(attack.total, attack.pointRate),
+    attackEfficiency: share(attack.total, attack.efficiency),
+  };
+}
+
 export function setTrend(stats: MatchStats): SetTrendRow[] {
-  return stats.sets.map((set) => ({
-    set: `Set ${set.setNumber}`,
-    receptionPositivity: set.team.reception.total > 0 ? set.team.reception.positivity : null,
-    attackEfficiency: set.team.attack.total > 0 ? set.team.attack.efficiency : null,
-  }));
+  return stats.sets.map((set) => trendRow(`Set ${set.setNumber}`, set.team));
 }
 
 export interface PlayerPointsRow {

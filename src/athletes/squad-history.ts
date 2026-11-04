@@ -9,7 +9,7 @@
 
 import { type MatchStats, type StatLine, calculateMatchStats, calculateStatLine } from '../domain/stats/aggregate';
 import { type MatchRecord, toMatch } from '../matches/record';
-import { type PlayerPointsRow, type SetTrendRow, scoresPoints } from '../report/chart-data';
+import { type PlayerPointsRow, type SetTrendRow, scoresPoints, trendRow } from '../report/chart-data';
 import { formatDate } from '../report/format';
 import { type TabellinoLine, tabellinoLine } from '../report/tabellino';
 import { type AthleteMatch, type AthleteTotals, athleteTotals } from './history';
@@ -52,11 +52,7 @@ export function squadCharts(records: readonly MatchRecord[]): { team: StatLine; 
   return {
     team: calculateStatLine(stats.flatMap((s) => s.stats.events)),
     opponentErrors: stats.reduce((n, s) => n + s.stats.opponentErrors, 0),
-    trend: stats.map(({ record, stats }) => ({
-      set: [formatDate(record.date), record.opponentName].filter(Boolean).join(' '),
-      receptionPositivity: stats.team.match.reception.total > 0 ? stats.team.match.reception.positivity : null,
-      attackEfficiency: stats.team.match.attack.total > 0 ? stats.team.match.attack.efficiency : null,
-    })),
+    trend: stats.map(({ record, stats }) => trendRow([formatDate(record.date), record.opponentName].filter(Boolean).join(' '), stats.team.match)),
   };
 }
 

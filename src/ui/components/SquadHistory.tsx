@@ -11,6 +11,7 @@ import type { AthleteCardData } from '../../athletes/card';
 import { rowPoints, squadCharts, squadLine, squadRows } from '../../athletes/squad-history';
 import { WonLostChart } from '../charts/WonLostChart';
 import { AthleteTable } from './AthleteTable';
+import { ReceiversChart } from './ReceiversChart';
 import { TeamSummary } from './TeamSummary';
 import { teamSummary } from '../../athletes/summary';
 import { TeamCharts } from './TeamCharts';
@@ -167,7 +168,7 @@ export function SquadHistory({ records, athletes, title, shared }: Props) {
       )}
 
       {shown('team') && chosenRecords.length > 0 && (
-        <details className="vr-more vr-more-section">
+        <details className="vr-more vr-more-section" open>
           <summary>{m.summary.teamCharts}</summary>
           <TeamCharts
             team={charts.team}
@@ -186,6 +187,7 @@ export function SquadHistory({ records, athletes, title, shared }: Props) {
               <WonLostChart rows={rowPoints(rows)} title={m.charts.compareLabel} firstColumn={m.charts.player} />
             </section>
           )}
+          <ReceiversChart rows={rows} />
         </details>
       )}
 

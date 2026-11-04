@@ -1,0 +1,40 @@
+<!doctype html>
+<!--
+SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+<html lang="it"><head><meta charset="utf-8"><style>
+@font-face { font-family: Montserrat; src: url(montserrat-latin-wght-normal.woff2); font-weight: 100 900; }
+@font-face { font-family: Roboto; src: url(roboto-latin-wght-normal.woff2); font-weight: 100 900; }
+* { box-sizing: border-box; margin: 0; }
+body { width: 1280px; height: 640px; overflow: hidden; font-family: Roboto, sans-serif;
+  background: radial-gradient(ellipse at 85% 10%, #dbecf4 0%, transparent 55%), #f4f4f2; position: relative; color: #383838; }
+.accent { position: absolute; left: 0; top: 0; bottom: 0; width: 14px; background: linear-gradient(#062845 0 70%, #e96e23 70% 100%); }
+.left { position: absolute; left: 72px; top: 64px; width: 540px; }
+.brand { display: flex; align-items: center; gap: 20px; }
+.brand img { height: 92px; }
+.brand h1 { font-family: Montserrat; font-weight: 800; font-size: 64px; color: #062845; letter-spacing: -1px; }
+.kicker { margin-top: 38px; font-family: Montserrat; font-weight: 700; font-size: 20px; letter-spacing: 3px; text-transform: uppercase; color: #e96e23; }
+.claim { margin-top: 10px; font-family: Montserrat; font-weight: 700; font-size: 40px; line-height: 1.15; color: #383838; }
+.claim em { font-style: normal; color: #e96e23; }
+.sub { margin-top: 20px; font-size: 22px; line-height: 1.4; color: #5c5c5c; }
+.chips { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 10px; }
+.chips span { padding: 7px 14px; border-radius: 999px; background: #062845; color: #fff; font-weight: 600; font-size: 17px; }
+.url { position: absolute; left: 72px; bottom: 44px; font-family: Montserrat; font-weight: 700; font-size: 24px; color: #1876a1; }
+.report { position: absolute; left: 640px; top: 56px; width: 700px; border-radius: 14px; border: 1px solid rgba(6,40,69,.12);
+  box-shadow: 0 24px 60px rgba(6,40,69,.22); background: #fff; }
+.trend { position: absolute; left: 790px; top: 250px; width: 420px; border-radius: 14px; border: 1px solid rgba(6,40,69,.12);
+  box-shadow: 0 24px 60px rgba(6,40,69,.30); background: #fff; }
+</style></head><body>
+<div class="accent"></div>
+<img class="report" src="og-eval.png">
+<img class="trend" src="og-trend.png">
+<div class="left">
+  <div class="brand"><img src="og-logo.png"><h1>VolleyReport</h1></div>
+  <p class="kicker">Report condiviso</p>
+  <p class="claim">Tabellino e grafici<br>della <em>squadra</em></p>
+  <p class="sub">Apri il link: le statistiche si vedono nel browser, senza installare nulla.</p>
+  <div class="chips"><span>Tabellino</span><span>Grafici</span><span>PDF A4</span></div>
+</div>
+<p class="url">report.volleyserve.it</p>
+</body></html>

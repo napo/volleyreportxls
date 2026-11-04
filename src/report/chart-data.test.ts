@@ -32,9 +32,10 @@ test('points won and lost by skill, with opponent errors as a won-only row', () 
 
 test('per-set trend, null when a skill was not performed', () => {
   expect(setTrend(stats)).toEqual([
-    // Attack efficiency: (2 kills − 1 error) / 3 attacks, then one attack blocked.
-    { set: 'Set 1', receptionPositivity: 2 / 3, attackEfficiency: 1 / 3 },
-    { set: 'Set 2', receptionPositivity: 0, attackEfficiency: -1 },
+    // Set 1: serves B# B= (positivity 1/2); receptions R# R+ R= (positivity 2/3, efficiency (1 − 1)/3);
+    // attacks A# A# A= (kills 2/3, efficiency (2 − 1)/3). Set 2: no serve, R- (0, 0), one attack blocked.
+    { set: 'Set 1', servePositivity: 1 / 2, receptionPositivity: 2 / 3, receptionEfficiency: 0, attackPositivity: 2 / 3, attackEfficiency: 1 / 3 },
+    { set: 'Set 2', servePositivity: null, receptionPositivity: 0, receptionEfficiency: 0, attackPositivity: 0, attackEfficiency: -1 },
   ]);
 });
 

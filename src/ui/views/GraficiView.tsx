@@ -16,6 +16,7 @@ import { TeamCharts } from '../components/TeamCharts';
 import { profileOf } from '../../athletes/profile';
 import type { AthleteCardData } from '../../athletes/card';
 import { AthleteTable } from '../components/AthleteTable';
+import { ReceiversChart } from '../components/ReceiversChart';
 import { TeamSummary } from '../components/TeamSummary';
 import { matchSummary } from '../../athletes/summary';
 import { StatsTable } from '../components/StatsTable';
@@ -41,6 +42,10 @@ function matchCard(report: MatchReport, id: string, m: Messages): AthleteCardDat
     trendColumn: m.scoresheet.set,
   };
 }
+
+/** Sets won, then the score of every set: "3-0 (25-17, 25-8, 25-20)". */
+const matchScore = ({ setsWon, setScores }: Pick<MatchReport['tabellino'], 'setsWon' | 'setScores'>) =>
+  `${setsWon.team}-${setsWon.opponent}${setScores.length ? ` (${setScores.map(({ score }) => `${score.team}-${score.opponent}`).join(', ')})` : ''}`;
 
 interface Props {
   readonly report: MatchReport;
@@ -82,15 +87,8 @@ export default function GraficiView({ report, shared }: Props) {
           {tabellino.teamName} – {tabellino.opponentName}
         </h1>
         <ul className="vr-meta">
-          {/* A shared report has no scoresheet page above: competition and date go here. */}
-          {shared && [tabellino.competition, formatDate(tabellino.date)].filter(Boolean).map((text) => <li key={text}>{text}</li>)}
-          <li>
-            {tabellino.setsWon.team}-{tabellino.setsWon.opponent}
-          </li>
-          {tabellino.setScores.map(({ number, score }) => (
-            <li key={number}>
-              {score.team}-{score.opponent}
-            </li>
+          {[tabellino.competition, formatDate(tabellino.date), matchScore(tabellino)].filter(Boolean).map((text) => (
+            <li key={text}>{text}</li>
           ))}
         </ul>
       </header>
@@ -124,7 +122,7 @@ export default function GraficiView({ report, shared }: Props) {
       )}
 
       {shown('team') && (
-        <details className="vr-more vr-more-section">
+        <details className="vr-more vr-more-section" open>
           <summary>{m.summary.teamCharts}</summary>
           <TeamCharts team={stats.team.match} opponentErrors={stats.opponentErrors} trend={setTrend(stats)} />
           {rows.length > 1 && (
@@ -138,6 +136,7 @@ export default function GraficiView({ report, shared }: Props) {
               <WonLostChart rows={playerPoints(stats, ids)} title={t.compareLabel} firstColumn={t.player} />
             </section>
           )}
+          <ReceiversChart rows={rows} />
         </details>
       )}
 

@@ -128,7 +128,7 @@ export function EvaluationChart({ rows, title }: { rows: readonly EvaluationShar
 }
 
 /** The colours from the most to the least favourable: the symbols are on the bars. */
-function ScaleLegend({ m }: { m: Messages }) {
+export function ScaleLegend({ m }: { m: Messages }) {
   return (
     <p className="vr-legend vr-scale-legend">
       <span>{m.charts.scaleBest}</span>

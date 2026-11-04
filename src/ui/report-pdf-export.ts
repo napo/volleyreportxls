@@ -7,6 +7,7 @@
  * page, drawn as PDF tables and chart images.
  */
 import { type AthleteCardData, keyFigures } from '../athletes/card';
+import { receiverLines } from '../athletes/receivers';
 import { type ProfileAxis, meaningfulAxes, playedAxes, touchesOf } from '../athletes/profile';
 import { type Direction, INDICATORS, RECENT_MATCHES, STEADY_BALANCE, type Standing, type TeamSummary, direction, matchSummary, standing, teamSummary } from '../athletes/summary';
 import { rgb } from 'pdf-lib';
@@ -21,6 +22,7 @@ import { formatCount, formatDate, formatRating, formatSigned } from '../report/f
 import type { TabellinoLine } from '../report/tabellino';
 import type { ShareSection } from '../share/payload';
 import { chartImage } from './charts/chart-images';
+import { receiversChartHeight, receiversChartOption } from './charts/ReceiversChart';
 import { comparisonBlock, teamChartBlocks } from './charts/charts-export';
 import { playerPoints, scoresPoints, setTrend } from '../report/chart-data';
 import { FEW_TOUCHES, type SquadRow, rowPoints, squadCharts } from '../athletes/squad-history';
@@ -71,6 +73,14 @@ async function cardBlocks(cards: readonly AthleteCardData[], m: Messages): Promi
     }
   }
   return blocks;
+}
+
+/** Who only received, under the comparison of points won and lost: their reception instead. */
+async function receiversBlock(rows: readonly SquadRow[], m: Messages): Promise<ReportBlock[]> {
+  const lines = receiverLines(rows);
+  if (!lines.length) return [];
+  const t = m.receivers;
+  return [{ kind: 'chart', title: t.title, note: t.text, image: await chartImage(receiversChartOption(lines, m), receiversChartHeight(lines)) }];
 }
 
 /** Charts of the charts PDF as report blocks (their key figures go into the note). */
@@ -167,7 +177,11 @@ export async function matchReportPdf(data: MatchPdf, sections: ReadonlySet<Share
   }
   if (sections.has('players') && data.rows.length) {
     blocks.push({ kind: 'section', title: m.charts.players }, statsTable(m.athletes.listTitle, data.rows, data.total, m));
-    blocks.push(...fromCharts([await comparisonBlock(playerPoints(report.stats, data.playerIds), m)]), ...(await cardBlocks(data.cards, m)));
+    blocks.push(
+      ...fromCharts([await comparisonBlock(playerPoints(report.stats, data.playerIds), m)]),
+      ...(await receiversBlock(data.rows, m)),
+      ...(await cardBlocks(data.cards, m)),
+    );
   }
   const title = `${tabellino.teamName} – ${tabellino.opponentName}`;
   const scores = tabellino.setScores.map((s) => `${s.score.team}-${s.score.opponent}`).join(', ');
@@ -329,6 +343,7 @@ export async function historyReportPdf(data: HistoryPdf, sections: ReadonlySet<S
     blocks.push(
       { kind: 'section', title: m.share.sectionNames.athleteCharts! },
       ...fromCharts([await comparisonBlock(rowPoints(data.rows), m)]),
+      ...(await receiversBlock(data.rows, m)),
       ...(await cardBlocks(data.cards, m)),
     );
   }
