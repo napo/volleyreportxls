@@ -3718,3 +3718,157 @@ button.vr-score-teams.selected {
 .vr-live-dialog:has(.vr-live-columns) {
   width: min(40rem, 100%);
 }
+
+/* Live sheet: the keypad (shirt number, skill, evaluation), above the sheet. */
+.vr-keypad {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.6rem;
+  border: 2px solid var(--vr-border);
+  border-radius: 0.75rem;
+  background: var(--vr-surface);
+}
+
+.vr-keypad-head,
+.vr-keypad-foot {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.vr-keypad-head strong {
+  margin-right: auto;
+}
+
+.vr-keypad-foot span {
+  flex: 1;
+  color: var(--vr-text-secondary, #5b6670);
+}
+
+.vr-keypad-numbers {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.4rem;
+}
+
+.vr-keypad-skills {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.4rem;
+}
+
+.vr-keypad-evals {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.4rem;
+}
+
+.vr-keypad-key,
+.vr-keypad-skill,
+.vr-keypad-eval {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 3.2rem;
+  border: 2px solid var(--vr-live-line);
+  border-radius: 0.6rem;
+  background: var(--vr-surface);
+  color: var(--vr-navy);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.vr-keypad-key {
+  font-size: 1.5rem;
+}
+
+.vr-keypad-key small {
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+.vr-keypad-key.libero {
+  background: #fff5ec;
+}
+
+.vr-keypad-skill {
+  font-size: 0.85rem;
+}
+
+.vr-keypad-eval {
+  font-size: 1.4rem;
+  color: #1d1d1d;
+}
+
+.vr-keypad-key.chosen,
+.vr-keypad-skill.chosen {
+  border-color: var(--vr-navy);
+  background: var(--vr-navy);
+  color: #fff;
+}
+
+.vr-keypad button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.vr-keypad button:focus-visible {
+  outline: 3px solid var(--vr-orange, #e8710a);
+  outline-offset: 2px;
+}
+
+/* On a phone the keypad takes the room it needs, the sheet scrolls below. */
+@media (max-width: 760px) {
+  .vr-keypad-key,
+  .vr-keypad-skill,
+  .vr-keypad-eval {
+    min-height: 3.6rem;
+  }
+
+  .vr-keypad-skill {
+    font-size: 0.75rem;
+  }
+}
+
+.vr-lineup {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(3.5rem, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--vr-live-line);
+  border-radius: 0.6rem;
+}
+
+.vr-lineup legend {
+  padding: 0 0.3rem;
+  font-weight: 700;
+}
+
+.vr-lineup input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 2px solid var(--vr-live-line);
+  border-radius: 0.5rem;
+  font: inherit;
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+/* Phone with the keypad: the screen does not scroll, the keypad stays in sight and the sheet scrolls in the room left below. */
+@media (max-width: 760px) {
+  .vr-live.keypad {
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .vr-live.keypad .vr-live-sheet {
+    flex: 1;
+    min-height: 6rem;
+  }
+}

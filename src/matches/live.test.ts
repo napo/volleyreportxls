@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { bump, checkScore, closeSet, currentSet, playerName, reachableSets, setMatchDetails, setPlayerName, setShirtNumber, undoTouch } from './live';
+import { bump, checkScore, closeSet, currentSet, playerName, reachableSets, setMatchDetails, setPlayerName, setShirtNumber, undoTouch , bumpShirt, proposedLineup, setLineup} from './live';
 import { type MatchRecord, newMatchRecord } from './record';
 
 const firstRow = (record: MatchRecord, set = 1) => record.sets.find((s) => s.number === set)!.rows[0]!;
@@ -80,4 +80,40 @@ test('team names and players names are written on the sheet; names follow the nu
   expect(nextRow.playerNumber).toBe(7);
   expect(playerName(closed, nextRow.playerNumber)).toBe('Alice B.');
   expect(closed.teamName).toBe('Volley Trento');
+});
+
+describe('keypad: touches by shirt number and lineups', () => {
+  it('a touch goes to the row of the number, or to the first empty row of its kind', () => {
+    let record = newMatchRecord();
+    const first = bumpShirt(record, 1, 7, 'player', 'A#')!;
+    record = first.record;
+    const set = record.sets[0]!;
+    const row = set.rows.find((r) => r.playerNumber === 7)!;
+    expect(row.kind).toBe('player');
+    expect(row.counts['A#']).toBe(1);
+    record = bumpShirt(record, 1, 7, 'player', 'A#')!.record;
+    expect(record.sets[0]!.rows.filter((r) => r.playerNumber === 7)).toHaveLength(1);
+    expect(record.sets[0]!.rows.find((r) => r.playerNumber === 7)!.counts['A#']).toBe(2);
+    record = bumpShirt(record, 1, 1, 'libero', 'R+')!.record;
+    expect(record.sets[0]!.rows.find((r) => r.playerNumber === 1)!.kind).toBe('libero');
+    // Undo takes the touch back.
+    expect(undoTouch(first.record, first.touch).sets[0]!.rows.find((r) => r.playerNumber === 7)!.counts['A#']).toBeUndefined();
+  });
+
+  it('a number with no empty row left gets a new one', () => {
+    let record = newMatchRecord();
+    for (const n of [11, 12, 13]) record = bumpShirt(record, 1, n, 'libero', 'R#')!.record;
+    expect(record.sets[0]!.rows.filter((r) => r.kind === 'libero')).toHaveLength(3);
+  });
+
+  it('a set proposes its lineup, else the one of an earlier set, else the numbers on its rows', () => {
+    let record = newMatchRecord();
+    record = bumpShirt(record, 1, 4, 'player', 'B+')!.record;
+    record = bumpShirt(record, 1, 9, 'libero', 'R+')!.record;
+    expect(proposedLineup(record, 1)).toEqual({ court: [4], liberos: [9] });
+    const lineup = { court: [1, 2, 3, 4, 5, 6], liberos: [9] };
+    record = setLineup(record, 1, lineup);
+    expect(proposedLineup(record, 1)).toEqual(lineup);
+    expect(proposedLineup(record, 3)).toEqual(lineup);
+  });
 });

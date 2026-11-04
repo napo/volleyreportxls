@@ -26,6 +26,14 @@ export interface SetRecord {
   readonly number: SetNumber;
   readonly score: SetScore | null;
   readonly rows: readonly TallyRowRecord[];
+  /** Who starts the set, for the keypad of the live sheet; absent when not given. */
+  readonly lineup?: Lineup;
+}
+
+/** The six shirt numbers on court at the start of a set, and the liberos (up to two). */
+export interface Lineup {
+  readonly court: readonly number[];
+  readonly liberos: readonly number[];
 }
 
 export interface PlayerRecord {

@@ -19,7 +19,7 @@ import { EVALUATIONS, SKILLS, type ScoutCodeString, formatScoutCode, isAllowed, 
 import { SET_NUMBERS, type SetNumber } from '../domain/model';
 import type { Athlete } from '../athletes/matching';
 import { type Squad, normalizeTeam } from '../athletes/squads';
-import { type MatchRecord, OPTIONAL_CODES, type PlayerRecord, type SetRecord, type TallyRowRecord } from './record';
+import { type Lineup, type MatchRecord, OPTIONAL_CODES, type PlayerRecord, type SetRecord, type TallyRowRecord } from './record';
 
 export const VRP_EXTENSION = 'vrp';
 export const VRP_MEDIA_TYPE = 'application/zip';
@@ -97,12 +97,23 @@ function readRow(v: unknown): TallyRowRecord | null {
   return { id: text(v.id, 40), kind: v.kind, playerNumber: shirt(v.playerNumber), counts };
 }
 
+/** Up to six shirt numbers on court and two liberos, each once. */
+function readLineup(v: unknown): Lineup | null {
+  if (!isObject(v)) return null;
+  const numbers = (list: unknown, max: number) =>
+    Array.isArray(list) ? [...new Set(list.map(shirt).filter((n): n is number => n !== null))].slice(0, max) : [];
+  const court = numbers(v.court, 6);
+  const liberos = numbers(v.liberos, 2).filter((n) => !court.includes(n));
+  return court.length || liberos.length ? { court, liberos } : null;
+}
+
 function readSet(v: unknown): SetRecord | null {
   if (!isObject(v) || !SET_NUMBERS.includes(v.number as SetNumber) || !Array.isArray(v.rows)) return null;
   const score = isObject(v.score) && count(v.score.team) !== null && count(v.score.opponent) !== null
     ? { team: count(v.score.team)!, opponent: count(v.score.opponent)! }
     : null;
-  return { number: v.number as SetNumber, score, rows: v.rows.map(readRow).filter((r): r is TallyRowRecord => r !== null) };
+  const lineup = readLineup(v.lineup);
+  return { number: v.number as SetNumber, score, rows: v.rows.map(readRow).filter((r): r is TallyRowRecord => r !== null), ...(lineup && { lineup }) };
 }
 
 /** A MatchRecord rebuilt from untrusted JSON, or null when it is not one. */

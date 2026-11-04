@@ -16,13 +16,16 @@ import {
   type MatchDetails,
   type Touch,
   bump,
+  bumpShirt,
   checkScore,
   closeSet,
   currentSet,
   playerName,
+  proposedLineup,
   reachableSets,
   setMatchDetails,
   setPlayerName,
+  setLineup,
   setShirtNumber,
   undoTouch,
 } from '../../matches/live';
@@ -32,6 +35,7 @@ import { useArchive } from '../archive-context';
 import { codeOf, parseShirtNumber, skillColumns } from '../components/counts-columns';
 import { evaluationTint } from '../../report/evaluation-colors';
 import { href } from '../routes';
+import { LineupDialog, LiveKeypad } from './LiveKeypad';
 
 const LONG_PRESS = 500;
 
@@ -41,6 +45,28 @@ const LIBERO_SKILLS = new Set(skillColumns('libero').map((c) => c.skill));
 const CELLS = COLUMNS.flatMap((c) => c.evaluations.map((e, i) => ({ skill: c.skill, code: codeOf(c.skill, e), evaluation: e, first: i === 0 })));
 /** Evaluation headers in the colours of the charts and of the printed form. */
 const tint = (c: (typeof CELLS)[number]) => `rgb(${evaluationTint(c.skill, c.evaluation).map((v) => Math.round(v * 255)).join(' ')})`;
+
+/** Keypad or grid, as last chosen on this device; phones start with the keypad. */
+const MODE_SETTING = 'volleyreport.live.mode';
+type Mode = 'keypad' | 'grid';
+
+function initialMode(): Mode {
+  try {
+    const stored = localStorage.getItem(MODE_SETTING);
+    if (stored === 'keypad' || stored === 'grid') return stored;
+  } catch {
+    // No stored choice: by screen size.
+  }
+  return typeof window !== 'undefined' && window.matchMedia?.('(max-width: 760px)').matches ? 'keypad' : 'grid';
+}
+
+function rememberMode(mode: Mode) {
+  try {
+    localStorage.setItem(MODE_SETTING, mode);
+  } catch {
+    // Not kept: chosen again by screen size.
+  }
+}
 
 /** The columns left out of the last match set up on this device: a new match starts from them. */
 const UNTRACKED_SETTING = 'volleyreport.live.untracked';
@@ -223,6 +249,26 @@ interface CellProps {
 
 function Cell({ count, label, locked, last, first, alt, onTap, onRemove }: CellProps) {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const self = useRef<HTMLButtonElement>(null);
+  // The cell just counted comes into view (the keypad fills cells that may be out of sight on a phone).
+  // Only the sheet scrolls: scrollIntoView would move the whole screen, keypad included.
+  useEffect(() => {
+    const cell = self.current;
+    const sheet = cell?.closest<HTMLElement>('.vr-live-sheet');
+    if (!last || !cell || !sheet) return;
+    const box = sheet.getBoundingClientRect();
+    const at = cell.getBoundingClientRect();
+    // The first column (number and name) and the two header rows stay in sight over the cells.
+    const left = box.left + sheet.clientWidth * 0.3;
+    const top = box.top + 80;
+    let dx = 0;
+    let dy = 0;
+    if (at.left < left) dx = at.left - left;
+    else if (at.right > box.left + sheet.clientWidth) dx = at.right - (box.left + sheet.clientWidth) + 8;
+    if (at.top < top) dy = at.top - top;
+    else if (at.bottom > box.top + sheet.clientHeight) dy = at.bottom - (box.top + sheet.clientHeight) + 8;
+    if (dx || dy) sheet.scrollBy({ left: dx, top: dy, behavior: 'smooth' });
+  }, [last, count]);
   const pointer = useRef('');
   // The long press already removed one: the click that follows does nothing.
   const pressed = useRef(false);
@@ -232,6 +278,7 @@ function Cell({ count, label, locked, last, first, alt, onTap, onRemove }: CellP
   };
   return (
     <button
+      ref={self}
       type="button"
       className={`vr-live-cell${count > 0 ? ' counted' : ''}${last ? ' last' : ''}${first ? ' first' : ''}${alt ? ' alt' : ''}`}
       disabled={locked}
@@ -386,6 +433,13 @@ export function LiveSheetView({ id }: { id: string }) {
   // 'first': a new match, the details are asked before scouting.
   const [editing, setEditing] = useState<'first' | 'edit' | null>(null);
   const [choosingColumns, setChoosingColumns] = useState(false);
+  const [mode, setMode] = useState<Mode>(initialMode);
+  const [choosingLineup, setChoosingLineup] = useState(false);
+  const switchMode = (next: Mode) => {
+    setMode(next);
+    setCorrecting(false);
+    rememberMode(next);
+  };
   // Names used for the shirt numbers of this team in earlier matches.
   const [known, setKnown] = useState<readonly PlayerRecord[]>([]);
   const { saved, adopt, pending } = useAutosave(archive, record);
@@ -455,6 +509,18 @@ export function LiveSheetView({ id }: { id: string }) {
   const over = matchWinner(record) !== null;
   const total = set.rows.reduce((n, r) => n + Object.values(r.counts).reduce((a: number, b) => a + (b ?? 0), 0), 0);
   const title = `${record.teamName || m.common.team} – ${record.opponentName || m.common.opponent}`;
+
+  const applied = (done: ReturnType<typeof bump>) => {
+    if (!done) return;
+    setRecord(done.record);
+    setHistory((h) => [...h, done.touch].slice(-500));
+    setLast(`${done.touch.rowId}:${done.touch.code}`);
+  };
+  const keypadTouch = (number: number, kind: RowKind, code: ScoutCodeString) => {
+    if (!isLocked) applied(bumpShirt(record, view, number, kind, code, known));
+  };
+  // The keypad needs who is on court: asked when a set without a lineup is opened with the keypad.
+  const needsLineup = mode === 'keypad' && !isLocked && !set.lineup;
 
   const touch = (rowId: string, code: ScoutCodeString, delta: number) => {
     if (isLocked) return;
@@ -545,7 +611,7 @@ export function LiveSheetView({ id }: { id: string }) {
   };
 
   return (
-    <div className={`vr-live${correcting && !isLocked ? ' correcting' : ''}`}>
+    <div className={`vr-live${correcting && !isLocked ? ' correcting' : ''}${mode === 'keypad' ? ' keypad' : ''}`}>
       <header className="vr-live-bar">
         <a className="vr-live-exit" href={href('partita', record.id)} aria-label={t.exitLabel}>
           ‹ {t.exit}
@@ -582,6 +648,8 @@ export function LiveSheetView({ id }: { id: string }) {
           })}
         </div>
         <div className="vr-live-tools">
+          {/* With the keypad, undo is on the keypad and every touch adds one: these two belong to the grid. */}
+          {mode === 'grid' && (
           <button type="button" className="vr-live-tool" disabled={!canUndo} onClick={undo} aria-label={`${t.undoLabel}: ${undoText}`}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M9 14 4 9l5-5" />
@@ -592,13 +660,21 @@ export function LiveSheetView({ id }: { id: string }) {
               <small>{undoText}</small>
             </span>
           </button>
+          )}
+          {mode === 'grid' && (
+            <button type="button" className="vr-live-tool" onClick={() => switchMode('keypad')}>
+              <strong>{t.toKeypad}</strong>
+            </button>
+          )}
           <button type="button" className="vr-live-tool" onClick={() => setChoosingColumns(true)} aria-label={t.columnsLabel}>
             <strong>{t.columns}</strong>
             {untracked.size > 0 && <small>{t.columnsHidden(untracked.size)}</small>}
           </button>
-          <button type="button" className="vr-live-tool correct" aria-pressed={correcting && !isLocked} disabled={isLocked} onClick={() => setCorrecting((c) => !c)}>
-            <strong>{t.correct}</strong>
-          </button>
+          {mode === 'grid' && (
+            <button type="button" className="vr-live-tool correct" aria-pressed={correcting && !isLocked} disabled={isLocked} onClick={() => setCorrecting((c) => !c)}>
+              <strong>{t.correct}</strong>
+            </button>
+          )}
           {isLocked ? (
             <>
               <button type="button" className="vr-btn vr-btn-secondary" onClick={() => setReopened((r) => new Set([...r, view]))}>
@@ -618,7 +694,28 @@ export function LiveSheetView({ id }: { id: string }) {
         </div>
       </header>
 
-      <p className="vr-live-narrow">{t.narrow}</p>
+      {mode === 'grid' ? (
+        <p className="vr-live-narrow">{t.narrow}</p>
+      ) : (
+        <LiveKeypad
+          key={view}
+          set={view}
+          lineup={set.lineup ?? proposedLineup(record, view)}
+          untracked={untracked}
+          locked={isLocked}
+          last={
+            lastTouch && lastTouch.delta > 0
+              ? `${record.sets.find((s) => s.number === lastTouch.set)?.rows.find((r) => r.id === lastTouch.rowId)?.playerNumber ?? '?'} · ${lastTouch.code}`
+              : null
+          }
+          canUndo={canUndo}
+          undoText={undoText}
+          onTouch={keypadTouch}
+          onUndo={undo}
+          onLineup={() => setChoosingLineup(true)}
+          onGrid={() => switchMode('grid')}
+        />
+      )}
 
       <div className={`vr-live-sheet${isLocked ? ' locked' : ''}`}>
         <div
@@ -644,7 +741,7 @@ export function LiveSheetView({ id }: { id: string }) {
       </div>
 
       <footer className="vr-live-foot">
-        <span className="vr-live-hint">{isLocked && set.score ? t.hintClosed(view, set.score.team, set.score.opponent) : correcting ? t.hintCorrect : t.hint}</span>
+        <span className="vr-live-hint">{mode === 'keypad' && !isLocked ? '' : isLocked && set.score ? t.hintClosed(view, set.score.team, set.score.opponent) : correcting ? t.hintCorrect : t.hint}</span>
         <span>
           {t.touches}: <strong>{total}</strong> · {saved ? t.saved : t.saving}
         </span>
@@ -658,6 +755,18 @@ export function LiveSheetView({ id }: { id: string }) {
           onConfirm={(details) => {
             setRecord(setMatchDetails(record, details));
             setEditing(null);
+          }}
+        />
+      )}
+      {(choosingLineup || (needsLineup && !editing && !closing)) && (
+        <LineupDialog
+          key={view}
+          set={view}
+          proposed={proposedLineup(record, view)}
+          onCancel={() => (choosingLineup ? setChoosingLineup(false) : switchMode('grid'))}
+          onConfirm={(lineup) => {
+            setRecord(setLineup(record, view, lineup));
+            setChoosingLineup(false);
           }}
         />
       )}

@@ -13,7 +13,7 @@
 
 import type { ScoutCodeString } from '../domain/codes';
 import type { SetNumber, SetScore } from '../domain/model';
-import { type MatchRecord, type PlayerRecord, type SetRecord, matchWinner, setIsPlayed, setScoreIsFinal, withNumbersFromPreviousSet } from './record';
+import { type Lineup, type MatchRecord, type PlayerRecord, type RowKind, type SetRecord, emptyRow, matchWinner, setIsPlayed, setScoreIsFinal, withNumbersFromPreviousSet } from './record';
 
 /** One change of a count, kept to undo it. */
 export interface Touch {
@@ -126,4 +126,54 @@ export function checkScore(team: number | null, opponent: number | null, set: Se
   if (team === null || opponent === null) return 'incomplete';
   if (team === opponent) return 'tied';
   return setScoreIsFinal({ team, opponent }, set) ? 'ok' : 'unusual';
+}
+
+/** Writes who starts a set (keypad of the live sheet). */
+export function setLineup(record: MatchRecord, set: SetNumber, lineup: Lineup): MatchRecord {
+  const target = record.sets.find((s) => s.number === set);
+  return target ? replaceSet(record, { ...target, lineup }) : record;
+}
+
+/**
+ * The lineup to propose for a set: its own, else the one of the nearest
+ * earlier set that has one, else the shirt numbers already on its rows.
+ */
+export function proposedLineup(record: MatchRecord, set: SetNumber): Lineup {
+  const target = record.sets.find((s) => s.number === set);
+  if (target?.lineup) return target.lineup;
+  const earlier = record.sets.filter((s) => s.number < set && s.lineup).at(-1)?.lineup;
+  if (earlier) return earlier;
+  const numbers = (kind: RowKind, max: number) =>
+    [...new Set((target?.rows ?? []).filter((r) => r.kind === kind && r.playerNumber !== null).map((r) => r.playerNumber!))].slice(0, max);
+  return { court: numbers('player', 6), liberos: numbers('libero', 2) };
+}
+
+/**
+ * A touch given by shirt number (keypad): it goes to the row of that number
+ * and kind; a number not on the sheet yet takes the first empty row of its
+ * kind, or a new one. Null when nothing changes.
+ */
+export function bumpShirt(
+  record: MatchRecord,
+  set: SetNumber,
+  playerNumber: number,
+  kind: RowKind,
+  code: ScoutCodeString,
+  known: readonly PlayerRecord[] = [],
+): { record: MatchRecord; touch: Touch } | null {
+  const target = record.sets.find((s) => s.number === set);
+  if (!target) return null;
+  let current = record;
+  let row = target.rows.find((r) => r.kind === kind && r.playerNumber === playerNumber);
+  if (!row) {
+    const free = target.rows.find((r) => r.kind === kind && r.playerNumber === null && Object.keys(r.counts).length === 0);
+    if (free) {
+      row = free;
+    } else {
+      row = emptyRow(kind);
+      current = replaceSet(current, { ...target, rows: [...target.rows, row] });
+    }
+    current = setShirtNumber(current, set, row.id, playerNumber, known);
+  }
+  return bump(current, set, row.id, code, 1);
 }
