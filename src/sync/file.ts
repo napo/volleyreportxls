@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 /**
- * The archive file on Google Drive: a .vrp file (src/matches/vrp.ts) holding
+ * The archive file on the cloud service: a .vrp file (src/matches/vrp.ts) holding
  * the whole archive, so that the user can also download it and import it by
  * hand. Next to the matches, athletes and squads of a .vrp it holds what only
  * synchronisation needs: the names known for every team (teams.json) and the
@@ -10,8 +10,8 @@
  * Reading never trusts the file, as for any .vrp.
  */
 
-import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate';
-import { VRP_FORMAT, VRP_VERSION, VrpError, isId, isObject, readAthletes, readMatchRecord, readPlayers, readSquads, stamp, text } from '../matches/vrp';
+import { strFromU8, strToU8, zipSync } from 'fflate';
+import { VRP_FORMAT, VRP_VERSION, VrpError, isId, isObject, readAthletes, readMatchRecord, readPlayers, readSquads, stamp, text, unzipVrp } from '../matches/vrp';
 import type { TeamRecord } from '../storage/archive';
 import type { Deletion, Snapshot, SyncKind } from './merge';
 
@@ -56,14 +56,7 @@ function readDeletions(v: unknown): Deletion[] {
 
 /** The archive held by the file; throws VrpError when it is not a .vrp file this app can read. */
 export function readSyncFile(bytes: Uint8Array): Snapshot {
-  let files: Record<string, Uint8Array>;
-  try {
-    files = unzipSync(bytes, {
-      filter: (f) => ['manifest.json', 'athletes.json', 'squads.json', 'teams.json', 'deletions.json'].includes(f.name) || /^matches\/[^/]+\.json$/.test(f.name),
-    });
-  } catch {
-    throw new VrpError('not-zip');
-  }
+  const files = unzipVrp(bytes, ['manifest.json', 'athletes.json', 'squads.json', 'teams.json', 'deletions.json']);
   const json = (name: string): unknown => {
     try {
       return files[name] ? JSON.parse(strFromU8(files[name])) : null;

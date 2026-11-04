@@ -156,16 +156,39 @@ export interface VrpContent {
   readonly squads: Squad[];
 }
 
-/** The matches (and athletes) of a .vrp file; throws VrpError when the file is not one. */
-export function importVrp(bytes: Uint8Array): VrpContent {
+/** Limits of a .vrp file, far above any real archive: a file made to fill the memory is refused. */
+const MAX_ENTRY_BYTES = 20 * 1024 * 1024;
+const MAX_TOTAL_BYTES = 200 * 1024 * 1024;
+const MAX_ENTRIES = 20_000;
+
+/**
+ * The files of a .vrp with these names (or a match), unpacked; throws VrpError
+ * ('not-zip') when it is not a zip, ('invalid') when it is too large.
+ */
+export function unzipVrp(bytes: Uint8Array, names: readonly string[]): Record<string, Uint8Array> {
+  let total = 0;
+  let entries = 0;
+  let tooLarge = false;
+  const filter = (f: { name: string; originalSize: number }) => {
+    if (!names.includes(f.name) && !/^matches\/[^/]+\.json$/.test(f.name)) return false;
+    total += f.originalSize;
+    entries++;
+    if (f.originalSize > MAX_ENTRY_BYTES || total > MAX_TOTAL_BYTES || entries > MAX_ENTRIES) tooLarge = true;
+    return !tooLarge;
+  };
   let files: Record<string, Uint8Array>;
   try {
-    files = unzipSync(bytes, {
-      filter: (f) => ['manifest.json', 'athletes.json', 'squads.json'].includes(f.name) || /^matches\/[^/]+\.json$/.test(f.name),
-    });
+    files = unzipSync(bytes, { filter });
   } catch {
     throw new VrpError('not-zip');
   }
+  if (tooLarge) throw new VrpError('invalid');
+  return files;
+}
+
+/** The matches (and athletes) of a .vrp file; throws VrpError when the file is not one. */
+export function importVrp(bytes: Uint8Array): VrpContent {
+  const files = unzipVrp(bytes, ['manifest.json', 'athletes.json', 'squads.json']);
   const json = (name: string): unknown => {
     try {
       return JSON.parse(strFromU8(files[name]!));

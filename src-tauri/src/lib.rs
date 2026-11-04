@@ -24,7 +24,7 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .manage(oauth::Pending::default())
-        .invoke_handler(tauri::generate_handler![oauth::oauth_listen, oauth::oauth_wait]);
+        .invoke_handler(tauri::generate_handler![oauth::oauth_listen, oauth::oauth_wait, oauth::oauth_cancel]);
 
     builder
         .run(tauri::generate_context!())

@@ -46,7 +46,7 @@ async function createAuth(platform: SyncPlatform): Promise<CloudAuth> {
     openBrowser: (url) => openUrl(url),
     redirect: async () => {
       const port = await invoke<number>('oauth_listen');
-      return { uri: `http://127.0.0.1:${port}`, wait: () => invoke<string>('oauth_wait', { port }) };
+      return { uri: `http://127.0.0.1:${port}`, wait: () => invoke<string>('oauth_wait', { port }), cancel: () => void invoke('oauth_cancel', { port }).catch(() => undefined) };
     },
   });
 }

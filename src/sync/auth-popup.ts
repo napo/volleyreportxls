@@ -15,6 +15,7 @@ const TIMEOUT_MS = 5 * 60_000;
 
 export function popupSignIn(): { redirect: () => Promise<Redirect>; openBrowser: (url: string) => Promise<void> } {
   let popup: Window | null = null;
+  let stop: (() => void) | null = null;
   return {
     async redirect() {
       popup = window.open('about:blank', 'volleyreport-oauth', 'popup,width=520,height=720');
@@ -24,16 +25,28 @@ export function popupSignIn(): { redirect: () => Promise<Redirect>; openBrowser:
         wait: () =>
           new Promise<string>((resolve, reject) => {
             const channel = new BroadcastChannel(CHANNEL);
-            const timer = setTimeout(() => {
+            const end = () => {
+              clearTimeout(timer);
               channel.close();
+              stop = null;
+            };
+            const timer = setTimeout(() => {
+              end();
               reject(new SignInError('timeout'));
             }, TIMEOUT_MS);
             channel.onmessage = (event) => {
-              clearTimeout(timer);
-              channel.close();
+              end();
               resolve(String(event.data));
             };
+            stop = () => {
+              end();
+              reject(new SignInError('cancelled'));
+            };
           }),
+        cancel: () => {
+          stop?.();
+          popup?.close();
+        },
       };
     },
     async openBrowser(url) {

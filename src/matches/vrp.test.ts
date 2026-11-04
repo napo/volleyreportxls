@@ -59,3 +59,15 @@ test('files that are not .vrp archives are rejected', () => {
   const broken = zipSync({ 'manifest.json': strToU8('{"format":"volleyreport-paper","version":1}'), 'matches/abcd.json': strToU8('{"id":"abcd"}') });
   expect(() => importVrp(broken)).toThrow(VrpError);
 });
+
+describe('a .vrp made to fill the memory', () => {
+  it('is refused when an entry unpacks beyond the limit', () => {
+    const bytes = zipSync({ 'manifest.json': strToU8('{}'), 'matches/x.json': new Uint8Array(21 * 1024 * 1024) }, { level: 9 });
+    expect(() => importVrp(bytes)).toThrow(VrpError);
+    try {
+      importVrp(bytes);
+    } catch (e) {
+      expect((e as VrpError).kind).toBe('invalid');
+    }
+  });
+});

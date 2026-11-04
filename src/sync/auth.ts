@@ -17,6 +17,8 @@ export interface CloudAuth {
   invalidate(): void;
   /** Forgets the tokens on this device and revokes the access when possible. */
   signOut(): Promise<void>;
+  /** The user gave up a sign-in in progress: it ends at once, refused. */
+  cancel?(): void;
 }
 
 /** An access token with its expiry, kept in memory. */

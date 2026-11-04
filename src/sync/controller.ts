@@ -110,15 +110,25 @@ export class SyncController {
     return true;
   }
 
+  /** The user gave up the sign-in of `connect`: it returns false at once. */
+  cancelSignIn() {
+    this.auth?.cancel?.();
+  }
+
   /** Stops the synchronisation on this device; with `deleteRemote` the file goes to the bin of the service. */
+  /**
+   * When the file cannot be moved to the bin (no access, no network) it throws
+   * and nothing changes: the synchronisation goes on, and the user can try again.
+   */
   async disconnect(deleteRemote = false): Promise<void> {
-    this.unwatch();
     if (deleteRemote && this.auth) {
       const token = await this.auth.token(true).catch(() => null);
+      if (!token) throw new Error('sync: no access to delete the file');
       const id = await this.archive.getMeta<string>(META.fileId);
-      if (token && id) await this.provider.storage(token, await syncFetch()).trash(id);
+      if (id) await this.provider.storage(token, await syncFetch()).trash(id);
     }
-    await this.auth?.signOut();
+    this.unwatch();
+    await this.auth?.signOut().catch(() => undefined);
     this.auth = null;
     this.provider = DEFAULT_PROVIDER;
     await this.archive.setMeta(ENABLED, false);

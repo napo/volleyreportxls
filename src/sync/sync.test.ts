@@ -4,9 +4,9 @@
 import 'fake-indexeddb/auto';
 import { type MatchRecord, newMatchRecord } from '../matches/record';
 import { importVrp } from '../matches/vrp';
-import { Archive } from '../storage/archive';
+import { Archive, changeTime } from '../storage/archive';
 import type { CloudAuth } from './auth';
-import { PkceAuth, type PkceEndpoints } from './auth-pkce';
+import { PkceAuth, type PkceEndpoints, SignInError } from './auth-pkce';
 import { synchronise } from './engine';
 import { readSyncFile, writeSyncFile } from './file';
 import { DropboxClient } from './dropbox';
@@ -365,7 +365,7 @@ describe('PKCE sign-in', () => {
     clientId: 'id',
     fetch: fetchFn,
     storage: memory(stored),
-    redirect: async () => ({ uri: 'http://127.0.0.1:1', wait: async () => '' }),
+    redirect: async () => ({ uri: 'http://127.0.0.1:1', wait: async () => '', cancel: () => {} }),
     openBrowser: async () => {},
   });
 
@@ -395,6 +395,30 @@ describe('PKCE sign-in', () => {
     expect(without).toEqual({});
     await new PkceAuth(options({ 'test.refresh': 'old' }, record, { revoke: 'https://s/revoke' })).signOut();
     expect(urls).toEqual(['https://s/revoke?token=old']);
+  });
+
+  test('a sign-in given up by the user ends at once, refused, and stops the way back', async () => {
+    let stopped = false;
+    let refuse: (e: Error) => void = () => {};
+    let opened: () => void = () => {};
+    const browserOpen = new Promise<void>((r) => (opened = r));
+    const auth = new PkceAuth({
+      ...options({}, async () => new Response('{}')),
+      openBrowser: async () => opened(),
+      redirect: async () => ({
+        uri: 'http://127.0.0.1:1',
+        wait: () => new Promise<string>((_, reject) => (refuse = reject)),
+        cancel: () => {
+          stopped = true;
+          refuse(new Error('cancelled'));
+        },
+      }),
+    });
+    const signIn = auth.token(true);
+    await browserOpen;
+    auth.cancel();
+    await expect(signIn).rejects.toBeInstanceOf(SignInError);
+    expect(stopped).toBe(true);
   });
 });
 
@@ -443,7 +467,7 @@ test('PKCE: a service revoking by access token gets it as bearer, renewed when n
       return new Response(JSON.stringify({ access_token: 'fresh', expires_in: 3600 }));
     },
     storage: { getItem: (k) => stored[k] ?? null, setItem: (k, v) => void (stored[k] = v), removeItem: (k) => void delete stored[k] },
-    redirect: async () => ({ uri: '', wait: async () => '' }),
+    redirect: async () => ({ uri: '', wait: async () => '', cancel: () => {} }),
     openBrowser: async () => {},
   }).signOut();
   expect(calls.map((c) => c.url)).toEqual(['https://s/token', 'https://s/revoke']);
@@ -491,4 +515,26 @@ describe('OneDrive', () => {
     }).create(new Uint8Array([1]));
     expect(urls[0]).toContain('conflictBehavior=fail');
   });
+});
+
+test('merge: a file gone back in time (an older copy written over it) is not a change', () => {
+  const at = (iso: string) => ({ ...newMatchRecord(), id: 'm1', venue: iso, updatedAt: iso });
+  const mine = at('2026-02-01T00:00:00.000Z');
+  const older = at('2026-01-01T00:00:00.000Z');
+  const result = mergeSnapshots({ ...EMPTY_SNAPSHOT, matches: [mine] }, { ...EMPTY_SNAPSHOT, matches: [older] }, { 'match:m1': mine.updatedAt }, () => 'copy0001');
+  expect(result.merged.matches).toEqual([mine]);
+  expect(result.conflicts).toBe(0);
+});
+
+test('a change always gets a time after the version it replaces, even with a clock behind', async () => {
+  expect(changeTime('2026-01-01T00:00:00.000Z', '2026-03-01T00:00:00.000Z')).toBe('2026-03-01T00:00:00.001Z');
+  expect(changeTime('2026-05-01T00:00:00.000Z', '2026-03-01T00:00:00.000Z', undefined)).toBe('2026-05-01T00:00:00.000Z');
+  const archive = await device();
+  const future = { ...newMatchRecord(), id: 'm1', updatedAt: '2999-01-01T00:00:00.000Z' };
+  await archive.applySync([{ kind: 'match', id: 'm1', record: future, stamp: future.updatedAt }], [], new Map());
+  const saved = await archive.saveMatch({ ...future, venue: 'Trento' });
+  expect(saved.updatedAt > future.updatedAt).toBe(true);
+  await archive.deleteMatch('m1');
+  const { deletions } = await archive.snapshot();
+  expect(deletions[0]!.deletedAt > saved.updatedAt).toBe(true);
 });

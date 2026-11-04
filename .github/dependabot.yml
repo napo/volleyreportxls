@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The GitHub Actions of the workflows are pinned to a commit (SHA), so that a
+# moved tag cannot run other code in the builds that hold the signing keys.
+# Dependabot proposes the new commits, once a month, in a single pull request.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ['*']

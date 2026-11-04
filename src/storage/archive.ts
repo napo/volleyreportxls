@@ -5,7 +5,7 @@
  * Local archive (IndexedDB): matches, the athletes, and the names (and
  * athletes) of the players of every team in a competition, so that a new
  * match of the same team gets them for the shirt numbers already filled in.
- * Nothing leaves the device unless the user connects Google Drive: then
+ * Nothing leaves the device unless the user connects a cloud service: then
  * src/sync copies the archive there. For that, every record keeps the time of
  * its last change and every deletion is remembered (src/sync/merge.ts).
  */
@@ -47,14 +47,40 @@ interface ArchiveSchema extends DBSchema {
 const DB_NAME = 'volleyreport';
 const DB_VERSION = 4;
 
-/** Who changed the archive: the user on this device, or a synchronisation bringing changes from other devices. */
+/**
+ * Who changed the archive: the user in this page, or someone else (a
+ * synchronisation bringing changes from other devices, or another tab of the
+ * same browser): the pages showing data read it again.
+ */
 export type ChangeOrigin = 'local' | 'sync';
 
 const STORES = { match: 'matches', athlete: 'athletes', team: 'teams', squad: 'squads' } as const;
 const tombstone = (kind: SyncKind, id: string, deletedAt: string) => ({ key: syncKey(kind, id), kind, id, deletedAt });
 
+/**
+ * The time of a change: now, but always after the version it replaces (and
+ * after its deletion), even when this device's clock is behind the one that
+ * wrote it. So a newer version always has a later time, and synchronisation
+ * can recognise a file that went back in time (src/sync/merge.ts).
+ */
+export function changeTime(now: string, ...before: (string | null | undefined)[]): string {
+  const latest = before.reduce<string>((max, t) => (t && t > max ? t : max), '');
+  if (latest < now) return now;
+  const next = Date.parse(latest);
+  return Number.isNaN(next) ? now : new Date(next + 1).toISOString();
+}
+
 export class Archive {
-  private constructor(private readonly db: IDBPDatabase<ArchiveSchema>) {}
+  /** Tells the other tabs of this browser that the archive changed. */
+  private readonly tabs: BroadcastChannel | null;
+
+  private constructor(
+    private readonly db: IDBPDatabase<ArchiveSchema>,
+    name: string,
+  ) {
+    this.tabs = typeof BroadcastChannel === 'undefined' ? null : new BroadcastChannel(`volleyreport-archive:${name}`);
+    if (this.tabs) this.tabs.onmessage = () => this.notify('sync');
+  }
 
   static async open(name = DB_NAME): Promise<Archive> {
     const db = await openDB<ArchiveSchema>(name, DB_VERSION, {
@@ -72,7 +98,7 @@ export class Archive {
         }
       },
     });
-    return new Archive(db);
+    return new Archive(db, name);
   }
 
   private readonly listeners = new Set<(origin: ChangeOrigin) => void>();
@@ -83,8 +109,13 @@ export class Archive {
     return () => this.listeners.delete(listener);
   }
 
-  private changed(origin: ChangeOrigin = 'local') {
+  private notify(origin: ChangeOrigin) {
     for (const listener of this.listeners) listener(origin);
+  }
+
+  private changed(origin: ChangeOrigin = 'local') {
+    this.notify(origin);
+    this.tabs?.postMessage(origin);
   }
 
   /** Most recently changed first. */
@@ -105,16 +136,22 @@ export class Archive {
   async saveMatches(records: readonly MatchRecord[]): Promise<MatchRecord[]> {
     const now = new Date().toISOString();
     const tx = this.db.transaction(['matches', 'teams', 'deletions'], 'readwrite');
-    const saved = records.map((r) => ({ ...r, updatedAt: now }));
+    const saved: MatchRecord[] = [];
+    for (const r of records) {
+      const old = await tx.objectStore('matches').get(r.id);
+      const gone = await tx.objectStore('deletions').get(syncKey('match', r.id));
+      saved.push({ ...r, updatedAt: changeTime(now, old?.updatedAt, gone?.deletedAt) });
+    }
     for (const record of saved) {
       await tx.objectStore('matches').put(record);
       await tx.objectStore('deletions').delete(syncKey('match', record.id));
       const known = record.players.filter((p) => p.name.trim() !== '' || p.athleteId);
       if (!record.teamName.trim() || known.length === 0) continue;
       const key = teamKey(record.teamName, record.competition);
-      const before = (await tx.objectStore('teams').get(key))?.players ?? [];
+      const team = await tx.objectStore('teams').get(key);
+      const before = team?.players ?? [];
       const players = [...before.filter((p) => !known.some((n) => n.number === p.number)), ...known].sort((a, b) => a.number - b.number);
-      await tx.objectStore('teams').put({ key, teamName: record.teamName, competition: record.competition, players, updatedAt: now });
+      await tx.objectStore('teams').put({ key, teamName: record.teamName, competition: record.competition, players, updatedAt: changeTime(now, team?.updatedAt) });
     }
     await tx.done;
     this.changed();
@@ -135,7 +172,7 @@ export class Archive {
     const name = current?.name ?? records.flatMap((r) => r.players.filter((p) => p.number === number && p.name.trim()).map((p) => p.name))[0] ?? '';
     const player: PlayerRecord = athleteId ? { number, name, athleteId } : { number, name };
     const players = [...before.filter((p) => p.number !== number), ...(player.name.trim() || athleteId ? [player] : [])].sort((a, b) => a.number - b.number);
-    await this.db.put('teams', { key, teamName, competition, players, updatedAt: new Date().toISOString() });
+    await this.db.put('teams', { key, teamName, competition, players, updatedAt: changeTime(new Date().toISOString(), team?.updatedAt) });
     this.changed();
   }
 
@@ -144,8 +181,10 @@ export class Archive {
   }
 
   async saveAthlete(athlete: Athlete): Promise<Athlete> {
-    const saved = { ...athlete, updatedAt: new Date().toISOString() };
     const tx = this.db.transaction(['athletes', 'deletions'], 'readwrite');
+    const old = await tx.objectStore('athletes').get(athlete.id);
+    const gone = await tx.objectStore('deletions').get(syncKey('athlete', athlete.id));
+    const saved = { ...athlete, updatedAt: changeTime(new Date().toISOString(), old?.updatedAt, gone?.deletedAt) };
     await tx.objectStore('athletes').put(saved);
     await tx.objectStore('deletions').delete(syncKey('athlete', saved.id));
     await tx.done;
@@ -160,7 +199,7 @@ export class Archive {
     // The unlinked matches and teams change too: synchronisation passes them on.
     const unlink = <T extends { players: readonly PlayerRecord[] }>(r: T): T | null =>
       r.players.some((p) => p.athleteId === id)
-        ? { ...r, players: r.players.map(({ athleteId, ...p }) => (athleteId === id ? p : { ...p, athleteId })), updatedAt: now }
+        ? { ...r, players: r.players.map(({ athleteId, ...p }) => (athleteId === id ? p : { ...p, athleteId })), updatedAt: changeTime(now, (r as { updatedAt?: string }).updatedAt) }
         : null;
     for (const match of await tx.objectStore('matches').getAll()) {
       const changed = unlink(match);
@@ -170,8 +209,9 @@ export class Archive {
       const changed = unlink(team);
       if (changed) await tx.objectStore('teams').put(changed);
     }
+    const old = await tx.objectStore('athletes').get(id);
     await tx.objectStore('athletes').delete(id);
-    await tx.objectStore('deletions').put(tombstone('athlete', id, now));
+    await tx.objectStore('deletions').put(tombstone('athlete', id, changeTime(now, old?.updatedAt)));
     await tx.done;
     this.changed();
   }
@@ -193,10 +233,11 @@ export class Archive {
     await store.clear();
     for (const squad of squads) {
       const old = before.get(squad.id);
-      await store.put({ ...squad, updatedAt: old && content(old) === content(squad) ? (old.updatedAt ?? now) : now });
+      const gone = await tx.objectStore('deletions').get(syncKey('squad', squad.id));
+      await store.put({ ...squad, updatedAt: old && content(old) === content(squad) ? (old.updatedAt ?? now) : changeTime(now, old?.updatedAt, gone?.deletedAt) });
       await tx.objectStore('deletions').delete(syncKey('squad', squad.id));
     }
-    for (const id of before.keys()) if (!squads.some((s) => s.id === id)) await tx.objectStore('deletions').put(tombstone('squad', id, now));
+    for (const [id, old] of before) if (!squads.some((s) => s.id === id)) await tx.objectStore('deletions').put(tombstone('squad', id, changeTime(now, old.updatedAt)));
     await tx.done;
     this.changed();
   }
@@ -246,8 +287,9 @@ export class Archive {
 
   async deleteMatch(id: string): Promise<void> {
     const tx = this.db.transaction(['matches', 'deletions'], 'readwrite');
+    const old = await tx.objectStore('matches').get(id);
     await tx.objectStore('matches').delete(id);
-    await tx.objectStore('deletions').put(tombstone('match', id, new Date().toISOString()));
+    await tx.objectStore('deletions').put(tombstone('match', id, changeTime(new Date().toISOString(), old?.updatedAt)));
     await tx.done;
     this.changed();
   }
@@ -311,6 +353,7 @@ export class Archive {
   }
 
   close() {
+    this.tabs?.close();
     this.db.close();
   }
 }

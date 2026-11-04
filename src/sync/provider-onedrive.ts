@@ -34,7 +34,7 @@ async function createAuth(platform: SyncPlatform): Promise<CloudAuth> {
     redirect: async () => {
       // Microsoft ignores the port of a localhost address when matching it.
       const port = await invoke<number>('oauth_listen', {});
-      return { uri: `http://localhost:${port}`, wait: () => invoke<string>('oauth_wait', { port }) };
+      return { uri: `http://localhost:${port}`, wait: () => invoke<string>('oauth_wait', { port }), cancel: () => void invoke('oauth_cancel', { port }).catch(() => undefined) };
     },
   });
 }

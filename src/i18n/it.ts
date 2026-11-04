@@ -371,6 +371,7 @@ export const it = {
     disconnectTitle: (service: string) => `Scollegare ${service}?`,
     disconnectText: (service: string) => `Su questo dispositivo i dati restano tutti; smettono solo di essere copiati su ${service}.`,
     disconnectButton: 'Scollega',
+    deleteFailed: (service: string) => `Non è stato possibile eliminare il file da ${service}: la sincronizzazione resta attiva. Controlla la connessione e riprova.`,
     localAnd: (service: string) => `I dati restano sul dispositivo e nel tuo ${service}`,
   },
 

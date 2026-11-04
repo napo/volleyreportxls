@@ -3,7 +3,7 @@
 
 /**
  * The local archive, opened once and shared by the views, with the
- * synchronisation with Google Drive. `revision` grows when a synchronisation
+ * synchronisation with the cloud service. `revision` grows when a synchronisation
  * brings changes from other devices: the views listing the archive reload.
  */
 import { type ReactNode, createContext, useContext, useEffect, useState } from 'react';

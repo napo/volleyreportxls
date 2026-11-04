@@ -9,7 +9,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { type Athlete, type RosterEntry, athleteLabel, athletesForRoster, rosterEntries, selectRosterAthlete } from '../../athletes/matching';
 import { findAnomalies } from '../../matches/checks';
 import { useI18n } from '../../i18n';
-import { type MatchRecord, type SetRecord, liberoNumbers, matchWinner, setIsPlayed, shirtNumbers, withNumbersFromPreviousSet } from '../../matches/record';
+import { type MatchRecord, type SetRecord, liberoNumbers, matchWinner, sameContent, setIsPlayed, shirtNumbers, withNumbersFromPreviousSet } from '../../matches/record';
 import { formatDate, parseDate } from '../../report/format';
 import { withKnownNames } from '../../storage/archive';
 import { useArchive } from '../archive-context';
@@ -94,10 +94,13 @@ function ScoreInput({ set, onChange, onDone }: ScoreInputProps) {
 export function MatchEditorView({ id }: { id: string }) {
   const { m } = useI18n();
   const t = m.editor;
-  const { archive } = useArchive();
+  const { archive, revision } = useArchive();
   const [record, setRecord] = useState<MatchRecord | null>(null);
   const [missing, setMissing] = useState(false);
   const [saved, setSaved] = useState(true);
+  // A change not written yet (read when leaving the page and after a synchronisation).
+  const unsaved = useRef(false);
+  unsaved.current = !saved;
   const [setNumber, setSetNumber] = useState(1);
   // Athletes of the archive, by label (the unnamed ones by number and roster).
   const [athletes, setAthletes] = useState<readonly (Athlete & { label: string })[]>([]);
@@ -148,6 +151,35 @@ export function MatchEditorView({ id }: { id: string }) {
       if (pending.current) clearTimeout(pending.current);
     };
   }, [archive, record, saved]);
+
+  // Leaving the page (another view, tab closed) before the delay: save at once, the change is not lost.
+  useEffect(() => {
+    if (!archive) return;
+    const flush = () => {
+      if (unsaved.current && latest.current) {
+        unsaved.current = false;
+        void archive.saveMatch(latest.current);
+      }
+    };
+    window.addEventListener('pagehide', flush);
+    return () => {
+      window.removeEventListener('pagehide', flush);
+      flush();
+    };
+  }, [archive]);
+
+  // A synchronisation changed the archive: take the match as it is now, unless a change here is still to be saved.
+  useEffect(() => {
+    if (!archive || revision === 0) return;
+    archive.getMatch(id).then((found) => {
+      if (unsaved.current) return;
+      if (!found) return setMissing(true);
+      const current = latest.current;
+      if (current && sameContent(current, found)) return;
+      over.current = matchWinner(found) !== null;
+      setRecord(found);
+    });
+  }, [archive, id, revision]);
 
   const change = (next: MatchRecord) => {
     setRecord(next);

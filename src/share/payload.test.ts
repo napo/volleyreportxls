@@ -137,3 +137,17 @@ test('counts of any size come back: half a byte below 15, then 15 plus a number'
   if (typeof back === 'string') throw new Error(back);
   expect(back.matches[0]!.sets[0]!.rows[0]!.counts).toEqual(counts);
 });
+
+describe('a link made to fill the memory', () => {
+  it('is refused once it unpacks beyond the limit', () => {
+    const bomb = deflateSync(new Uint8Array(64 * 1024 * 1024), { level: 9 });
+    let binary = '';
+    for (const b of bomb) binary += String.fromCharCode(b);
+    const encoded = btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    expect(decodeShare(encoded)).toBe('invalid');
+  });
+
+  it('is refused when it is far too long', () => {
+    expect(decodeShare('A'.repeat(1_000_001))).toBe('invalid');
+  });
+});

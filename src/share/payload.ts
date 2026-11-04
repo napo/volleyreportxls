@@ -10,7 +10,7 @@
  * Reading never trusts the link, as for a .vrp file.
  */
 
-import { deflateSync, inflateSync, strFromU8 } from 'fflate';
+import { Inflate, deflateSync, strFromU8 } from 'fflate';
 import { BINARY_VERSION, readBinary, writeBinary } from './binary';
 import { type MatchRecord, rowIsUsed } from '../matches/record';
 import { isObject, readMatchRecord, text } from '../matches/vrp';
@@ -93,6 +93,29 @@ function fromBase64Url(s: string): Uint8Array {
   return Uint8Array.from(binary, (c) => c.charCodeAt(0));
 }
 
+/** Longest link read, and most bytes it may unpack to: far above any real report, a link made to fill the memory is refused. */
+const MAX_LINK_CHARS = 1_000_000;
+const MAX_UNPACKED_BYTES = 8 * 1024 * 1024;
+
+/** Unpacks, stopping as soon as the content goes beyond the limit. */
+function inflateLimited(data: Uint8Array): Uint8Array {
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  const inflate = new Inflate((chunk) => {
+    size += chunk.length;
+    if (size > MAX_UNPACKED_BYTES) throw new Error('share: too large');
+    chunks.push(chunk);
+  });
+  inflate.push(data, true);
+  const out = new Uint8Array(size);
+  let at = 0;
+  for (const c of chunks) {
+    out.set(c, at);
+    at += c.length;
+  }
+  return out;
+}
+
 export function encodeShare(p: SharePayload): string {
   return toBase64Url(deflateSync(writeBinary(p), { level: 9 }));
 }
@@ -108,7 +131,8 @@ export type ShareError = 'invalid' | 'newer';
 export function decodeShare(s: string): SharePayload | ShareError {
   let v: unknown;
   try {
-    const bytes = inflateSync(fromBase64Url(s));
+    if (s.length > MAX_LINK_CHARS) return 'invalid';
+    const bytes = inflateLimited(fromBase64Url(s));
     // Version 1 is JSON (it starts with "{"); later versions start with their number.
     if (bytes[0] === 0x7b) v = readJson(bytes);
     else if ((bytes[0] ?? 0) > SHARE_VERSION) return 'newer';

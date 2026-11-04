@@ -9,12 +9,19 @@
 use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::net::TcpListener;
-use std::sync::Mutex;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
-/// Listeners waiting for the service's redirect, by port.
+/// A sign-in in progress: its listener (taken by `oauth_wait`) and the flag that stops the wait.
+struct Waiting {
+    listener: Option<TcpListener>,
+    cancel: Arc<AtomicBool>,
+}
+
+/// Sign-ins waiting for the service's redirect, by port.
 #[derive(Default)]
-pub struct Pending(Mutex<HashMap<u16, TcpListener>>);
+pub struct Pending(Mutex<HashMap<u16, Waiting>>);
 
 /// How long the user has to sign in.
 const TIMEOUT: Duration = Duration::from_secs(300);
@@ -27,27 +34,59 @@ const PAGE: &str = "<!doctype html><meta charset=\"utf-8\"><title>VolleyReport</
 /// Opens the listener and returns its port, to put in the redirect address.
 #[tauri::command]
 pub fn oauth_listen(port: Option<u16>, pending: tauri::State<'_, Pending>) -> Result<u16, String> {
-    let listener = TcpListener::bind(("127.0.0.1", port.unwrap_or(0))).map_err(|e| e.to_string())?;
+    // A fixed port may still be held by an earlier sign-in left halfway: stop it, it frees the port within a moment.
+    if let Some(port) = port {
+        cancel(port, &pending);
+    }
+    let mut tries = 0;
+    let listener = loop {
+        match TcpListener::bind(("127.0.0.1", port.unwrap_or(0))) {
+            Ok(listener) => break listener,
+            Err(_) if port.is_some() && tries < 15 => {
+                tries += 1;
+                std::thread::sleep(Duration::from_millis(100));
+            }
+            Err(e) => return Err(e.to_string()),
+        }
+    };
     let port = listener.local_addr().map_err(|e| e.to_string())?.port();
-    pending.0.lock().map_err(|e| e.to_string())?.insert(port, listener);
+    let waiting = Waiting { listener: Some(listener), cancel: Arc::new(AtomicBool::new(false)) };
+    pending.0.lock().map_err(|e| e.to_string())?.insert(port, waiting);
     Ok(port)
+}
+
+fn cancel(port: u16, pending: &Pending) {
+    if let Ok(mut map) = pending.0.lock() {
+        if let Some(waiting) = map.remove(&port) {
+            waiting.cancel.store(true, Ordering::SeqCst);
+        }
+    }
+}
+
+/// The user gave up the sign-in: the wait ends at once and the port is freed.
+#[tauri::command]
+pub fn oauth_cancel(port: u16, pending: tauri::State<'_, Pending>) {
+    cancel(port, &pending);
 }
 
 /// Waits for the browser to come back and returns the path with its query ("/?code=…&state=…").
 #[tauri::command]
 pub async fn oauth_wait(port: u16, pending: tauri::State<'_, Pending>) -> Result<String, String> {
-    let listener = pending
-        .0
-        .lock()
-        .map_err(|e| e.to_string())?
-        .remove(&port)
-        .ok_or("unknown port")?;
-    tauri::async_runtime::spawn_blocking(move || accept(listener))
+    let (listener, stop) = {
+        let mut map = pending.0.lock().map_err(|e| e.to_string())?;
+        let waiting = map.get_mut(&port).ok_or("unknown port")?;
+        (waiting.listener.take().ok_or("already waiting")?, waiting.cancel.clone())
+    };
+    let result = tauri::async_runtime::spawn_blocking(move || accept(listener, &stop))
         .await
-        .map_err(|e| e.to_string())?
+        .map_err(|e| e.to_string())?;
+    if let Ok(mut map) = pending.0.lock() {
+        map.remove(&port);
+    }
+    result
 }
 
-fn accept(listener: TcpListener) -> Result<String, String> {
+fn accept(listener: TcpListener, stop: &AtomicBool) -> Result<String, String> {
     listener.set_nonblocking(true).map_err(|e| e.to_string())?;
     let start = Instant::now();
     loop {
@@ -74,6 +113,9 @@ fn accept(listener: TcpListener) -> Result<String, String> {
                 return Ok(target);
             }
             Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                if stop.load(Ordering::SeqCst) {
+                    return Err("cancelled".into());
+                }
                 if start.elapsed() > TIMEOUT {
                     return Err("timeout".into());
                 }

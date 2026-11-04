@@ -372,6 +372,7 @@ export const en: Messages = {
     disconnectTitle: (service: string) => `Disconnect ${service}?`,
     disconnectText: (service: string) => `All the data stay on this device; they are just no longer copied to ${service}.`,
     disconnectButton: 'Disconnect',
+    deleteFailed: (service: string) => `The file could not be deleted from ${service}: synchronisation stays on. Check the connection and try again.`,
     localAnd: (service: string) => `Data stay on the device and in your ${service}`,
   },
 

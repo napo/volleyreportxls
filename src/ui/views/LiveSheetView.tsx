@@ -26,7 +26,7 @@ import {
   setShirtNumber,
   undoTouch,
 } from '../../matches/live';
-import { type MatchRecord, type PlayerRecord, type RowKind, type SetRecord, matchWinner, setIsPlayed } from '../../matches/record';
+import { type MatchRecord, type PlayerRecord, type RowKind, type SetRecord, matchWinner, sameContent, setIsPlayed } from '../../matches/record';
 import type { Archive } from '../../storage/archive';
 import { useArchive } from '../archive-context';
 import { codeOf, parseShirtNumber, skillColumns } from '../components/counts-columns';
@@ -42,10 +42,16 @@ const CELLS = COLUMNS.flatMap((c) => c.evaluations.map((e, i) => ({ skill: c.ski
 /** Evaluation headers in the colours of the charts and of the printed form. */
 const tint = (c: (typeof CELLS)[number]) => `rgb(${evaluationTint(c.skill, c.evaluation).map((v) => Math.round(v * 255)).join(' ')})`;
 
-/** Saves every change at once, one write at a time, the latest record last. */
-function useAutosave(archive: Archive | null, record: MatchRecord | null): boolean {
+/**
+ * Saves every change at once, one write at a time, the latest record last.
+ * `adopt` marks a record read from the archive (first load, or brought by a
+ * synchronisation): it needs no saving. `pending` tells whether a change is
+ * still to be written.
+ */
+function useAutosave(archive: Archive | null, record: MatchRecord | null) {
   const [saved, setSaved] = useState(true);
   const latest = useRef<MatchRecord | null>(null);
+  const adopted = useRef<MatchRecord | null>(null);
   const dirty = useRef(false);
   const busy = useRef(false);
 
@@ -67,8 +73,8 @@ function useAutosave(archive: Archive | null, record: MatchRecord | null): boole
 
   useEffect(() => {
     if (!record) return;
-    // The record as loaded needs no saving.
-    if (latest.current === null) {
+    // The record as read from the archive needs no saving.
+    if (record === adopted.current) {
       latest.current = record;
       return;
     }
@@ -78,7 +84,11 @@ function useAutosave(archive: Archive | null, record: MatchRecord | null): boole
     void flush();
   }, [record, flush]);
 
-  return saved;
+  const adopt = useCallback((r: MatchRecord) => {
+    adopted.current = r;
+  }, []);
+  const pending = useCallback(() => dirty.current || busy.current, []);
+  return { saved, adopt, pending };
 }
 
 /** Keeps the screen on while the sheet is open (where the browser allows it). */
@@ -272,7 +282,7 @@ function MatchDetailsDialog({ record, first, onCancel, onConfirm }: { record: Ma
 export function LiveSheetView({ id }: { id: string }) {
   const { m } = useI18n();
   const t = m.live;
-  const { archive } = useArchive();
+  const { archive, revision } = useArchive();
   const [record, setRecord] = useState<MatchRecord | null>(null);
   const [missing, setMissing] = useState(false);
   const [view, setView] = useState<SetNumber>(1);
@@ -286,18 +296,35 @@ export function LiveSheetView({ id }: { id: string }) {
   const [editing, setEditing] = useState<'first' | 'edit' | null>(null);
   // Names used for the shirt numbers of this team in earlier matches.
   const [known, setKnown] = useState<readonly PlayerRecord[]>([]);
-  const saved = useAutosave(archive, record);
+  const { saved, adopt, pending } = useAutosave(archive, record);
   useWakeLock();
 
   useEffect(() => {
     if (!archive) return;
     archive.getMatch(id).then((found) => {
       if (!found) return setMissing(true);
+      adopt(found);
       setRecord(found);
       setView(currentSet(found));
       if (!found.teamName && !found.opponentName && !found.sets.some(setIsPlayed)) setEditing('first');
     });
-  }, [archive, id]);
+  }, [archive, id, adopt]);
+
+  // A synchronisation changed the archive: take the match as it is now, unless a
+  // change of this sheet is still to be saved (it goes out at the next round).
+  useEffect(() => {
+    if (!archive || revision === 0) return;
+    archive.getMatch(id).then((found) => {
+      if (pending()) return;
+      if (!found) return setMissing(true);
+      setRecord((current) => {
+        if (current && sameContent(current, found)) return current;
+        adopt(found);
+        setHistory([]);
+        return found;
+      });
+    });
+  }, [archive, id, revision, adopt, pending]);
 
   const teamName = record?.teamName ?? '';
   const competition = record?.competition ?? '';

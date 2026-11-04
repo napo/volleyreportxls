@@ -31,6 +31,8 @@ export interface Redirect {
   readonly uri: string;
   /** The address the browser came back to, with the code in its query. */
   wait(): Promise<string>;
+  /** Stops waiting: wait() is refused. */
+  cancel(): void;
 }
 
 export interface PkceOptions {
@@ -61,6 +63,8 @@ export async function pkcePair() {
 export class PkceAuth implements CloudAuth {
   private readonly cache = new TokenCache();
   private readonly storage: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
+  /** The way back of the sign-in in progress, to stop it. */
+  private waiting: Redirect | null = null;
 
   constructor(private readonly options: PkceOptions) {
     this.storage = options.storage ?? localStorage;
@@ -79,6 +83,11 @@ export class PkceAuth implements CloudAuth {
 
   invalidate() {
     this.cache.clear();
+  }
+
+  cancel() {
+    this.waiting?.cancel();
+    this.waiting = null;
   }
 
   async signOut(): Promise<void> {
@@ -134,9 +143,19 @@ export class PkceAuth implements CloudAuth {
       state,
       ...extraParams,
     })}`;
+    this.waiting = redirect;
     const back = redirect.wait();
-    await this.options.openBrowser(url);
-    const query = new URL(await back, redirect.uri).searchParams;
+    let address: string;
+    try {
+      await this.options.openBrowser(url);
+      address = await back;
+    } catch (e) {
+      redirect.cancel();
+      throw e instanceof SignInError ? e : new SignInError(String(e));
+    } finally {
+      if (this.waiting === redirect) this.waiting = null;
+    }
+    const query = new URL(address, redirect.uri).searchParams;
     if (query.get('state') !== state || !query.get('code')) throw new SignInError(query.get('error') ?? 'no code');
     const result = await this.tokenRequest({ grant_type: 'authorization_code', code: query.get('code')!, code_verifier: verifier, redirect_uri: redirect.uri });
     if (!result.ok) throw new SignInError(result.error ?? 'token');

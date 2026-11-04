@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 /**
- * Merging the local archive with the copy on the user's Google Drive.
+ * Merging the local archive with the copy on the user's cloud service (Google Drive, Dropbox or OneDrive).
  *
  * Every record (match, athlete, team names, squad) carries the time of its
  * last change; a deleted record leaves a deletion with its time, so that the
@@ -14,6 +14,8 @@
  *   the same match are both kept: the older one becomes a copy with a new id,
  *   as when importing a .vrp file, so no counts are lost.
  * - The same time on both sides is the same version, whatever the content.
+ * - A time in the file earlier than the base is an older copy written over a
+ *   newer one: it is not a change.
  * Versions are compared as the file keeps them (a count at zero is left out).
  * Matches equal in everything but the id (copies made by older versions of
  * the merge) are deleted but one, the same on every device.
@@ -112,9 +114,13 @@ export function mergeSnapshots(local: Snapshot, remote: Snapshot, base: SyncBase
       continue;
     }
     const localChanged = a.stamp !== base[key];
-    const remoteChanged = b.stamp !== base[key];
-    if (localChanged !== remoteChanged) {
-      out.set(key, localChanged ? a : b);
+    // A change always gets a time after the version it replaces (changeTime in src/storage/archive.ts): a file
+    // whose time went back since the last synchronisation was overwritten with an older copy (two devices
+    // writing at the same moment). It is not a change: what this device has wins and goes back to the file.
+    const stale = base[key] !== undefined && b.stamp < base[key];
+    const remoteChanged = b.stamp !== base[key] && !stale;
+    if (!remoteChanged || localChanged !== remoteChanged) {
+      out.set(key, remoteChanged ? b : a);
       continue;
     }
     const winner = latest(a, b);

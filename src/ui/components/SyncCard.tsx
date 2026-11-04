@@ -45,7 +45,14 @@ export function SyncCard() {
     });
   const disconnect = () =>
     run(async () => {
-      await sync.disconnect(deleteRemote).catch(() => undefined);
+      try {
+        await sync.disconnect(deleteRemote);
+      } catch {
+        // Still connected: the file is where it was.
+        setFailed(true);
+        return;
+      }
+      setFailed(false);
       setStep('idle');
       setDeleteRemote(false);
     });
@@ -70,7 +77,15 @@ export function SyncCard() {
               <button type="button" className="vr-btn vr-btn-primary" onClick={connect} disabled={busy}>
                 {t.confirmButton(t.services[chosen.id].account)}
               </button>
-              <button type="button" className="vr-btn vr-btn-secondary" onClick={() => setStep('idle')} disabled={busy}>
+              <button
+                type="button"
+                className="vr-btn vr-btn-secondary"
+                onClick={() => {
+                  // During the sign-in, "Cancel" stops it: the window of the service is no longer awaited.
+                  if (busy) sync.cancelSignIn();
+                  else setStep('idle');
+                }}
+              >
                 {t.cancel}
               </button>
             </div>
@@ -125,6 +140,7 @@ export function SyncCard() {
             <input type="checkbox" checked={deleteRemote} onChange={(e) => setDeleteRemote(e.target.checked)} />
             <span>{service.disconnectDelete}</span>
           </label>
+          {failed && <p className="vr-message warning">{t.deleteFailed(service.name)}</p>}
           <div className="vr-actions start">
             <button type="button" className="vr-btn vr-btn-primary vr-btn-danger" onClick={disconnect} disabled={busy}>
               {t.disconnectButton}
@@ -139,7 +155,12 @@ export function SyncCard() {
           <button type="button" className="vr-btn vr-btn-primary vr-btn-small" onClick={() => run(() => sync.syncNow(true))} disabled={busy || status.state === 'syncing'}>
             {t.syncNow}
           </button>
-          <button type="button" className="vr-btn vr-btn-secondary vr-btn-small" onClick={() => setStep('disconnect')} disabled={busy}>
+          <button type="button" className="vr-btn vr-btn-secondary vr-btn-small" onClick={() => {
+              setFailed(false);
+              setStep('disconnect');
+            }}
+            disabled={busy}
+          >
             {t.disconnect}
           </button>
         </div>

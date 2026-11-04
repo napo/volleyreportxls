@@ -181,3 +181,9 @@ export function teamKey(teamName: string, competition: string): string {
   const norm = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/\s+/g, ' ').trim();
   return `${norm(teamName)}|${norm(competition)}`;
 }
+
+/** The same match apart from the times of creation and change. */
+export function sameContent(a: MatchRecord, b: MatchRecord): boolean {
+  const strip = ({ createdAt: _c, updatedAt: _u, ...rest }: MatchRecord) => JSON.stringify(rest);
+  return strip(a) === strip(b);
+}
