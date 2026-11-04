@@ -21,7 +21,7 @@
 
 import { strFromU8, strToU8 } from 'fflate';
 import { calculateMatchStats } from '../domain/stats/aggregate';
-import { type MatchRecord, rowIsUsed, setIsPlayed, toMatch } from '../matches/record';
+import { type MatchRecord, OPTIONAL_CODES, rowIsUsed, setIsPlayed, toMatch } from '../matches/record';
 
 export const BINARY_VERSION = 2;
 
@@ -88,6 +88,10 @@ class Reader {
       if (b < 128) return n;
       scale *= 128;
     }
+  }
+  /** Whether bytes are left: sections added after the first links come last, and older links simply end before them. */
+  more(): boolean {
+    return this.at < this.bytes.length;
   }
   text(): string {
     const length = this.int();
@@ -217,6 +221,9 @@ export function writeBinary(c: BinaryContent): Uint8Array {
     else writeSets(w, r, athlete);
   }
   w.counts();
+  // Added later: the columns not recorded in each match (a mask over OPTIONAL_CODES), only when some are.
+  const masks = c.matches.map((r) => OPTIONAL_CODES.reduce((mask, code, i) => (r.untracked?.includes(code) ? mask + 2 ** i : mask), 0));
+  if (masks.some(Boolean)) masks.forEach((mask) => w.int(mask));
   return Uint8Array.from(w.bytes);
 }
 
@@ -289,5 +296,12 @@ export function readBinary(bytes: Uint8Array) {
     return { id: '', teamName, opponentName, competition, venue, date, ...(kind === 'history' ? readTotals(r, athleteId) : readSets(r, athleteId)) };
   });
   r.counts();
+  if (r.more()) {
+    for (const match of matches) {
+      const mask = r.int();
+      const untracked = OPTIONAL_CODES.filter((_, i) => Math.floor(mask / 2 ** i) % 2 === 1);
+      if (untracked.length) Object.assign(match, { untracked });
+    }
+  }
   return { kind, expires, title, hidden, athletes, numbers, matches };
 }

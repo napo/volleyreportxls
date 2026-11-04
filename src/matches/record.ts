@@ -9,7 +9,7 @@
  * it into the domain model.
  */
 
-import type { ScoutCodeString } from '../domain/codes';
+import { SHEET_SKILLS, type ScoutCodeString, skillEvaluations } from '../domain/codes';
 import { type Match, type Player, type SetNumber, type SetScore, SET_NUMBERS } from '../domain/model';
 import { tallyLine } from '../domain/tally';
 
@@ -51,7 +51,22 @@ export interface MatchRecord {
   readonly sets: readonly SetRecord[];
   /** Only in a shared history, whose touches are put together by match: see Match.opponentErrors. */
   readonly opponentErrors?: number;
+  /**
+   * Codes not recorded in this match (columns hidden in the live sheet): among
+   * OPTIONAL_CODES only. Absent: every column was recorded.
+   */
+  readonly untracked?: readonly ScoutCodeString[];
 }
+
+/**
+ * The columns that can be left out of a match: "!" and "/" of every skill of
+ * the sheet that has them. "#", "+", "-" and "=" are always recorded.
+ */
+export const OPTIONAL_CODES: readonly ScoutCodeString[] = SHEET_SKILLS.flatMap((skill) =>
+  skillEvaluations(skill)
+    .filter((e) => e === '!' || e === '/')
+    .map((e) => `${skill}${e}` as ScoutCodeString),
+);
 
 /** Rows of a new set: as on the paper form. */
 export const PLAYER_ROWS = 12;

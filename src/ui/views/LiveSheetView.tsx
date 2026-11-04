@@ -26,7 +26,7 @@ import {
   setShirtNumber,
   undoTouch,
 } from '../../matches/live';
-import { type MatchRecord, type PlayerRecord, type RowKind, type SetRecord, matchWinner, sameContent, setIsPlayed } from '../../matches/record';
+import { type MatchRecord, type PlayerRecord, type RowKind, type SetRecord, matchWinner, OPTIONAL_CODES, sameContent, setIsPlayed } from '../../matches/record';
 import type { Archive } from '../../storage/archive';
 import { useArchive } from '../archive-context';
 import { codeOf, parseShirtNumber, skillColumns } from '../components/counts-columns';
@@ -41,6 +41,97 @@ const LIBERO_SKILLS = new Set(skillColumns('libero').map((c) => c.skill));
 const CELLS = COLUMNS.flatMap((c) => c.evaluations.map((e, i) => ({ skill: c.skill, code: codeOf(c.skill, e), evaluation: e, first: i === 0 })));
 /** Evaluation headers in the colours of the charts and of the printed form. */
 const tint = (c: (typeof CELLS)[number]) => `rgb(${evaluationTint(c.skill, c.evaluation).map((v) => Math.round(v * 255)).join(' ')})`;
+
+/** The columns left out of the last match set up on this device: a new match starts from them. */
+const UNTRACKED_SETTING = 'volleyreport.live.untracked';
+
+function lastUntracked(): ScoutCodeString[] {
+  try {
+    const stored = JSON.parse(localStorage.getItem(UNTRACKED_SETTING) ?? '[]') as unknown;
+    return Array.isArray(stored) ? OPTIONAL_CODES.filter((code) => stored.includes(code)) : [];
+  } catch {
+    return [];
+  }
+}
+
+function rememberUntracked(codes: readonly ScoutCodeString[]) {
+  try {
+    localStorage.setItem(UNTRACKED_SETTING, JSON.stringify(codes));
+  } catch {
+    // Not kept: the next match starts with every column.
+  }
+}
+
+const hasTouches = (record: MatchRecord) => record.sets.some((s) => s.rows.some((row) => Object.values(row.counts).some((n) => (n ?? 0) > 0)));
+
+/** Touches already counted in a column, over the whole match. */
+const columnTouches = (record: MatchRecord, code: ScoutCodeString) =>
+  record.sets.reduce((n, s) => n + s.rows.reduce((k, row) => k + (row.counts[code] ?? 0), 0), 0);
+
+/**
+ * The columns "!" and "/" to show, skill by skill. Hiding one keeps its
+ * touches already counted; the match remembers which columns were not recorded.
+ */
+function ColumnsDialog({ record, onCancel, onConfirm }: { record: MatchRecord; onCancel: () => void; onConfirm: (untracked: ScoutCodeString[]) => void }) {
+  const { m } = useI18n();
+  const t = m.live;
+  const [hidden, setHidden] = useState<ReadonlySet<ScoutCodeString>>(new Set(record.untracked ?? []));
+  const toggle = (code: ScoutCodeString) =>
+    setHidden((h) => {
+      const next = new Set(h);
+      if (next.has(code)) next.delete(code);
+      else next.add(code);
+      return next;
+    });
+  const skills = COLUMNS.filter((c) => c.evaluations.some((e) => OPTIONAL_CODES.includes(codeOf(c.skill, e))));
+  return (
+    <div className="vr-live-overlay" onKeyDown={(e) => e.key === 'Escape' && onCancel()}>
+      <form
+        className="vr-live-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="vr-live-columns-title"
+        onSubmit={(e) => {
+          e.preventDefault();
+          onConfirm(OPTIONAL_CODES.filter((code) => hidden.has(code)));
+        }}
+      >
+        <h2 id="vr-live-columns-title">{t.columnsTitle}</h2>
+        <p>{t.columnsText}</p>
+        <div className="vr-live-columns">
+          {skills.map((c) => (
+            <fieldset key={c.skill}>
+              <legend>{c.skill === 'P' ? t.setFault : m.skills[c.skill]}</legend>
+              {c.evaluations
+                .map((e) => ({ e, code: codeOf(c.skill, e) }))
+                .filter(({ code }) => OPTIONAL_CODES.includes(code))
+                .map(({ e, code }) => {
+                  const counted = columnTouches(record, code);
+                  return (
+                    <label key={code} className="vr-check">
+                      <input type="checkbox" checked={!hidden.has(code)} onChange={() => toggle(code)} />
+                      <span>
+                        <strong>{e}</strong> {m.codes[c.skill][e]}
+                        {hidden.has(code) && counted > 0 && <small className="vr-live-columns-note"> {t.columnsCounted(counted)}</small>}
+                      </span>
+                    </label>
+                  );
+                })}
+            </fieldset>
+          ))}
+        </div>
+        <div className="vr-live-dialog-actions">
+          <button type="button" className="vr-btn vr-btn-secondary" onClick={onCancel}>
+            {t.back}
+          </button>
+          <button type="submit" className="vr-btn vr-live-primary">
+            {t.save}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
 
 /**
  * Saves every change at once, one write at a time, the latest record last.
@@ -294,6 +385,7 @@ export function LiveSheetView({ id }: { id: string }) {
   const [closing, setClosing] = useState(false);
   // 'first': a new match, the details are asked before scouting.
   const [editing, setEditing] = useState<'first' | 'edit' | null>(null);
+  const [choosingColumns, setChoosingColumns] = useState(false);
   // Names used for the shirt numbers of this team in earlier matches.
   const [known, setKnown] = useState<readonly PlayerRecord[]>([]);
   const { saved, adopt, pending } = useAutosave(archive, record);
@@ -304,7 +396,9 @@ export function LiveSheetView({ id }: { id: string }) {
     archive.getMatch(id).then((found) => {
       if (!found) return setMissing(true);
       adopt(found);
-      setRecord(found);
+      // A new match starts with the columns chosen last time on this device.
+      const start = lastUntracked();
+      setRecord(found.untracked === undefined && start.length && !hasTouches(found) ? { ...found, untracked: start } : found);
       setView(currentSet(found));
       if (!found.teamName && !found.opponentName && !found.sets.some(setIsPlayed)) setEditing('first');
     });
@@ -393,6 +487,11 @@ export function LiveSheetView({ id }: { id: string }) {
     if (closed.next !== null) setView(closed.next);
   };
 
+  // The columns shown: every one but the "!" and "/" left out of this match; each skill starts a band.
+  const untracked = new Set(record.untracked ?? []);
+  const cells = CELLS.filter((c) => !untracked.has(c.code)).map((c, i, all) => ({ ...c, first: i === 0 || all[i - 1]!.skill !== c.skill }));
+  const headers = COLUMNS.map((c) => ({ skill: c.skill, span: cells.filter((x) => x.skill === c.skill).length }));
+
   const rows = (kind: RowKind) => set.rows.filter((r) => r.kind === kind);
   const players = rows('player');
   const liberos = rows('libero');
@@ -424,7 +523,7 @@ export function LiveSheetView({ id }: { id: string }) {
             onChange={(e) => row.playerNumber !== null && setRecord(setPlayerName(record, row.playerNumber, e.target.value))}
           />
         </div>
-        {CELLS.map((c) =>
+        {cells.map((c) =>
           libero && !LIBERO_SKILLS.has(c.skill) ? (
             <span key={c.code} className={`vr-live-unused${c.first ? ' first' : ''}`} />
           ) : (
@@ -493,6 +592,10 @@ export function LiveSheetView({ id }: { id: string }) {
               <small>{undoText}</small>
             </span>
           </button>
+          <button type="button" className="vr-live-tool" onClick={() => setChoosingColumns(true)} aria-label={t.columnsLabel}>
+            <strong>{t.columns}</strong>
+            {untracked.size > 0 && <small>{t.columnsHidden(untracked.size)}</small>}
+          </button>
           <button type="button" className="vr-live-tool correct" aria-pressed={correcting && !isLocked} disabled={isLocked} onClick={() => setCorrecting((c) => !c)}>
             <strong>{t.correct}</strong>
           </button>
@@ -518,15 +621,18 @@ export function LiveSheetView({ id }: { id: string }) {
       <p className="vr-live-narrow">{t.narrow}</p>
 
       <div className={`vr-live-sheet${isLocked ? ' locked' : ''}`}>
-        <div className="vr-live-grid" style={{ gridTemplateRows: gridRows } as CSSProperties}>
+        <div
+          className="vr-live-grid"
+          style={{ gridTemplateRows: gridRows, gridTemplateColumns: `minmax(9rem, 11rem) repeat(${cells.length}, minmax(0, 1fr))` } as CSSProperties}
+        >
           <span className="vr-live-head">{t.numberAndName}</span>
-          {COLUMNS.map((c) => (
-            <span key={c.skill} className="vr-live-head skill" style={{ gridColumn: `span ${c.evaluations.length}` }}>
+          {headers.map((c) => (
+            <span key={c.skill} className="vr-live-head skill" style={{ gridColumn: `span ${c.span}` }}>
               {c.skill === 'P' ? t.setFault : m.skills[c.skill]}
             </span>
           ))}
           <span className="vr-live-eval number" aria-hidden="true" />
-          {CELLS.map((c) => (
+          {cells.map((c) => (
             <span key={c.code} className={`vr-live-eval${c.first ? ' first' : ''}`} style={{ background: tint(c) }} title={m.codes[c.skill][c.evaluation]}>
               {c.evaluation}
             </span>
@@ -552,6 +658,18 @@ export function LiveSheetView({ id }: { id: string }) {
           onConfirm={(details) => {
             setRecord(setMatchDetails(record, details));
             setEditing(null);
+          }}
+        />
+      )}
+      {choosingColumns && (
+        <ColumnsDialog
+          record={record}
+          onCancel={() => setChoosingColumns(false)}
+          onConfirm={(codes) => {
+            const { untracked: _, ...rest } = record;
+            setRecord(codes.length ? { ...rest, untracked: codes } : rest);
+            rememberUntracked(codes);
+            setChoosingColumns(false);
           }}
         />
       )}

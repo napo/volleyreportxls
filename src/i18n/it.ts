@@ -407,6 +407,13 @@ export const it = {
     detailsText: 'Le squadre compaiono nel titolo e nel tabellino. Con squadra e campionato l’app propone i nomi già usati per i numeri di divisa.',
     startScouting: 'Inizia a rilevare',
     save: 'Salva',
+    columns: 'Colonne',
+    columnsLabel: 'Scegli le colonne «!» e «/» da mostrare',
+    columnsHidden: (n: number) => (n === 1 ? '1 nascosta' : `${n} nascoste`),
+    columnsTitle: 'Colonne da rilevare',
+    columnsText:
+      'Le colonne «#», «+», «-» e «=» ci sono sempre. Togli le «!» e le «/» che non rilevi: il foglio diventa più semplice e la partita ricorda che quei dati non sono stati raccolti. La prossima partita su questo dispositivo parte con la stessa scelta; la puoi cambiare in ogni momento.',
+    columnsCounted: (n: number) => (n === 1 ? '(c’è già 1 tocco: resta nei conteggi)' : `(ci sono già ${n} tocchi: restano nei conteggi)`),
     libero: 'Libero',
     setFault: 'Alz.',
     shirtOf: (libero: boolean, row: number) => `${libero ? 'Libero' : 'Riga'} ${row}: numero di divisa`,

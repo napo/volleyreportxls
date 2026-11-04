@@ -3686,3 +3686,35 @@ button.vr-score-teams.selected {
 .vr-athlete-table tr.expanded > :first-child {
   background: var(--vr-blue-soft);
 }
+
+/* Live sheet: the "!" and "/" columns to show, skill by skill. */
+.vr-live-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.75rem 1rem;
+  max-height: 55vh;
+  overflow-y: auto;
+}
+
+.vr-live-columns fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--vr-live-line);
+  border-radius: 0.6rem;
+}
+
+.vr-live-columns legend {
+  padding: 0 0.3rem;
+  font-weight: 700;
+}
+
+.vr-live-columns-note {
+  color: #8a3c0b;
+}
+
+.vr-live-dialog:has(.vr-live-columns) {
+  width: min(40rem, 100%);
+}

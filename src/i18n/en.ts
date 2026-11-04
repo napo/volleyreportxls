@@ -407,6 +407,13 @@ export const en: Messages = {
     detailsText: 'The teams appear in the title and in the scoresheet. With team and competition the app suggests the names already used for the shirt numbers.',
     startScouting: 'Start scouting',
     save: 'Save',
+    columns: 'Columns',
+    columnsLabel: 'Choose the “!” and “/” columns to show',
+    columnsHidden: (n: number) => `${n} hidden`,
+    columnsTitle: 'Columns to record',
+    columnsText:
+      'The “#”, “+”, “-” and “=” columns are always there. Remove the “!” and “/” ones you do not record: the sheet gets simpler and the match remembers that those data were not collected. The next match on this device starts with the same choice; you can change it at any time.',
+    columnsCounted: (n: number) => (n === 1 ? '(1 touch already counted: it stays in the counts)' : `(${n} touches already counted: they stay in the counts)`),
     libero: 'Libero',
     setFault: 'Set',
     shirtOf: (libero: boolean, row: number) => `${libero ? 'Libero' : 'Row'} ${row}: shirt number`,

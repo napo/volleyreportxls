@@ -19,7 +19,7 @@ import { EVALUATIONS, SKILLS, type ScoutCodeString, formatScoutCode, isAllowed, 
 import { SET_NUMBERS, type SetNumber } from '../domain/model';
 import type { Athlete } from '../athletes/matching';
 import { type Squad, normalizeTeam } from '../athletes/squads';
-import type { MatchRecord, PlayerRecord, SetRecord, TallyRowRecord } from './record';
+import { type MatchRecord, OPTIONAL_CODES, type PlayerRecord, type SetRecord, type TallyRowRecord } from './record';
 
 export const VRP_EXTENSION = 'vrp';
 export const VRP_MEDIA_TYPE = 'application/zip';
@@ -78,6 +78,13 @@ const count = (v: unknown) => (typeof v === 'number' && Number.isInteger(v) && v
 export const isId = (v: unknown): v is string => typeof v === 'string' && /^[a-z0-9]{4,40}$/i.test(v);
 const shirt = (v: unknown) => (typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= 99 ? v : null);
 
+/** The columns not recorded: known optional codes only, each once, in their order. */
+function readUntracked(v: unknown): ScoutCodeString[] | null {
+  if (!Array.isArray(v)) return null;
+  const codes = OPTIONAL_CODES.filter((code) => v.includes(code));
+  return codes.length ? codes : null;
+}
+
 function readRow(v: unknown): TallyRowRecord | null {
   if (!isObject(v) || typeof v.id !== 'string' || (v.kind !== 'player' && v.kind !== 'libero')) return null;
   const counts: Partial<Record<ScoutCodeString, number>> = {};
@@ -117,6 +124,7 @@ export function readMatchRecord(v: unknown): MatchRecord | null {
     players,
     sets: (sets as SetRecord[]).sort((a, b) => a.number - b.number),
     ...(count(v.opponentErrors) !== null && { opponentErrors: count(v.opponentErrors)! }),
+    ...(readUntracked(v.untracked) && { untracked: readUntracked(v.untracked)! }),
   };
 }
 
