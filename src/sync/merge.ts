@@ -17,8 +17,9 @@
  * - A time in the file earlier than the base is an older copy written over a
  *   newer one: it is not a change.
  * Versions are compared as the file keeps them (a count at zero is left out).
- * Matches equal in everything but the id (copies made by older versions of
- * the merge) are deleted but one, the same on every device.
+ * Matches equal in everything but the id and the time of the last change
+ * (copies made by older versions of the merge) are deleted but one, the same
+ * on every device.
  */
 
 import type { Athlete } from '../athletes/matching';
@@ -84,6 +85,16 @@ const asInFile = (m: MatchRecord) => readMatchRecord(JSON.parse(JSON.stringify(m
 
 const content = (e: Entry) => JSON.stringify(e.kind === 'match' && e.record ? asInFile(e.record as MatchRecord) : e.record);
 
+/**
+ * A match by what it holds: everything but its id and the time of its last
+ * change. A match saved again on another device without changes (for
+ * instance when the names known for the team fill it) holds the same.
+ */
+const matchContent = (m: MatchRecord) => {
+  const { id: _, updatedAt: __, ...rest } = asInFile(m);
+  return JSON.stringify(rest);
+};
+
 const same = (a: Entry, b: Entry) => (a.record === null) === (b.record === null) && (a.record === null || content(a) === content(b));
 
 /** The latest of two entries; on the same time a deletion wins, then the local one. */
@@ -126,7 +137,8 @@ export function mergeSnapshots(local: Snapshot, remote: Snapshot, base: SyncBase
     const winner = latest(a, b);
     out.set(key, winner);
     const loser = winner === a ? b : a;
-    if (winner.kind === 'match' && winner.record && loser.record) {
+    // Two different versions of a match: the older one is kept as a copy. The same data saved at two times is no conflict.
+    if (winner.kind === 'match' && winner.record && loser.record && matchContent(winner.record as MatchRecord) !== matchContent(loser.record as MatchRecord)) {
       const id = newId();
       out.set(syncKey('match', id), { kind: 'match', id, record: { ...(loser.record as MatchRecord), id }, stamp: loser.stamp });
       conflicts++;
@@ -148,13 +160,18 @@ export function mergeSnapshots(local: Snapshot, remote: Snapshot, base: SyncBase
   return { merged, base: Object.fromEntries(kept.map((e) => [syncKey(e.kind, e.id), e.stamp])), conflicts };
 }
 
-/** Keeps one of the matches equal in everything but the id (the smallest id, so every device keeps the same); the others become deletions. */
+/**
+ * Keeps one of the matches equal in everything but the id and the time of the
+ * last change (copies made by a conflict that was none): the latest, then the
+ * smallest id, so every device keeps the same; the others become deletions.
+ */
 function removeDuplicates(out: Map<string, Entry>, at: string) {
   const kept = new Map<string, string>();
-  const matches = [...out.values()].filter((e) => e.kind === 'match' && e.record).sort((a, b) => a.id.localeCompare(b.id));
+  const matches = [...out.values()]
+    .filter((e) => e.kind === 'match' && e.record)
+    .sort((a, b) => (a.stamp === b.stamp ? a.id.localeCompare(b.id) : a.stamp < b.stamp ? 1 : -1));
   for (const e of matches) {
-    const { id: _, ...rest } = asInFile(e.record as MatchRecord);
-    const key = JSON.stringify(rest);
+    const key = matchContent(e.record as MatchRecord);
     if (!kept.has(key)) kept.set(key, e.id);
     else out.set(syncKey('match', e.id), { kind: 'match', id: e.id, record: null, stamp: at });
   }

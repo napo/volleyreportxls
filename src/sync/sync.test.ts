@@ -538,3 +538,29 @@ test('a change always gets a time after the version it replaces, even with a clo
   const { deletions } = await archive.snapshot();
   expect(deletions[0]!.deletedAt > saved.updatedAt).toBe(true);
 });
+
+test('merge: the same match saved again on both devices without changes is no conflict', () => {
+  const one = newMatchRecord();
+  const at = (iso: string) => ({ ...one, id: 'm1', createdAt: '2026-01-01T00:00:00.000Z', venue: 'Trento', updatedAt: iso });
+  const base = { 'match:m1': '2026-01-01T00:00:00.000Z' };
+  const local = at('2026-02-01T00:00:00.000Z');
+  const remote = at('2026-03-01T00:00:00.000Z');
+  const result = mergeSnapshots({ ...EMPTY_SNAPSHOT, matches: [local] }, { ...EMPTY_SNAPSHOT, matches: [remote] }, base, () => 'copy0001');
+  expect(result.conflicts).toBe(0);
+  expect(result.merged.matches).toEqual([remote]);
+});
+
+test('merge: copies already made by a conflict that was none go away, the latest version stays', () => {
+  const one = newMatchRecord();
+  const at = (id: string, iso: string) => ({ ...one, id, createdAt: '2026-01-01T00:00:00.000Z', venue: 'Trento', updatedAt: iso });
+  const original = at('m1', '2026-03-01T00:00:00.000Z');
+  const copy = at('copy0001', '2026-02-01T00:00:00.000Z');
+  const snapshot = { ...EMPTY_SNAPSHOT, matches: [original, copy] };
+  const base = { 'match:m1': original.updatedAt, 'match:copy0001': copy.updatedAt };
+  const result = mergeSnapshots(snapshot, snapshot, base, () => 'x', new Date('2026-11-04T00:00:00.000Z'));
+  expect(result.merged.matches).toEqual([original]);
+  expect(result.merged.deletions.map((d) => d.id)).toEqual(['copy0001']);
+  // Two matches entered apart, with the same data, are both kept.
+  const twin = { ...at('m2', original.updatedAt), createdAt: '2026-01-02T00:00:00.000Z' };
+  expect(mergeSnapshots({ ...EMPTY_SNAPSHOT, matches: [original, twin] }, EMPTY_SNAPSHOT, {}, () => 'x').merged.matches).toHaveLength(2);
+});
