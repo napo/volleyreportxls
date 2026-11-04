@@ -91,6 +91,13 @@ export const it = {
       text: 'Se non rilevi tutte le valutazioni, toccando "Scarica il modulo" togli le colonne "!" e "/" che non ti servono, fondamentale per fondamentale. Le altre colonne si allargano e i pallini diventano ovali, più facili da riempire. Il codice QR del foglio ricorda le colonne tolte: non scriverci sopra, così la foto si legge da sola. Con tutte le colonne selezionate scarichi il modulo standard.',
       alt: 'La scelta delle colonne con le valutazioni "!" tolte, e il modulo che ne risulta: colonne più larghe e pallini ovali',
     },
+    /** After the last step: the report shared with a link. */
+    share: {
+      eyebrow: 'Se vuoi',
+      title: 'Condividi con un link',
+      text: 'Dal tabellino, dai grafici o dallo storico, "Condividi" crea un link che si apre nel browser, senza installare niente. Scegli per quanto tempo resta valido, se mostrare i nomi o solo i numeri di divisa e quali parti far vedere. I dati viaggiano dentro il link e non passano da nessun server; una volta inviato, il link non si può ritirare e resta valido fino alla scadenza scelta.',
+      alt: 'La finestra "Condividi il report" con validità, nomi e parti da mostrare, e il report condiviso aperto su uno smartphone',
+    },
     /** Last pages of the guide: the tablet instead of paper and photos. */
     tablet: {
       eyebrow: 'In alternativa',

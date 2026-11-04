@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 /**
- * The 5-step guide, one step at a time, in a modal dialog: after the first step
- * an optional page on the simpler form, at the end two pages on scouting on a
- * tablet or with the keypad of smartphones instead. It opens when the app starts unless the user
+ * The 5-step guide, one step at a time, in a modal dialog: optional pages on
+ * the simpler form (after the first step) and on sharing a link (after the
+ * last), then two pages on scouting on a tablet or with the keypad of
+ * smartphones instead. It opens when the app starts unless the user
  * turned it off; it can be reopened from About.
  */
 import { useEffect, useRef, useState } from 'react';
@@ -21,6 +22,8 @@ import step5en from '../../assets/howto/5-tabellino-en.webp';
 import tablet from '../../assets/howto/6-tablet.webp';
 import tableten from '../../assets/howto/6-tablet-en.webp';
 import custom from '../../assets/howto/1b-modulo-colonne.webp';
+import sharing from '../../assets/howto/5b-condivisione.webp';
+import sharingen from '../../assets/howto/5b-condivisione-en.webp';
 import customen from '../../assets/howto/1b-modulo-colonne-en.webp';
 import phone from '../../assets/howto/7-smartphone.webp';
 import phoneen from '../../assets/howto/7-smartphone-en.webp';
@@ -42,11 +45,12 @@ const STEP_IMAGES: Readonly<Record<Lang, readonly string[]>> = {
 const TABLET_IMAGE: Readonly<Record<Lang, string>> = { it: tablet, en: tableten };
 const PHONE_IMAGE: Readonly<Record<Lang, string>> = { it: phone, en: phoneen };
 const CUSTOM_IMAGE: Readonly<Record<Lang, string>> = { it: custom, en: customen };
+const SHARE_IMAGE: Readonly<Record<Lang, string>> = { it: sharing, en: sharingen };
 
 /** A page of the guide: one of the numbered steps, or an optional page with its own label. */
 type Page = { readonly title: string; readonly text: string; readonly alt: string; readonly image: string } & (
   | { readonly kind: 'step'; readonly step: number }
-  | { readonly kind: 'custom' | 'tablet' | 'phone'; readonly eyebrow: string }
+  | { readonly kind: 'custom' | 'share' | 'tablet' | 'phone'; readonly eyebrow: string }
 );
 
 export function GuideDialog() {
@@ -67,12 +71,13 @@ export function GuideDialog() {
 
   const { archive } = useArchive();
   const steps = t.steps;
-  // The pages: the five steps, the simpler form right after the first one, then the tablet and the keypad of smartphones.
+  // The pages: the five steps, the simpler form after the first one, sharing after the last one, then the tablet and the keypad of smartphones.
   const numbered: Page[] = steps.map((s, i) => ({ ...s, kind: 'step', step: i + 1, image: STEP_IMAGES[lang][i]! }));
   const pages: Page[] = [
     numbered[0]!,
     { ...t.customForm, kind: 'custom', image: CUSTOM_IMAGE[lang] },
     ...numbered.slice(1),
+    { ...t.share, kind: 'share', image: SHARE_IMAGE[lang] },
     { ...t.tablet, kind: 'tablet', image: TABLET_IMAGE[lang] },
     { ...t.phone, kind: 'phone', image: PHONE_IMAGE[lang] },
   ];

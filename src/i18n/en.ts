@@ -93,6 +93,13 @@ export const en: Messages = {
       text: 'If you do not record every evaluation, tapping "Download the form" remove the "!" and "/" columns you do not need, skill by skill. The other columns get wider and the bubbles become ovals, easier to fill in. The QR code of the sheet remembers the columns removed: do not write on it, so the photo is read by itself. With every column selected you download the standard form.',
       alt: 'The choice of columns with the "!" evaluations removed, and the resulting form: wider columns and oval bubbles',
     },
+    /** After the last step: the report shared with a link. */
+    share: {
+      eyebrow: 'If you like',
+      title: 'Share with a link',
+      text: 'From the scoresheet, the charts or the history, "Share" makes a link that opens in the browser, with nothing to install. Choose how long it stays valid, whether to show names or only shirt numbers, and which parts to show. The data travel inside the link and go through no server; once sent, the link cannot be withdrawn and stays valid until the expiry chosen.',
+      alt: 'The "Share the report" window with validity, names and parts to show, and the shared report open on a smartphone',
+    },
     tablet: {
       eyebrow: 'Alternatively',
       title: 'No paper? Scout on a tablet',
