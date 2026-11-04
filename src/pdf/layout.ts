@@ -37,6 +37,13 @@
  * under the players' reception. Cells are found by skill and evaluation, so
  * v6 and v7 sheets are read as before.
  *
+ * Layout v9 is v8 with some "!" and "/" columns left out, chosen when the form
+ * is downloaded: the other columns share the width of the page and the bubbles
+ * become ovals as wide as the columns allow (the height of the rows does not
+ * change). The QR carries the columns left out, so the geometry is rebuilt
+ * from it when a photo is read (see formLayout). With no column left out the
+ * form is v8.
+ *
  * Layout v5 is kept to read those sheets.
  *
  * Layout v4 (one printed page per set, the set in the QR) is kept to read those sheets.
@@ -111,6 +118,8 @@ export interface SkillHeader {
 
 export interface FormLayout {
   readonly version: number;
+  /** v9: the "!" and "/" columns left out of this form (none for every other version). */
+  readonly hidden: readonly ScoutCodeString[];
   /** v7: meanings under the symbols and ordinary bubbles in every slot. */
   readonly evaluationCaptions: boolean;
   readonly page: { readonly width: number; readonly height: number };
@@ -171,6 +180,10 @@ interface LayoutSpec {
   /** Compact: the second libero block ends with the grid, its skills under the players' ones (v8); otherwise it starts under attack. */
   readonly liberoUnderPlayers?: boolean;
   readonly rowBands?: boolean;
+  /** v9: columns left out; the others share the width. */
+  readonly hidden?: readonly ScoutCodeString[];
+  /** v9: bubbles as wide as the columns allow, as high as before. */
+  readonly ovalBubbles?: boolean;
 }
 
 /** v4: set faults (P=) on every row; liberos with reception and set faults. */
@@ -216,9 +229,26 @@ const V3: LayoutSpec = {
   liberoUnused: [['B', 'R']],
 };
 
+/** v9: the columns that can be left out, in the order of the bits of their code (never to be changed). */
+export const OPTIONAL_FORM_CODES: readonly ScoutCodeString[] = ['B/', 'B!', 'M!', 'M/', 'A!', 'A/', 'R!', 'R/'] as ScoutCodeString[];
+
+/** v9: the widest an oval bubble gets, as a multiple of its height. */
+const OVAL_MAX_RATIO = 1.8;
+
+/** v9: v8 with oval bubbles, the columns left out given when the layout is built. */
+const V9: LayoutSpec = { ...V8, version: 9, ovalBubbles: true };
+
 const columnsOf = (columns: Columns) => columns.reduce((n, [, c]) => n + c, 0);
 
-function buildTallyLayout(spec: LayoutSpec): FormLayout {
+function buildTallyLayout(base: LayoutSpec): FormLayout {
+  // v9: the columns left out are simply not there; the others take their room.
+  const hidden = base.hidden ?? [];
+  const keep = (skill: FormSkill, columns: Columns): Columns => columns.filter(([e]) => !hidden.includes(`${skill}${e}` as ScoutCodeString));
+  const spec: LayoutSpec = {
+    ...base,
+    player: base.player.map(([skill, columns]) => [skill, keep(skill, columns)] as const),
+    libero: base.libero.map((l) => ({ ...l, columns: keep(l.skill, l.columns) })),
+  };
   const page = { width: 297, height: 210 }; // A4 landscape
   const margin = 7;
   const marker = 12;
@@ -282,15 +312,20 @@ function buildTallyLayout(spec: LayoutSpec): FormLayout {
   // v6: every bubble as big as the narrowest cell allows, so they all look the same; without
   // numbers inside, less room between them.
   const narrowest = Math.min(...spec.player.flatMap(([, columns]) => columns.map(([, c]) => c)));
-  const uniform = Math.min((narrowest * pitch - 2 * pad) / narrowest, (rowHeight - 2 * pad) / BUBBLE_ROWS) * 0.86;
+  const across = (narrowest * pitch - 2 * pad) / narrowest;
+  const down = (rowHeight - 2 * pad) / BUBBLE_ROWS;
+  const uniform = Math.min(across, down) * 0.86;
+  // v9: as high as the round bubbles, as wide as the columns allow (up to OVAL_MAX_RATIO times the height).
+  const ovalWidth = Math.min(Math.max(across * 0.86, uniform), uniform * OVAL_MAX_RATIO);
   const cell = (skill: FormSkill, evaluation: Evaluation, outer: Rect, columns: number): TallyCell => {
     const pitchX = (outer.width - 2 * pad) / columns;
     const pitchY = (outer.height - 2 * pad) / BUBBLE_ROWS;
     const d = compact ? uniform : Math.min(pitchX, pitchY) * 0.82;
+    const w = spec.ovalBubbles ? ovalWidth : d;
     const slot = (i: number): Rect => {
       const cx = outer.x + pad + pitchX * ((i % columns) + 0.5);
       const cy = outer.y + pad + pitchY * (Math.floor(i / columns) + 0.5);
-      return rect(cx - d / 2, cy - d / 2, d, d);
+      return rect(cx - w / 2, cy - d / 2, w, d);
     };
     const slots = columns * BUBBLE_ROWS;
     return {
@@ -395,6 +430,7 @@ function buildTallyLayout(spec: LayoutSpec): FormLayout {
     : undefined;
   return {
     version: spec.version,
+    hidden: OPTIONAL_FORM_CODES.filter((code) => hidden.includes(code)),
     evaluationCaptions,
     page,
     markers: [
@@ -454,7 +490,32 @@ export function cellCode(cell: TallyCell): ScoutCodeString | null {
   return SKILL_DEFINITIONS[cell.skill].evaluations[cell.evaluation] !== undefined ? code : null;
 }
 
-export function formLayout(version: number): FormLayout {
+const v9Layouts = new Map<number, FormLayout>();
+
+/** The code of the columns left out: one bit per OPTIONAL_FORM_CODES. */
+export const hiddenMask = (hidden: readonly ScoutCodeString[]) => OPTIONAL_FORM_CODES.reduce((mask, code, i) => (hidden.includes(code) ? mask | (1 << i) : mask), 0);
+export const maskHidden = (mask: number) => OPTIONAL_FORM_CODES.filter((_, i) => (mask >> i) & 1);
+
+/** v9 with these columns left out (each built once). */
+export function v9Layout(hidden: readonly ScoutCodeString[]): FormLayout {
+  const mask = hiddenMask(hidden);
+  let layout = v9Layouts.get(mask);
+  if (!layout) {
+    layout = buildTallyLayout({ ...V9, hidden: maskHidden(mask) });
+    v9Layouts.set(mask, layout);
+  }
+  return layout;
+}
+
+/** Every v9 form that can be printed: one per combination of columns left out (at least one). */
+export const allV9Layouts = (): FormLayout[] => Array.from({ length: (1 << OPTIONAL_FORM_CODES.length) - 1 }, (_, i) => v9Layout(maskHidden(i + 1)));
+
+/** The form to print with these columns left out: v8 when none is, v9 otherwise. */
+export const printableLayout = (hidden: readonly ScoutCodeString[]): FormLayout =>
+  OPTIONAL_FORM_CODES.some((code) => hidden.includes(code)) ? v9Layout(hidden) : CURRENT_FORM_LAYOUT;
+
+export function formLayout(version: number, hidden: readonly ScoutCodeString[] = []): FormLayout {
+  if (version === 9) return v9Layout(hidden);
   const layout = FORM_LAYOUTS[version];
   if (!layout) throw new Error(`unknown scouting form layout v${version}`);
   return layout;

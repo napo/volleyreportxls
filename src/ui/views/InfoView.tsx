@@ -32,6 +32,7 @@ export function InfoView() {
         </span>
         <h2>{t.formTitle}</h2>
         <p>{t.formText}</p>
+        <p>{t.formColumnsText}</p>
         <div className="vr-actions">
           <DownloadFormButton />
         </div>
@@ -60,6 +61,20 @@ export function InfoView() {
         </div>
         <ol>
           {t.liveSteps.map((step) => (
+            <li key={step}>{step}</li>
+          ))}
+        </ol>
+      </section>
+
+      <section id="tastierino" className="vr-card">
+        <div className="vr-card-head">
+          <div>
+            <h2>{t.keypadTitle}</h2>
+            <p>{t.keypadText}</p>
+          </div>
+        </div>
+        <ol>
+          {t.keypadSteps.map((step) => (
             <li key={step}>{step}</li>
           ))}
         </ol>

@@ -55,17 +55,17 @@ export const it = {
 
   /** The 5-step guide (dialog at start). */
   guide: {
-    title: 'Come si fa, in 5 passi',
+    title: 'Come si fa',
     text: 'Dal foglio di carta al tabellino, senza ricopiare i conteggi.',
     steps: [
       {
         title: 'Prendi il modulo',
-        text: 'Scarica il modulo v8 e stampa una copia per set, più qualche foglio di scorta. Le descrizioni sotto i simboli spiegano le valutazioni; i colori, gli stessi dei grafici, sono un aiuto e il foglio si può stampare anche in bianco e nero.',
+        text: 'Scarica il modulo e stampa una copia per set, più qualche foglio di scorta. Le descrizioni sotto i simboli spiegano le valutazioni; i colori, gli stessi dei grafici, sono un aiuto e il foglio si può stampare anche in bianco e nero.',
         alt: 'Modulo v8 vuoto: battuta, muro, attacco, ricezione e falli di alzata; simboli con descrizioni e intestazioni colorate dalla più favorevole alla meno favorevole; righe alternate bianche e grigie.',
       },
       {
         title: 'Compilalo durante la partita',
-        text: 'Segna il set e i numeri di divisa. Ogni pallino vale un tocco, compreso l’ultimo. Se una casella è piena, continua su un altro foglio: segna lo stesso set, «Foglio aggiuntivo» e lo stesso numero di divisa.',
+        text: 'Segna il set e i numeri di divisa. Ogni pallino vale un tocco, compreso l’ultimo. Se una casella è piena, continua su un altro foglio: segna lo stesso set, "Foglio aggiuntivo" e lo stesso numero di divisa.',
         alt: 'Modulo v8 compilato a penna: ogni pallino segnato vale un tocco.',
       },
       {
@@ -84,13 +84,28 @@ export const it = {
         alt: 'Il tabellino della partita',
       },
     ],
-    /** Last page of the guide: the tablet instead of paper and photos. */
+    /** After the first step: a form without the columns that are not recorded. */
+    customForm: {
+      eyebrow: 'Se vuoi',
+      title: 'Un modulo più semplice',
+      text: 'Se non rilevi tutte le valutazioni, toccando "Scarica il modulo" togli le colonne "!" e "/" che non ti servono, fondamentale per fondamentale. Le altre colonne si allargano e i pallini diventano ovali, più facili da riempire. Il codice QR del foglio ricorda le colonne tolte: non scriverci sopra, così la foto si legge da sola. Con tutte le colonne selezionate scarichi il modulo standard.',
+      alt: 'La scelta delle colonne con le valutazioni "!" tolte, e il modulo che ne risulta: colonne più larghe e pallini ovali',
+    },
+    /** Last pages of the guide: the tablet instead of paper and photos. */
     tablet: {
       eyebrow: 'In alternativa',
       title: 'Niente carta? Rileva sul tablet',
       text: 'Lo stesso foglio sullo schermo di un tablet o di un computer touch: tocchi la casella e il conteggio sale di uno, a fine set inserisci il punteggio. Niente foto e niente controllo: il tabellino è pronto a fine partita.',
       alt: 'Il foglio di rilevazione sullo schermo del tablet',
       start: 'Inizia una nuova partita sul tablet',
+    },
+    /** After the tablet: the keypad, made for smartphones. */
+    phone: {
+      eyebrow: 'In alternativa',
+      title: 'Sullo smartphone: il tastierino',
+      text: 'Tocchi il numero, poi il fondamentale, poi la valutazione: il segno va da solo nella casella giusta del foglio. A inizio set scegli la formazione, con un nome breve sui tasti; con "Cambio" segni le sostituzioni e l’app propone il rientro previsto dalle regole.',
+      alt: 'Il tastierino sullo smartphone durante un tocco di attacco, e la finestra del cambio che propone il rientro del n. 13 al posto del n. 15',
+      start: 'Inizia una nuova partita',
     },
     upload: 'Vai al caricamento',
     example: 'Guarda un tabellino d’esempio',
@@ -212,7 +227,7 @@ export const it = {
     reason: {
       roster: 'Stessa squadra, stesso campionato e stesso numero già abbinati all’atleta di riferimento in altre partite.',
       name: 'Stesso nome dell’atleta già presente nell’elenco.',
-      sameAs: (label: string) => `Stesso nome di ${label}: con «Conferma tutte le proposte» avranno l’atleta di riferimento in comune.`,
+      sameAs: (label: string) => `Stesso nome di ${label}: con "Conferma tutte le proposte" avranno l’atleta di riferimento in comune.`,
       ambiguous: 'Il nome da solo non basta a riconoscere l’atleta di riferimento: scegli tu.',
       homonym: 'Nella squadra due divise con questo nome giocano nelle stesse partite: ogni divisa va abbinata separatamente. Usa la nota per distinguere chi ha lo stesso nome.',
       new: 'Questo nome non è ancora nell’elenco.',
@@ -314,38 +329,38 @@ export const it = {
         name: 'Google Drive',
         account: 'Google',
         confirmPoints: [
-          'L’app crea nel tuo Drive la cartella «VolleyReport» con il file «VolleyReport.vrp»: lo vedi e puoi scaricarlo e importarlo a mano.',
+          'L’app crea nel tuo Drive la cartella "VolleyReport" con il file "VolleyReport.vrp": lo vedi e puoi scaricarlo e importarlo a mano.',
           'L’app vede solo i file che crea lei, non il resto del tuo Drive.',
           'I dati vanno direttamente dal dispositivo al tuo Drive: nessun server del progetto li riceve.',
           'Collega lo stesso account Google su ogni dispositivo: all’avvio e dopo ogni modifica l’app tiene allineati i dati. I dispositivi collegati a un altro servizio restano separati.',
           'Se modifichi la stessa partita su due dispositivi, l’app tiene entrambe le versioni.',
         ],
-        disconnectDelete: 'Sposta anche il file «VolleyReport.vrp» nel cestino di Drive (gli altri dispositivi collegati lo ricreano alla prossima sincronizzazione)',
+        disconnectDelete: 'Sposta anche il file "VolleyReport.vrp" nel cestino di Drive (gli altri dispositivi collegati lo ricreano alla prossima sincronizzazione)',
       },
       dropbox: {
         name: 'Dropbox',
         account: 'Dropbox',
         confirmPoints: [
-          'L’app crea nel tuo Dropbox una cartella riservata «VolleyReport», tra le cartelle delle app, con il file «VolleyReport.vrp»: lo vedi e puoi scaricarlo e importarlo a mano. Lascialo lì: se lo sposti, l’app ne crea uno nuovo.',
+          'L’app crea nel tuo Dropbox una cartella riservata "VolleyReport", tra le cartelle delle app, con il file "VolleyReport.vrp": lo vedi e puoi scaricarlo e importarlo a mano. Lascialo lì: se lo sposti, l’app ne crea uno nuovo.',
           'L’app vede solo la propria cartella, non il resto del tuo Dropbox.',
           'I dati vanno direttamente dal dispositivo al tuo Dropbox: nessun server del progetto li riceve.',
           'Collega lo stesso account Dropbox su ogni dispositivo: all’avvio e dopo ogni modifica l’app tiene allineati i dati. I dispositivi collegati a un altro servizio restano separati.',
           'Se modifichi la stessa partita su due dispositivi, l’app tiene entrambe le versioni.',
         ],
-        disconnectDelete: 'Elimina anche il file «VolleyReport.vrp» da Dropbox, che lo conserva per un periodo tra i file eliminati (gli altri dispositivi collegati lo ricreano alla prossima sincronizzazione)',
+        disconnectDelete: 'Elimina anche il file "VolleyReport.vrp" da Dropbox, che lo conserva per un periodo tra i file eliminati (gli altri dispositivi collegati lo ricreano alla prossima sincronizzazione)',
       },
       onedrive: {
         name: 'OneDrive',
         account: 'Microsoft',
         confirmPoints: [
-          'L’app crea nel tuo OneDrive una cartella riservata «VolleyReport», dentro la cartella delle app, con il file «VolleyReport.vrp»: lo vedi e puoi scaricarlo e importarlo a mano. Lascialo lì: se lo sposti, l’app ne crea uno nuovo.',
+          'L’app crea nel tuo OneDrive una cartella riservata "VolleyReport", dentro la cartella delle app, con il file "VolleyReport.vrp": lo vedi e puoi scaricarlo e importarlo a mano. Lascialo lì: se lo sposti, l’app ne crea uno nuovo.',
           'L’app vede solo la propria cartella, non il resto del tuo OneDrive.',
           'I dati vanno direttamente dal dispositivo al tuo OneDrive: nessun server del progetto li riceve.',
           'Collega lo stesso account Microsoft personale su ogni dispositivo: all’avvio e dopo ogni modifica l’app tiene allineati i dati. I dispositivi collegati a un altro servizio restano separati.',
           'Se modifichi la stessa partita su due dispositivi, l’app tiene entrambe le versioni.',
-          'Nella versione web l’accesso dura al massimo 24 ore: poi basta un tocco su «Sincronizza ora».',
+          'Nella versione web l’accesso dura al massimo 24 ore: poi basta un tocco su "Sincronizza ora".',
         ],
-        disconnectDelete: 'Sposta anche il file «VolleyReport.vrp» nel cestino di OneDrive (gli altri dispositivi collegati lo ricreano alla prossima sincronizzazione)',
+        disconnectDelete: 'Sposta anche il file "VolleyReport.vrp" nel cestino di OneDrive (gli altri dispositivi collegati lo ricreano alla prossima sincronizzazione)',
       },
     },
     confirmButton: (account: string) => `Continua con ${account}`,
@@ -355,12 +370,12 @@ export const it = {
     syncing: 'Sincronizzazione in corso…',
     last: (when: string) => `Ultima sincronizzazione: ${when}`,
     never: 'Non ancora sincronizzato',
-    paused: (account: string) => `Accesso a ${account} scaduto: tocca «Sincronizza ora» per riprendere.`,
+    paused: (account: string) => `Accesso a ${account} scaduto: tocca "Sincronizza ora" per riprendere.`,
     problems: ({ name, account }: { name: string; account: string }) => ({
       offline: 'Nessuna connessione: l’app riprova appena la rete torna.',
       storage: `${name} non ha accettato la richiesta: riprova più tardi.`,
       file: `Il file su ${name} è di una versione più recente dell’app: aggiorna l’app per sincronizzare. Il file non viene toccato.`,
-      'sign-in': `Accesso a ${account} scaduto: tocca «Sincronizza ora» per riprendere.`,
+      'sign-in': `Accesso a ${account} scaduto: tocca "Sincronizza ora" per riprendere.`,
     }),
     conflicts: (n: number) =>
       n === 1
@@ -376,6 +391,19 @@ export const it = {
   },
 
   /** Live scouting on a tablet or a touch screen (the form as a sheet of counters). */
+  formColumns: {
+    title: 'Modulo da stampare',
+    text: 'Le colonne "#", "+", "-" e "=" ci sono sempre. Togli le "!" e le "/" che non rilevi: le altre colonne si allargano e i pallini diventano ovali, più facili da riempire. Il codice QR del foglio ricorda le colonne tolte, così la foto si legge da sola.',
+    standard: 'Con tutte le colonne scarichi il modulo standard.',
+    custom: 'Il modulo viene preparato con le colonne scelte.',
+    download: 'Scarica il PDF',
+    selectAll: 'Seleziona tutte',
+    clearAll: 'Deseleziona tutte',
+    selectSkill: 'seleziona tutte',
+    clearSkill: 'deseleziona tutte',
+    cancel: 'Annulla',
+  },
+
   live: {
     homeTitle: 'Rileva sul tablet o sul computer',
     homeText: 'Il foglio di rilevazione sullo schermo: tocchi la casella e il conteggio sale di uno, a fine set inserisci il punteggio. Meglio un tablet in orizzontale o un computer con schermo touch.',
@@ -441,20 +469,20 @@ export const it = {
     confirmSubstitution: 'Conferma il cambio',
     undoSubstitution: (out: number, enter: number) => `cambio: esce ${out}, entra ${enter}`,
     columns: 'Colonne',
-    columnsLabel: 'Scegli le colonne «!» e «/» da mostrare',
+    columnsLabel: 'Scegli le colonne "!" e "/" da mostrare',
     columnsHidden: (n: number) => (n === 1 ? '1 nascosta' : `${n} nascoste`),
     columnsTitle: 'Colonne da rilevare',
     columnsText:
-      'Le colonne «#», «+», «-» e «=» ci sono sempre. Togli le «!» e le «/» che non rilevi: il foglio diventa più semplice e la partita ricorda che quei dati non sono stati raccolti. La prossima partita su questo dispositivo parte con la stessa scelta; la puoi cambiare in ogni momento.',
+      'Le colonne "#", "+", "-" e "=" ci sono sempre. Togli le "!" e le "/" che non rilevi: il foglio diventa più semplice e la partita ricorda che quei dati non sono stati raccolti. La prossima partita su questo dispositivo parte con la stessa scelta; la puoi cambiare in ogni momento.',
     columnsCounted: (n: number) => (n === 1 ? '(c’è già 1 tocco: resta nei conteggi)' : `(ci sono già ${n} tocchi: restano nei conteggi)`),
     libero: 'Libero',
     setFault: 'Alz.',
     shirtOf: (libero: boolean, row: number) => `${libero ? 'Libero' : 'Riga'} ${row}: numero di divisa`,
     cell: (code: string, shirt: number | null, count: number) => `${code}, divisa ${shirt ?? 'senza numero'}: ${count}`,
-    hint: 'Tocca una casella per aggiungere 1 · tieni premuto (o clic destro) per togliere 1 · «Annulla» toglie l’ultimo tocco',
-    hintCorrect: 'Modalità −1 attiva: ogni tocco toglie 1. Tocca di nuovo «Modalità −1» per tornare a contare.',
+    hint: 'Tocca una casella per aggiungere 1 · tieni premuto (o clic destro) per togliere 1 · "Annulla" toglie l’ultimo tocco',
+    hintCorrect: 'Modalità −1 attiva: ogni tocco toglie 1. Tocca di nuovo "Modalità −1" per tornare a contare.',
     hintClosed: (set: number, team: number, opponent: number) =>
-      `Set ${set} chiuso ${team}–${opponent}: i conteggi sono in sola lettura. Per correggerli tocca «Riapri set».`,
+      `Set ${set} chiuso ${team}–${opponent}: i conteggi sono in sola lettura. Per correggerli tocca "Riapri set".`,
     touches: 'Tocchi nel set',
     saved: 'salvato sul dispositivo',
     saving: 'salvataggio…',
@@ -603,7 +631,7 @@ export const it = {
           {
             id: 'warning',
             q: 'Perché Windows, Apple o Android dicono che il software è pericoloso?',
-            a: ['Perché l’autore non è registrato come sviluppatore riconosciuto presso di loro: la registrazione ha un costo e il progetto oggi ha più spese che entrate, quindi per ora non si investe in questa direzione. L’avviso dice che l’app non è firmata, non che sia stato trovato qualcosa di dannoso. Le versioni sono prodotte da GitHub Actions a partire dal codice pubblico, che chiunque può controllare.', 'Windows: «Ulteriori informazioni», poi «Esegui comunque». macOS: clic destro sull’app, poi «Apri». Android: consenti l’installazione dal browser o dal file manager. iPhone e iPad: il pacchetto va installato con strumenti come AltStore o Sideloadly. Se preferisci non installare nulla, usa la versione web.'],
+            a: ['Perché l’autore non è registrato come sviluppatore riconosciuto presso di loro: la registrazione ha un costo e il progetto oggi ha più spese che entrate, quindi per ora non si investe in questa direzione. L’avviso dice che l’app non è firmata, non che sia stato trovato qualcosa di dannoso. Le versioni sono prodotte da GitHub Actions a partire dal codice pubblico, che chiunque può controllare.', 'Windows: "Ulteriori informazioni", poi "Esegui comunque". macOS: clic destro sull’app, poi "Apri". Android: consenti l’installazione dal browser o dal file manager. iPhone e iPad: il pacchetto va installato con strumenti come AltStore o Sideloadly. Se preferisci non installare nulla, usa la versione web.'],
           },
           {
             id: 'languages',
@@ -623,7 +651,7 @@ export const it = {
           {
             id: 'exchange',
             q: 'Come faccio a scambiare i dati o a passarli su un altro dispositivo?',
-            a: ['Ci sono due modi. Il primo è esportare: dall’elenco delle partite ottieni un file .vrp, che puoi inviare a chi vuoi e aprire con «Importa» su qualsiasi versione dell’app. L’importazione non sovrascrive nulla: una partita già presente con dati diversi viene aggiunta come copia.', 'Il secondo è la sincronizzazione con Google Drive, Dropbox o OneDrive, dal riquadro nella pagina Partite: collegando lo stesso account dello stesso servizio su più dispositivi i dati restano allineati. L’app vede solo il proprio file o la propria cartella, non il resto del tuo spazio. Google Drive è disponibile sulla versione web e sulle app per Windows, macOS, Linux e Android; Dropbox e OneDrive sulla versione web e sulle app per Windows, macOS e Linux. I servizi si escludono a vicenda: su ogni dispositivo ne usi uno solo alla volta, Google Drive, Dropbox oppure OneDrive, e i dispositivi collegati a servizi diversi non si scambiano i dati. Nell’app per iPhone e iPad (il pacchetto IPA) la sincronizzazione non c’è e la voce non compare: per spostare i dati usa l’esportazione.'],
+            a: ['Ci sono due modi. Il primo è esportare: dall’elenco delle partite ottieni un file .vrp, che puoi inviare a chi vuoi e aprire con "Importa" su qualsiasi versione dell’app. L’importazione non sovrascrive nulla: una partita già presente con dati diversi viene aggiunta come copia.', 'Il secondo è la sincronizzazione con Google Drive, Dropbox o OneDrive, dal riquadro nella pagina Partite: collegando lo stesso account dello stesso servizio su più dispositivi i dati restano allineati. L’app vede solo il proprio file o la propria cartella, non il resto del tuo spazio. Google Drive è disponibile sulla versione web e sulle app per Windows, macOS, Linux e Android; Dropbox e OneDrive sulla versione web e sulle app per Windows, macOS e Linux. I servizi si escludono a vicenda: su ogni dispositivo ne usi uno solo alla volta, Google Drive, Dropbox oppure OneDrive, e i dispositivi collegati a servizi diversi non si scambiano i dati. Nell’app per iPhone e iPad (il pacchetto IPA) la sincronizzazione non c’è e la voce non compare: per spostare i dati usa l’esportazione.'],
           },
           {
             id: 'delete',
@@ -655,6 +683,31 @@ export const it = {
             q: 'Ho fotografato di nuovo un set o il set è su due fogli: cosa succede?',
             a: ['Quando un set è già presente l’app chiede cosa fare: sommare i fogli, se sono fogli diversi dello stesso set, oppure sostituire il set salvato. Se è lo stesso foglio fotografato due volte, togli una delle due foto: sommandole conteresti i tocchi due volte.'],
           },
+          {
+            id: 'simpleForm',
+            q: 'Posso stampare un modulo più semplice?',
+            a: ['Sì. Toccando "Scarica il modulo da stampare (PDF)" scegli le colonne: tutte selezionate danno il modulo standard; togliendo le valutazioni "!" e "/" che non rilevi, fondamentale per fondamentale, l’app prepara un modulo in cui le altre colonne si allargano e i pallini diventano ovali, più facili da riempire. Ci sono pulsanti per selezionare o deselezionare tutte le colonne o quelle di un fondamentale.', 'Il codice QR del foglio ricorda le colonne tolte: fotografando il foglio l’app lo legge da solo e la partita sa che quei dati non sono stati raccolti. Per questo è importante non scrivere sul QR. Se il QR non si legge e il modulo è senza una sola delle due colonne del muro, l’app chiede quale manca.'],
+          },
+        ],
+      },
+      {
+        title: 'Tablet e smartphone',
+        items: [
+          {
+            id: 'phone',
+            q: 'Posso rilevare dallo smartphone?',
+            a: ['Sì, con il tastierino: sullo smartphone il foglio si apre già così, sul tablet lo attivi con "Tastierino" e torni al foglio con "Griglia". Tocchi il numero, poi il fondamentale, poi la valutazione: il segno va nella casella giusta del foglio, che scorre fino a mostrarla. In fondo vedi l’ultimo tocco, e "Annulla" lo toglie.', 'All’inizio di ogni set indichi la formazione: i sei numeri in campo e i liberi, con un nome breve se vuoi, che compare in piccolo sul tasto. Si parte dalla formazione del set precedente.'],
+          },
+          {
+            id: 'substitutions',
+            q: 'Come si segnano i cambi?',
+            a: ['Sul tastierino tocca il numero di chi esce e poi "Cambio": a destra scegli chi entra con le frecce, oppure scrivi un numero nuovo con il suo nome. Chi è entrato con un cambio può uscire solo per far rientrare chi ha sostituito, e l’app propone già quella coppia; dopo il rientro la coppia è chiusa per il resto del set. I numeri che hanno già fatto un cambio sono in grigio. Ogni set riparte da zero e non c’è un limite al numero di cambi, perché le regole cambiano da un campionato all’altro. I liberi non passano dai cambi.'],
+          },
+          {
+            id: 'columnsLive',
+            q: 'Posso togliere le colonne che non rilevo?',
+            a: ['Sì: nella rilevazione sul tablet o sullo smartphone, "Colonne" toglie le valutazioni "!" e "/" che non ti servono, con pulsanti per selezionarle o deselezionarle tutte o per fondamentale. Il foglio si semplifica, le caselle restano più grandi e la partita ricorda che quei dati non sono stati raccolti. Una nuova partita sul dispositivo parte con l’ultima scelta. Lo stesso vale per il modulo da stampare.'],
+          },
         ],
       },
       {
@@ -663,16 +716,16 @@ export const it = {
           {
             id: 'correct',
             q: 'Ho sbagliato un conteggio: come lo correggo?',
-            a: ['Apri la partita dall’elenco in Partite. Nella sezione Set scrivi il totale giusto nella casella, oppure usa la modalità «Per divisa» con i pulsanti + e −. La modifica si salva da sola e aggiorna tabellino, grafici e storico. Nella stessa pagina correggi squadre, data, punteggi, numeri di divisa e nomi.'],
+            a: ['Apri la partita dall’elenco in Partite. Nella sezione Set scrivi il totale giusto nella casella, oppure usa la modalità "Per divisa" con i pulsanti + e −. La modifica si salva da sola e aggiorna tabellino, grafici e storico. Nella stessa pagina correggi squadre, data, punteggi, numeri di divisa e nomi.'],
           },
           {
             id: 'correctLive',
             q: 'Come correggo mentre rilevo sul tablet?',
-            a: ['«Annulla» toglie l’ultimo tocco, una pressione prolungata sulla casella (clic destro con il mouse) toglie 1 e con «Modalità −1» ogni tocco toglie 1. Un set chiuso è in sola lettura: per correggerlo tocca «Riapri set».'],
+            a: ['"Annulla" toglie l’ultimo tocco, una pressione prolungata sulla casella (clic destro con il mouse) toglie 1 e con "Modalità −1" ogni tocco toglie 1. Un set chiuso è in sola lettura: per correggerlo tocca "Riapri set".'],
           },
           {
             id: 'check',
-            q: 'Cosa vuol dire «Da controllare» nella pagina della partita?',
+            q: 'Cosa vuol dire "Da controllare" nella pagina della partita?',
             a: ['L’app segnala dati mancanti o incoerenti: squadra senza nome, punteggio mancante o in parità, tocchi su una riga senza numero di divisa, punti diretti superiori al punteggio della squadra. Il tabellino si può aprire lo stesso, ma quei numeri potrebbero non essere affidabili.'],
           },
           {
@@ -698,13 +751,13 @@ export const it = {
           {
             id: 'squads',
             q: 'La squadra ha un nome diverso in ogni campionato, per esempio con lo sponsor: come faccio?',
-            a: ['In Storico, nella sezione «Nomi della squadra», unisci i nomi: lo storico mette insieme i suoi campionati. L’app si limita a suggerire i nomi simili: li unisci solo tu e puoi separarli con «Separa».'],
+            a: ['In Storico, nella sezione "Nomi della squadra", unisci i nomi: lo storico mette insieme i suoi campionati. L’app si limita a suggerire i nomi simili: li unisci solo tu e puoi separarli con "Separa".'],
           },
           {
             id: 'aggregate',
             q: 'Come vengono sommati i dati di più partite?',
             a: [
-              'Nello Storico, con «Cambia partite e rosa», o nella pagina dell’atleta scegli quali partite unire. I totali e le percentuali vengono ricalcolati da tutti i tocchi delle partite scelte, non facendo la media delle percentuali di ogni partita: così una partita con pochi tocchi non pesa come una con molti. Lo Storico si apre con la squadra (con la tendenza delle ultime 3 partite) e con una tabella per atleta colorata rispetto alla squadra; un clic su un nome apre la scheda con l’andamento partita per partita.',
+              'Nello Storico, con "Cambia partite e rosa", o nella pagina dell’atleta scegli quali partite unire. I totali e le percentuali vengono ricalcolati da tutti i tocchi delle partite scelte, non facendo la media delle percentuali di ogni partita: così una partita con pochi tocchi non pesa come una con molti. Lo Storico si apre con la squadra (con la tendenza delle ultime 3 partite) e con una tabella per atleta colorata rispetto alla squadra; un clic su un nome apre la scheda con l’andamento partita per partita.',
             ],
           },
           {
@@ -726,7 +779,7 @@ export const it = {
             id: 'charts',
             q: 'Quali grafici ci sono e come li leggo?',
             a: [
-              'La pagina Grafici si apre con la squadra (positività ed efficienza di battuta e ricezione, efficienza di attacco e muro, vinti meno persi, con la tendenza dell’ultimo set) e con una tabella per atleta colorata rispetto alla squadra: verde con ▲ sopra, rosso con ▼ sotto. Chi fa solo ricezione, di solito il libero, non ha vinti meno persi, perché non può fare punto. Un clic su un nome apre la scheda dell’atleta, con l’andamento set per set. Più sotto ci sono i grafici della squadra, già aperti: valutazioni per fondamentale, punti vinti e persi, andamento per set, confronto dei punti vinti e persi e rendimento in ricezione dei liberi; la tabella completa si apre da «Tutte le colonne del tabellino». «Mostra i dati» apre i valori in tabella. Con «Genera PDF» scegli i blocchi da mettere nel documento.',
+              'La pagina Grafici si apre con la squadra (positività ed efficienza di battuta e ricezione, efficienza di attacco e muro, vinti meno persi, con la tendenza dell’ultimo set) e con una tabella per atleta colorata rispetto alla squadra: verde con ▲ sopra, rosso con ▼ sotto. Chi fa solo ricezione, di solito il libero, non ha vinti meno persi, perché non può fare punto. Un clic su un nome apre la scheda dell’atleta, con l’andamento set per set. Più sotto ci sono i grafici della squadra, già aperti: valutazioni per fondamentale, punti vinti e persi, andamento per set, confronto dei punti vinti e persi e rendimento in ricezione dei liberi; la tabella completa si apre da "Tutte le colonne del tabellino". "Mostra i dati" apre i valori in tabella. Con "Genera PDF" scegli i blocchi da mettere nel documento.',
             ],
           },
           {
@@ -788,13 +841,15 @@ export const it = {
       ', il foglio di calcolo per allenatori e allenatrici che rilevano la partita con carta e penna. Qui trovi il modulo da stampare, come rilevare sul tablet, i codici, le definizioni delle statistiche e le versioni da installare.',
     formTitle: 'Il modulo di rilevazione',
     formText:
-      'Un foglio A4 orizzontale da stampare in bianco e nero, una copia per ogni set: il set si segna in alto, insieme a «Foglio aggiuntivo» se il set continua su un secondo foglio. Dodici righe di gioco (battuta, muro, attacco, ricezione, falli di alzata), alternate bianche e grigie per seguirle meglio e, in fondo, due blocchi affiancati per il ruolo di libero (ricezione, falli di alzata). Il modulo è lo stesso per tutte le partite: squadra, campionato, data e nomi scritti sul foglio servono all’archivio cartaceo, nell’app si inseriscono dopo la foto.',
+      'Un foglio A4 orizzontale da stampare in bianco e nero, una copia per ogni set: il set si segna in alto, insieme a "Foglio aggiuntivo" se il set continua su un secondo foglio. Dodici righe di gioco (battuta, muro, attacco, ricezione, falli di alzata), alternate bianche e grigie per seguirle meglio e, in fondo, due blocchi affiancati per il ruolo di libero (ricezione, falli di alzata). Il modulo è lo stesso per tutte le partite: squadra, campionato, data e nomi scritti sul foglio servono all’archivio cartaceo, nell’app si inseriscono dopo la foto.',
     formButton: 'Scarica il modulo (PDF, 1 pagina)',
+    formColumnsText:
+      'Se non rilevi tutte le valutazioni, toccando "Scarica il modulo" puoi togliere le colonne "!" e "/" che non ti servono, fondamentale per fondamentale: le altre colonne si allargano e i pallini diventano ovali, più facili da riempire. Il codice QR ricorda le colonne tolte e l’app le riconosce dalla foto; con tutte le colonne selezionate scarichi il modulo standard.',
     howTitle: 'Come si compila',
     howText: 'Penna scura, un pallino per ogni pallone toccato.',
     howSteps: [
       'Leggi le descrizioni sotto i simboli: in ogni fondamentale le valutazioni vanno da sinistra a destra dalla più favorevole (verde) alla meno favorevole (rosso), con gli stessi colori dei grafici. L’ordine dipende dal fondamentale: in battuta è # / + ! - =, negli altri # + ! - / =. Usa sempre simboli e testo, anche in bianco e nero.',
-      'Segna in alto il set; se il set continua da un altro foglio segna anche «Foglio aggiuntivo».',
+      'Segna in alto il set; se il set continua da un altro foglio segna anche "Foglio aggiuntivo".',
       'Una riga per ogni atleta che entra in campo: scrivi il numero di divisa nelle due caselle a sinistra, una cifra per casella, e sotto, se aiuta, il nome.',
       'Per ogni pallone toccato, nella riga di quella divisa trova il fondamentale (Battuta, Muro, Attacco, Ricezione) e la valutazione, poi annerisci o barra il primo pallino libero. I pallini anneriti mostrano subito quanti tocchi di quel tipo sono stati fatti.',
       'Ogni pallino vale un tocco, compreso l’ultimo. Se una casella è piena, continua su un altro foglio indicando lo stesso set e numero di divisa. L’app somma i conteggi dei fogli.',
@@ -806,13 +861,23 @@ export const it = {
     liveTitle: 'Rilevare sul tablet',
     liveText: 'In alternativa al modulo di carta: lo stesso foglio sullo schermo di un tablet o di un computer touch, con un contatore al posto dei pallini.',
     liveSteps: [
-      'Nella pagina Partite tocca «Inizia una nuova partita» nel riquadro «Rileva sul tablet o sul computer», oppure «Rileva sul tablet» nella pagina di una partita già salvata.',
+      'Nella pagina Partite tocca "Inizia una nuova partita" nel riquadro "Rileva sul tablet o sul computer", oppure "Rileva sul tablet" nella pagina di una partita già salvata.',
       'All’inizio scrivi le due squadre, il campionato e la data; puoi cambiarli toccando il titolo in alto.',
-      'Nella colonna «N° e nome» scrivi numero di divisa e nome: una riga per ogni atleta che entra in campo, le due righe «Libero» in fondo. Per una squadra già rilevata nello stesso campionato, il numero propone il nome usato l’ultima volta.',
+      'Nella colonna "N° e nome" scrivi numero di divisa e nome: una riga per ogni atleta che entra in campo, le due righe "Libero" in fondo. Per una squadra già rilevata nello stesso campionato, il numero propone il nome usato l’ultima volta.',
       'Per ogni pallone toccato, tocca la casella sotto fondamentale e valutazione: il numero sale di uno e l’ultima casella toccata resta evidenziata in arancione.',
-      'Per togliere un tocco: «Annulla» toglie l’ultimo; una pressione prolungata sulla casella (clic destro con il mouse) toglie 1 da quella casella; con «Modalità −1» ogni tocco toglie 1, finché non la spegni.',
-      'A fine set tocca «Chiudi set» e inserisci il punteggio finale: il set successivo riparte con gli stessi numeri di divisa e gli stessi nomi. Un set chiuso resta in sola lettura; per correggerlo tocca «Riapri set».',
+      'Per togliere un tocco: "Annulla" toglie l’ultimo; una pressione prolungata sulla casella (clic destro con il mouse) toglie 1 da quella casella; con "Modalità −1" ogni tocco toglie 1, finché non la spegni.',
+      'A fine set tocca "Chiudi set" e inserisci il punteggio finale: il set successivo riparte con gli stessi numeri di divisa e gli stessi nomi. Un set chiuso resta in sola lettura; per correggerlo tocca "Riapri set".',
+      'Con "Colonne" togli le valutazioni "!" e "/" che non rilevi: il foglio si semplifica e la partita ricorda che quei dati non sono stati raccolti.',
       'Ogni tocco è salvato subito sul dispositivo e lo schermo resta acceso durante la rilevazione. Va meglio un tablet in orizzontale.',
+    ],
+    keypadTitle: 'Rilevare con il tastierino',
+    keypadText: 'Pensato per lo smartphone, dove il foglio intero non entra nello schermo: tre tocchi per ogni pallone, e il foglio si compila da solo sotto il tastierino.',
+    keypadSteps: [
+      'Sullo smartphone il foglio si apre già con il tastierino; sul tablet tocca "Tastierino" nella barra in alto. "Griglia" riporta al foglio completo e il dispositivo ricorda la scelta.',
+      'All’inizio di ogni set indica la formazione: i sei numeri in campo e i liberi, con un nome breve se vuoi. Si parte da quella del set precedente, i numeri finiscono anche nel foglio e il nome compare in piccolo sul tasto. "Formazione" la cambia in ogni momento.',
+      'Per ogni pallone toccato: tocca il numero, poi il fondamentale, poi la valutazione. I pulsanti si attivano in quest’ordine; per il libero solo ricezione e alzata. Il segno va nella casella giusta del foglio, che scorre fino a mostrarla.',
+      'In fondo al tastierino vedi l’ultimo tocco; "Annulla" lo toglie, e toglie anche l’ultimo cambio.',
+      'Per un cambio tocca il numero di chi esce e poi "Cambio": a destra scegli chi entra con le frecce, o scrivi un numero nuovo con il suo nome. Chi è entrato con un cambio può uscire solo per far rientrare chi ha sostituito: l’app propone già quella coppia. Dopo il rientro la coppia è chiusa per il set; i numeri che hanno già fatto un cambio sono in grigio. Ogni set riparte da zero.',
     ],
     codesTitle: 'Codici',
     codesText: 'Valutazioni dello standard DataVolley. Per l’alzata si segna solo il fallo (=).',
@@ -877,6 +942,7 @@ export const it = {
 
   /** Texts printed on the scouting form. */
   form: {
+    qrNotice: ['Non scrivere', 'sul codice QR'],
     fileName: 'VolleyReport - modulo di rilevazione.pdf',
     set: (n: number) => `Set ${n}`,
     setLabel: 'Set',
@@ -1034,8 +1100,8 @@ export const it = {
     whatsapp: 'Invia con WhatsApp',
     whatsappHelp: 'WhatsApp si apre e ti chiede a chi mandarlo. Per mandarlo in altro modo (mail, Telegram, SMS…) copia il link.',
     copiedHelp:
-      'Il link è stato copiato negli appunti. Ora apri la chat, la mail o il messaggio e incollalo: Ctrl+V sul computer, oppure tieni premuto nel campo del testo e scegli «Incolla» sul telefono.',
-    copyFailed: 'Non è stato possibile copiarlo da solo: il link è qui sotto, già selezionato. Copialo con Ctrl+C (o tieni premuto e scegli «Copia»).',
+      'Il link è stato copiato negli appunti. Ora apri la chat, la mail o il messaggio e incollalo: Ctrl+V sul computer, oppure tieni premuto nel campo del testo e scegli "Incolla" sul telefono.',
+    copyFailed: 'Non è stato possibile copiarlo da solo: il link è qui sotto, già selezionato. Copialo con Ctrl+C (o tieni premuto e scegli "Copia").',
     showLink: 'Mostra il link',
     message: (subject: string, until: string, url: string) => `Report di VolleyReport: ${subject} (valido fino al ${until})\n${url}`,
     ctaTitle: 'Condividi questa pagina',
@@ -1085,7 +1151,7 @@ export const it = {
       { term: 'Voto', text: 'Voto del tabellino DataVolley: media dei voti ottenuti nei fondamentali, mai sotto 5,5.' },
       { term: 'Er.Av', text: 'Errori della squadra avversaria: punti vinti senza un nostro tocco vincente.' },
       { term: 'Positività battuta', text: 'Battute punto (#), positive (+), buone (!) e rigiocate subito dalla squadra avversaria (/), sul totale delle battute.' },
-      { term: 'Efficienza battuta', text: 'Ace (#) meno errori (=), sul totale delle battute: l’efficienza «classica» di DataVolley, vincenti meno perdenti.' },
+      { term: 'Efficienza battuta', text: 'Ace (#) meno errori (=), sul totale delle battute: l’efficienza "classica" di DataVolley, vincenti meno perdenti.' },
       { term: 'Positività ricezione', text: 'Ricezioni perfette (#) e positive (+) sul totale delle ricezioni.' },
       { term: 'Efficienza ricezione', text: 'Ricezioni perfette (#) meno errori (=), sul totale: l’efficienza della ricezione suggerita dal manuale di DataVolley.' },
       { term: 'Efficienza attacco', text: 'Attacchi vincenti (#) meno attacchi murati (/) ed errori (=), sul totale degli attacchi.' },
@@ -1135,6 +1201,8 @@ export const it = {
       set: 'Set',
       chooseSet: 'Scegli il set',
       qrUnread: 'Il codice QR non si legge: indica tu il set di questo foglio.',
+      blockColumnQuestion: 'Il codice QR non si legge e questo modulo è stampato senza una colonna del muro: quale manca sul foglio?',
+      blockColumnOption: (symbol: string, meaning: string) => `Manca "${symbol}" (${meaning})`,
       noSet: 'Sul foglio non è segnato il set: indicalo tu.',
       manySets: (sets: readonly number[]) => `Sul foglio sono segnati più set (${sets.join(', ')}): indica quello giusto.`,
       extra: 'Foglio aggiuntivo: si somma agli altri fogli dello stesso set',

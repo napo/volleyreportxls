@@ -56,12 +56,12 @@ export const en: Messages = {
 
   /** The 5-step guide (dialog at start). */
   guide: {
-    title: 'How it works, in 5 steps',
+    title: 'How it works',
     text: 'From the paper sheet to the scoresheet, without retyping the counts.',
     steps: [
       {
         title: 'Get the form',
-        text: 'Download the v8 form and print one copy per set, plus a few spare sheets. Descriptions below the symbols explain each rating; the colours, the same as in the charts, are an extra aid and black-and-white printing works too.',
+        text: 'Download the form and print one copy per set, plus a few spare sheets. Descriptions below the symbols explain each rating; the colours, the same as in the charts, are an extra aid and black-and-white printing works too.',
         alt: 'Empty v8 form: serve, block, attack, reception and setting faults; symbols with descriptions and headers coloured from the most to the least favourable; rows alternately white and grey.',
       },
       {
@@ -86,12 +86,27 @@ export const en: Messages = {
       },
     ],
     /** Last page of the guide: the tablet instead of paper and photos. */
+    /** After the first step: a form without the columns that are not recorded. */
+    customForm: {
+      eyebrow: 'If you like',
+      title: 'A simpler form',
+      text: 'If you do not record every evaluation, tapping "Download the form" remove the "!" and "/" columns you do not need, skill by skill. The other columns get wider and the bubbles become ovals, easier to fill in. The QR code of the sheet remembers the columns removed: do not write on it, so the photo is read by itself. With every column selected you download the standard form.',
+      alt: 'The choice of columns with the "!" evaluations removed, and the resulting form: wider columns and oval bubbles',
+    },
     tablet: {
       eyebrow: 'Alternatively',
       title: 'No paper? Scout on a tablet',
       text: 'The same sheet on the screen of a tablet or a touch computer: tap a cell and its count goes up by one, enter the score at the end of each set. No photos and nothing to check: the scoresheet is ready when the match ends.',
       alt: 'The scouting sheet on the tablet screen',
       start: 'Start a new match on the tablet',
+    },
+    /** After the tablet: the keypad, made for smartphones. */
+    phone: {
+      eyebrow: 'Or else',
+      title: 'On a smartphone: the keypad',
+      text: 'Tap the number, then the skill, then the evaluation: the mark goes by itself into the right cell of the sheet. At the start of a set choose the lineup, with a short name on the keys; with "Substitution" you record changes and the app proposes the return the rules expect.',
+      alt: 'The keypad on a smartphone during an attack touch, and the substitution window proposing number 13 back for number 15',
+      start: 'Start a new match',
     },
     upload: 'Go to the upload',
     example: 'See an example scoresheet',
@@ -374,6 +389,19 @@ export const en: Messages = {
     disconnectButton: 'Disconnect',
     deleteFailed: (service: string) => `The file could not be deleted from ${service}: synchronisation stays on. Check the connection and try again.`,
     localAnd: (service: string) => `Data stay on the device and in your ${service}`,
+  },
+
+  formColumns: {
+    title: 'Form to print',
+    text: 'The “#”, “+”, “-” and “=” columns are always there. Remove the “!” and “/” ones you do not record: the other columns get wider and the bubbles become ovals, easier to fill in. The QR code of the sheet remembers the columns removed, so the photo is read by itself.',
+    standard: 'With every column you download the standard form.',
+    custom: 'The form is made with the columns chosen.',
+    download: 'Download the PDF',
+    selectAll: 'Select all',
+    clearAll: 'Clear all',
+    selectSkill: 'select all',
+    clearSkill: 'clear all',
+    cancel: 'Cancel',
   },
 
   live: {
@@ -690,6 +718,31 @@ export const en: Messages = {
             q: 'I photographed a set again, or the set is on two sheets: what happens?',
             a: ['When a set is already there the app asks what to do: add the sheets up, if they are different sheets of the same set, or replace the saved set. If it is the same sheet photographed twice, remove one of the photos: adding them up would count the touches twice.'],
           },
+          {
+            id: 'simpleForm',
+            q: 'Can I print a simpler form?',
+            a: ['Yes. Tapping "Download the form to print (PDF)" you choose the columns: all of them selected give the standard form; removing the "!" and "/" evaluations you do not record, skill by skill, the app makes a form where the other columns get wider and the bubbles become ovals, easier to fill in. Buttons select or clear every column, or those of one skill.', 'The QR code of the sheet remembers the columns removed: when the sheet is photographed the app reads it by itself and the match knows those data were not collected. That is why nothing should be written on the QR. If the QR cannot be read and the form lacks only one of the two block columns, the app asks which one.'],
+          },
+        ],
+      },
+      {
+        title: 'Tablet and smartphone',
+        items: [
+          {
+            id: 'phone',
+            q: 'Can I scout from a smartphone?',
+            a: ['Yes, with the keypad: on a smartphone the sheet opens that way, on a tablet you switch to it with "Keypad" and back to the sheet with "Grid". Tap the number, then the skill, then the evaluation: the mark goes into the right cell of the sheet, which scrolls to show it. The last touch appears at the bottom, and "Undo" takes it back.', 'At the start of each set you give the lineup: the six numbers on court and the liberos, with a short name if you like, which appears small on the key. It starts from the lineup of the previous set.'],
+          },
+          {
+            id: 'substitutions',
+            q: 'How are substitutions recorded?',
+            a: ['On the keypad tap the number of whoever leaves, then "Substitution": on the right choose whoever comes in with the arrows, or type a new number with its name. Whoever came in with a substitution can leave only for the one they replaced to come back, and the app already proposes that pair; after the return the pair is closed for the rest of the set. Numbers that already took part in a substitution are grey. Every set starts afresh and there is no limit on substitutions, since the rules differ from one competition to another. Liberos do not go through substitutions.'],
+          },
+          {
+            id: 'columnsLive',
+            q: 'Can I remove the columns I do not record?',
+            a: ['Yes: when scouting on a tablet or a smartphone, "Columns" removes the "!" and "/" evaluations you do not need, with buttons to select or clear all of them or those of one skill. The sheet gets simpler, the cells stay larger and the match remembers that those data were not collected. A new match on the device starts with the last choice. The same goes for the form to print.'],
+          },
         ],
       },
       {
@@ -825,6 +878,8 @@ export const en: Messages = {
     formText:
       'One A4 landscape sheet to print in black and white, one copy per set: the set is marked at the top, together with “Extra sheet” when the set goes on to a second sheet. Twelve rows for the players (serve, block, attack, reception, setting faults), alternately white and grey to follow them more easily and, at the bottom, two blocks side by side for the liberos (reception, setting faults). The form is the same for every match: team, competition, date and names written on the sheet are for the paper archive; in the app they are entered after the photo.',
     formButton: 'Download the form (PDF, 1 page)',
+    formColumnsText:
+      'If you do not record every evaluation, tapping "Download the form" you can remove the "!" and "/" columns you do not need, skill by skill: the other columns get wider and the bubbles become ovals, easier to fill in. The QR code remembers the columns removed and the app recognises them from the photo; with every column selected you download the standard form.',
     howTitle: 'How to fill it in',
     howText: 'Dark pen, one bubble for every ball touched.',
     howSteps: [
@@ -847,7 +902,17 @@ export const en: Messages = {
       'For every ball touched, tap the cell under skill and rating: the number goes up by one and the last cell tapped stays highlighted in orange.',
       'To take a touch away: “Undo” takes back the last one; a long press on a cell (right click with a mouse) takes 1 from that cell; with “−1 mode” every tap takes 1 away, until you turn it off.',
       'At the end of the set tap “Close set” and enter the final score: the next set starts with the same shirt numbers and names. A closed set is read-only; to correct it tap “Reopen set”.',
+      'With "Columns" remove the "!" and "/" evaluations you do not record: the sheet gets simpler and the match remembers that those data were not collected.',
       'Every touch is saved on the device at once and the screen stays on while scouting. A tablet in landscape works best.',
+    ],
+    keypadTitle: 'Scouting with the keypad',
+    keypadText: 'Made for smartphones, where the whole sheet does not fit the screen: three taps for every ball, and the sheet fills in by itself under the keypad.',
+    keypadSteps: [
+      'On a smartphone the sheet opens with the keypad; on a tablet tap "Keypad" in the bar at the top. "Grid" goes back to the whole sheet and the device remembers the choice.',
+      'At the start of each set give the lineup: the six numbers on court and the liberos, with a short name if you like. It starts from the lineup of the previous set, the numbers go on the sheet too and the name appears small on the key. "Lineup" changes it at any time.',
+      'For every ball touched: tap the number, then the skill, then the evaluation. The buttons light up in that order; for a libero only reception and set. The mark goes into the right cell of the sheet, which scrolls to show it.',
+      'At the bottom of the keypad you see the last touch; "Undo" takes it back, and takes back the last substitution too.',
+      'For a substitution tap the number of whoever leaves, then "Substitution": on the right choose whoever comes in with the arrows, or type a new number with its name. Whoever came in with a substitution can leave only for the one they replaced to come back: the app already proposes that pair. After the return the pair is closed for the set; numbers that already took part in a substitution are grey. Every set starts afresh.',
     ],
     codesTitle: 'Codes',
     codesText: 'Ratings of the DataVolley standard. For setting only the fault (=) is marked.',
@@ -911,6 +976,7 @@ export const en: Messages = {
   },
 
   form: {
+    qrNotice: ['Do not write', 'on the QR code'],
     fileName: 'VolleyReport - scouting form.pdf',
     set: (n: number) => `Set ${n}`,
     setLabel: 'Set',
@@ -1167,6 +1233,8 @@ export const en: Messages = {
       set: 'Set',
       chooseSet: 'Choose the set',
       qrUnread: 'The QR code cannot be read: choose the set of this sheet.',
+      blockColumnQuestion: 'The QR code cannot be read and this form was printed without one of the block columns: which one is missing on the sheet?',
+      blockColumnOption: (symbol: string, meaning: string) => `“${symbol}” is missing (${meaning})`,
       noSet: 'No set is marked on the sheet: choose it.',
       manySets: (sets: readonly number[]) => `More than one set is marked on the sheet (${sets.join(', ')}): choose the right one.`,
       extra: 'Extra sheet: added to the other sheets of the same set',

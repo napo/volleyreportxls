@@ -44,6 +44,8 @@ import { codeOf, parseShirtNumber, skillColumns } from '../components/counts-col
 import { evaluationTint } from '../../report/evaluation-colors';
 import { href } from '../routes';
 import { LineupDialog, LiveKeypad, SubstitutionDialog } from './LiveKeypad';
+import { ColumnsChoice } from '../components/ColumnsChoice';
+import { lastUntracked, rememberUntracked } from '../untracked-setting';
 
 /** What "Undo" takes back: a touch, or a substitution of the keypad. */
 type Step = Touch | { readonly set: SetNumber; readonly sub: true };
@@ -80,26 +82,6 @@ function rememberMode(mode: Mode) {
   }
 }
 
-/** The columns left out of the last match set up on this device: a new match starts from them. */
-const UNTRACKED_SETTING = 'volleyreport.live.untracked';
-
-function lastUntracked(): ScoutCodeString[] {
-  try {
-    const stored = JSON.parse(localStorage.getItem(UNTRACKED_SETTING) ?? '[]') as unknown;
-    return Array.isArray(stored) ? OPTIONAL_CODES.filter((code) => stored.includes(code)) : [];
-  } catch {
-    return [];
-  }
-}
-
-function rememberUntracked(codes: readonly ScoutCodeString[]) {
-  try {
-    localStorage.setItem(UNTRACKED_SETTING, JSON.stringify(codes));
-  } catch {
-    // Not kept: the next match starts with every column.
-  }
-}
-
 const hasTouches = (record: MatchRecord) => record.sets.some((s) => s.rows.some((row) => Object.values(row.counts).some((n) => (n ?? 0) > 0)));
 
 /** Touches already counted in a column, over the whole match. */
@@ -114,14 +96,6 @@ function ColumnsDialog({ record, onCancel, onConfirm }: { record: MatchRecord; o
   const { m } = useI18n();
   const t = m.live;
   const [hidden, setHidden] = useState<ReadonlySet<ScoutCodeString>>(new Set(record.untracked ?? []));
-  const toggle = (code: ScoutCodeString) =>
-    setHidden((h) => {
-      const next = new Set(h);
-      if (next.has(code)) next.delete(code);
-      else next.add(code);
-      return next;
-    });
-  const skills = COLUMNS.filter((c) => c.evaluations.some((e) => OPTIONAL_CODES.includes(codeOf(c.skill, e))));
   return (
     <div className="vr-live-overlay" onKeyDown={(e) => e.key === 'Escape' && onCancel()}>
       <form
@@ -136,28 +110,15 @@ function ColumnsDialog({ record, onCancel, onConfirm }: { record: MatchRecord; o
       >
         <h2 id="vr-live-columns-title">{t.columnsTitle}</h2>
         <p>{t.columnsText}</p>
-        <div className="vr-live-columns">
-          {skills.map((c) => (
-            <fieldset key={c.skill}>
-              <legend>{c.skill === 'P' ? t.setFault : m.skills[c.skill]}</legend>
-              {c.evaluations
-                .map((e) => ({ e, code: codeOf(c.skill, e) }))
-                .filter(({ code }) => OPTIONAL_CODES.includes(code))
-                .map(({ e, code }) => {
-                  const counted = columnTouches(record, code);
-                  return (
-                    <label key={code} className="vr-check">
-                      <input type="checkbox" checked={!hidden.has(code)} onChange={() => toggle(code)} />
-                      <span>
-                        <strong>{e}</strong> {m.codes[c.skill][e]}
-                        {hidden.has(code) && counted > 0 && <small className="vr-live-columns-note"> {t.columnsCounted(counted)}</small>}
-                      </span>
-                    </label>
-                  );
-                })}
-            </fieldset>
-          ))}
-        </div>
+        <ColumnsChoice
+          hidden={hidden}
+          onChange={setHidden}
+          skillLabel={(skill) => m.skills[skill]}
+          note={(code) => {
+            const counted = columnTouches(record, code);
+            return hidden.has(code) && counted > 0 ? <small className="vr-live-columns-note"> {t.columnsCounted(counted)}</small> : null;
+          }}
+        />
         <div className="vr-live-dialog-actions">
           <button type="button" className="vr-btn vr-btn-secondary" onClick={onCancel}>
             {t.back}

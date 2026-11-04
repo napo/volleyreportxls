@@ -75,11 +75,13 @@ class Sheet {
     });
   }
 
+  /** A round bubble, or an oval one when its box is wider than high (v9). */
   circle(r: Rect, color = BUBBLE) {
-    this.page.drawCircle({
+    this.page.drawEllipse({
       x: (r.x + r.width / 2) * MM,
       y: this.y(r.y + r.height / 2),
-      size: (r.width / 2) * MM,
+      xScale: (r.width / 2) * MM,
+      yScale: (r.height / 2) * MM,
       borderColor: color,
       borderWidth: 0.35,
     });
@@ -179,7 +181,17 @@ function drawHeader(s: Sheet, page: FormPageId) {
   for (const digit of [...score.team, ...score.opponent]) s.box(digit, 0.6);
 
   s.matrix(qrMatrix(formQrPayload(page)), qr);
+  // v8 on: a reminder beside the QR, outside its quiet zone (the gap under it is narrower than that zone).
+  if (s.layout.rowBands) {
+    s.texts.form.qrNotice.forEach((line, i) => {
+      const width = s.fonts.bold.widthOfTextAtSize(line, 6) / MM;
+      s.text(line, qr.x - QR_NOTICE_GAP - width, qr.y + qr.height - 4.6 + i * 2.6, 6, { bold: true, color: LABEL });
+    });
+  }
 }
+
+/** Room left between the QR and its reminder: more than the quiet zone of the code (4 modules of a 12 mm, 21-module QR). */
+const QR_NOTICE_GAP = 2.6;
 
 /** Diagonal hatching for areas with nothing to fill. */
 function hatch(s: Sheet, r: Rect) {
@@ -356,7 +368,7 @@ export async function renderScoutingFormPdf(options: ScoutingFormOptions): Promi
   // One sheet for every set when the set is marked by hand.
   const sets: readonly (SetNumber | null)[] = layout.setMarks ? [null] : options.sets ?? SET_NUMBERS;
   for (const setNumber of sets) {
-    const page: FormPageId = { layoutVersion: layout.version, setNumber, page: 1 };
+    const page: FormPageId = { layoutVersion: layout.version, setNumber, page: 1, hidden: layout.hidden };
     const sheet = new Sheet(doc.addPage([layout.page.width * MM, layout.page.height * MM]), layout, fonts, texts, logo);
     drawMarkers(sheet);
     drawHeader(sheet, page);

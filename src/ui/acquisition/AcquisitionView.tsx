@@ -13,8 +13,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ScoutCodeString } from '../../domain/codes';
 import { SET_NUMBERS, type SetNumber, type SetScore } from '../../domain/model';
-import type { SheetResult } from '../../image-processing/read-sheet';
-import { type SetMerge, correctionKey, ignoredTouches, missingSheetNumbers, numbersNotInAll, setFromSheet, withSets } from '../../matches/from-sheets';
+import { type SheetResult, withBlockColumnLeftOut } from '../../image-processing/read-sheet';
+import { type SetMerge, correctionKey, ignoredTouches, missingSheetNumbers, numbersNotInAll, setFromSheet, untrackedOf, withSets } from '../../matches/from-sheets';
 import { type MatchRecord, type SetRecord, newMatchRecord, newId, setIsPlayed } from '../../matches/record';
 import { mobilePlatform } from '../../platform/updates';
 import { useI18n } from '../../i18n';
@@ -47,6 +47,26 @@ interface Photo {
   readonly numbers: Readonly<Record<number, string>>;
   readonly corrections: Readonly<Record<string, number>>;
   readonly score: { readonly team: string; readonly opponent: string };
+  /** v9 read without the QR: the block column "!" or "/" the user says was left out (null: not answered yet). */
+  readonly blockColumn: 'M!' | 'M/' | null;
+}
+
+/**
+ * The reading with the block column the user says was left out; corrections
+ * typed for the block cells follow their cells.
+ */
+function answerBlockColumn(photo: Photo, left: 'M!' | 'M/'): Photo {
+  const before = photo.result!;
+  const after = withBlockColumnLeftOut(before, left);
+  const renamed = new Map<string, string>();
+  before.rows.forEach((row, r) =>
+    row.cells.forEach((cell, i) => {
+      const next = after.rows[r]!.cells[i]!;
+      if (cell.code && next.code && cell.code !== next.code) renamed.set(correctionKey(row.index, cell.code), correctionKey(row.index, next.code));
+    }),
+  );
+  const corrections = Object.fromEntries(Object.entries(photo.corrections).map(([key, n]) => [renamed.get(key) ?? key, n]));
+  return { ...photo, result: after, corrections, blockColumn: left };
 }
 
 const digits = (text: string, max = 2) => text.replace(/\D/g, '').slice(0, max);
@@ -129,6 +149,7 @@ export function AcquisitionView({ matchId }: { matchId: string | null }) {
     numbers: {},
     corrections: {},
     score: { team: '', opponent: '' },
+    blockColumn: null,
   });
 
   const addFiles = (files: readonly File[] | readonly Blob[]) => {
@@ -175,7 +196,9 @@ export function AcquisitionView({ matchId }: { matchId: string | null }) {
   const lonely = (p: Photo) => p.extra && p.setNumber !== null && (setCounts.get(p.setNumber) ?? 0) === 1 && !savedConflict(p.setNumber);
   const waiting = photos.some((p) => p.status === 'reading');
   const blocking =
-    photos.some((p) => p.status === 'failed' || p.status === 'error' || (p.status === 'read' && p.setNumber === null)) ||
+    photos.some(
+      (p) => p.status === 'failed' || p.status === 'error' || (p.status === 'read' && (p.setNumber === null || (p.result!.blockColumnAsked && p.blockColumn === null))),
+    ) ||
     conflicts.some((n) => !decided(n));
   const missingNumbers = read_.reduce(
     (n, p) => n + missingSheetNumbers({ rows: p.result!.rows, numbers: numbersOf(p), corrections: p.corrections }),
@@ -186,7 +209,11 @@ export function AcquisitionView({ matchId }: { matchId: string | null }) {
   const confirm = async () => {
     if (!archive) return;
     const sum = new Set(conflicts.filter((n) => savedConflict(n) && choice(n) === 'sum'));
-    const record = await archive.saveMatch(withSets(target ?? newMatchRecord(), read_.map(setOf), sum));
+    const merged = withSets(target ?? newMatchRecord(), read_.map(setOf), sum);
+    // The columns left out of the printed forms (v9) are not recorded in this match.
+    const untracked = untrackedOf(read_.map((p) => p.result!.untracked), target ?? null);
+    const { untracked: _, ...rest } = merged;
+    const record = await archive.saveMatch(untracked.length ? { ...rest, untracked } : rest);
     navigate('partita', record.id);
   };
 
@@ -390,6 +417,20 @@ function SheetCard({ photo, duplicate, lonely, others, onChange, onRemove, onRep
               <input type="checkbox" checked={photo.extra} onChange={(e) => onChange((p) => ({ ...p, extra: e.target.checked }))} />
               {t.extra}
             </label>
+          )}
+          {photo.status === 'read' && result!.blockColumnAsked && (
+            <fieldset className="vr-sheet-block">
+              <legend>{t.blockColumnQuestion}</legend>
+              {(['M!', 'M/'] as const).map((left) => {
+                const shown = left === 'M!' ? '!' : '/';
+                return (
+                  <label key={left} className="vr-choice">
+                    <input type="radio" name={`block-${photo.id}`} checked={photo.blockColumn === left} onChange={() => onChange((p) => answerBlockColumn(p, left))} />
+                    {t.blockColumnOption(shown, m.codes.M[shown] ?? '')}
+                  </label>
+                );
+              })}
+            </fieldset>
           )}
           {duplicate && <p className="vr-message warning">{t.duplicate(photo.setNumber!)}</p>}
           {lonely && <p className="vr-message warning">{t.extraAlone(photo.setNumber!)}</p>}

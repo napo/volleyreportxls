@@ -2456,7 +2456,8 @@ button.vr-score-teams.selected {
 
 .vr-live-bar {
   display: flex;
-  flex-wrap: nowrap;
+  /* Wraps whenever the tools do not fit beside the title and the sets, at any width. */
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem 0.9rem;
   flex-shrink: 0;
@@ -2866,11 +2867,14 @@ button.vr-score-teams.selected {
 .vr-live-overlay {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  /* Above the site header (100): the same windows open from any page. */
+  z-index: 200;
   display: flex;
-  align-items: center;
+  /* "safe": a window taller than the screen starts at the top and scrolls, never cut off above. */
+  align-items: safe center;
   justify-content: center;
   padding: 1rem;
+  overflow-y: auto;
   background: rgba(0, 16, 38, 0.55);
 }
 
@@ -4001,4 +4005,39 @@ output.vr-sub-name {
   border-color: #8a959e;
   background: #e6eaed;
   color: #4a555e;
+}
+
+/* Photo check: which block column a v9 sheet read without its QR left out. */
+.vr-sheet-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0.5rem 0;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--vr-orange, #e96e23);
+  border-radius: 0.6rem;
+}
+
+.vr-sheet-block legend {
+  padding: 0 0.3rem;
+  font-weight: 700;
+}
+
+/* Columns choice: one button for every column, one per skill. */
+.vr-columns-all {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.vr-columns-skill {
+  align-self: flex-start;
+  font-size: 0.85rem;
+}
+
+/* A long match title is cut short instead of running under the set buttons. */
+.vr-live-title strong {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }

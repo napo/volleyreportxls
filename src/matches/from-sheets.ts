@@ -7,7 +7,7 @@
  */
 import type { ScoutCodeString } from '../domain/codes';
 import type { SetNumber, SetScore } from '../domain/model';
-import { type MatchRecord, type RowKind, type SetRecord, type TallyRowRecord, LIBERO_ROWS, PLAYER_ROWS, emptyRow, rowIsUsed } from './record';
+import { type MatchRecord, type RowKind, type SetRecord, type TallyRowRecord, LIBERO_ROWS, PLAYER_ROWS, emptyRow, rowIsUsed, setIsPlayed } from './record';
 
 export interface ReadRow {
   readonly kind: RowKind;
@@ -112,4 +112,14 @@ export function withSets(record: MatchRecord, sets: readonly SetRecord[], sum: R
       return (sum.has(s.number) ? [s, ...read] : read).reduce(sumSets);
     }),
   };
+}
+
+/**
+ * The columns not recorded in a match made of sheets: those left out of every
+ * sheet (v9 forms); with sets already in the match, also left out of them.
+ */
+export function untrackedOf(sheets: readonly (readonly ScoutCodeString[])[], previous: MatchRecord | null): ScoutCodeString[] {
+  const lists = [...sheets, ...(previous && previous.sets.some(setIsPlayed) ? [previous.untracked ?? []] : [])];
+  if (lists.length === 0) return [];
+  return lists[0]!.filter((code) => lists.every((list) => list.includes(code)));
 }

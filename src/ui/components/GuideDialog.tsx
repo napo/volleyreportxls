@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 /**
- * The 5-step guide, one step at a time, in a modal dialog, and a last page on
- * scouting on a tablet instead. It opens when the app starts unless the user
+ * The 5-step guide, one step at a time, in a modal dialog: after the first step
+ * an optional page on the simpler form, at the end two pages on scouting on a
+ * tablet or with the keypad of smartphones instead. It opens when the app starts unless the user
  * turned it off; it can be reopened from About.
  */
 import { useEffect, useRef, useState } from 'react';
@@ -19,6 +20,10 @@ import step4en from '../../assets/howto/4-verifica-en.webp';
 import step5en from '../../assets/howto/5-tabellino-en.webp';
 import tablet from '../../assets/howto/6-tablet.webp';
 import tableten from '../../assets/howto/6-tablet-en.webp';
+import custom from '../../assets/howto/1b-modulo-colonne.webp';
+import customen from '../../assets/howto/1b-modulo-colonne-en.webp';
+import phone from '../../assets/howto/7-smartphone.webp';
+import phoneen from '../../assets/howto/7-smartphone-en.webp';
 import { type Lang, useI18n } from '../../i18n';
 import { newMatchRecord } from '../../matches/record';
 import { useArchive } from '../archive-context';
@@ -35,6 +40,14 @@ const STEP_IMAGES: Readonly<Record<Lang, readonly string[]>> = {
   en: [step1en, step2en, step3en, step4en, step5en],
 };
 const TABLET_IMAGE: Readonly<Record<Lang, string>> = { it: tablet, en: tableten };
+const PHONE_IMAGE: Readonly<Record<Lang, string>> = { it: phone, en: phoneen };
+const CUSTOM_IMAGE: Readonly<Record<Lang, string>> = { it: custom, en: customen };
+
+/** A page of the guide: one of the numbered steps, or an optional page with its own label. */
+type Page = { readonly title: string; readonly text: string; readonly alt: string; readonly image: string } & (
+  | { readonly kind: 'step'; readonly step: number }
+  | { readonly kind: 'custom' | 'tablet' | 'phone'; readonly eyebrow: string }
+);
 
 export function GuideDialog() {
   const { m, lang } = useI18n();
@@ -54,10 +67,17 @@ export function GuideDialog() {
 
   const { archive } = useArchive();
   const steps = t.steps;
-  // The pages: the five steps, then the tablet.
-  const pages = [...steps.map((s, i) => ({ ...s, image: STEP_IMAGES[lang][i]! })), { ...t.tablet, image: TABLET_IMAGE[lang] }];
+  // The pages: the five steps, the simpler form right after the first one, then the tablet and the keypad of smartphones.
+  const numbered: Page[] = steps.map((s, i) => ({ ...s, kind: 'step', step: i + 1, image: STEP_IMAGES[lang][i]! }));
+  const pages: Page[] = [
+    numbered[0]!,
+    { ...t.customForm, kind: 'custom', image: CUSTOM_IMAGE[lang] },
+    ...numbered.slice(1),
+    { ...t.tablet, kind: 'tablet', image: TABLET_IMAGE[lang] },
+    { ...t.phone, kind: 'phone', image: PHONE_IMAGE[lang] },
+  ];
   const page = pages[index]!;
-  const isTablet = index === steps.length;
+  const step = page.kind === 'step' ? page.step : null;
   const last = index === pages.length - 1;
 
   const startOnTablet = async () => {
@@ -72,7 +92,7 @@ export function GuideDialog() {
     <dialog ref={dialog} className="vr-guide" aria-labelledby="vr-guide-title" onClose={closeGuide}>
       <div className="vr-guide-head">
         <div>
-          <p className="vr-eyebrow">{isTablet ? t.tablet.eyebrow : t.stepOf(index + 1, steps.length)}</p>
+          <p className="vr-eyebrow">{page.kind === 'step' ? t.stepOf(page.step, steps.length) : page.eyebrow}</p>
           <h2 id="vr-guide-title">{t.title}</h2>
         </div>
         <button type="button" className="vr-icon-button" aria-label={t.close} onClick={closeGuide}>
@@ -84,24 +104,24 @@ export function GuideDialog() {
         <img src={page.image} alt={page.alt} />
         <figcaption>
           <h3>
-            {!isTablet && <span className="vr-step-number">{index + 1}</span>}
+            {step !== null && <span className="vr-step-number">{step}</span>}
             {page.title}
           </h3>
           <p>{page.text}</p>
-          {index === 0 && <DownloadFormButton label={m.home.formButton} variant="secondary" />}
-          {index === 2 && (
+          {(step === 1 || page.kind === 'custom') && <DownloadFormButton label={m.home.formButton} variant="secondary" />}
+          {step === 3 && (
             <a className="vr-btn vr-btn-secondary" href={href('foto')} onClick={closeGuide}>
               {t.upload}
             </a>
           )}
-          {index === 4 && (
+          {step === 5 && (
             <a className="vr-btn vr-btn-secondary" href={href('tabellino', SAMPLE_ID)} onClick={closeGuide}>
               {t.example}
             </a>
           )}
-          {isTablet && (
+          {(page.kind === 'tablet' || page.kind === 'phone') && (
             <button type="button" className="vr-btn vr-btn-secondary" onClick={startOnTablet} disabled={!archive}>
-              {t.tablet.start}
+              {page.kind === 'phone' ? t.phone.start : t.tablet.start}
             </button>
           )}
         </figcaption>

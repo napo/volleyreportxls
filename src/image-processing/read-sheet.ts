@@ -10,7 +10,7 @@
 
 import type { ScoutCodeString } from '../domain/codes';
 import type { SetNumber } from '../domain/model';
-import { type FormLayout, type FormSkill, type Rect, type RowKind, CURRENT_FORM_LAYOUT, FORM_LAYOUTS, cellCode } from '../pdf/layout';
+import { type FormLayout, type FormSkill, type Rect, type RowKind, CURRENT_FORM_LAYOUT, FORM_LAYOUTS, allV9Layouts, cellCode, formLayout } from '../pdf/layout';
 import type { FormPageId } from '../pdf/scouting-form';
 import { BUBBLE_MARKED, readCell } from './cells';
 import { type GrayImage, sample } from './gray';
@@ -60,6 +60,13 @@ export interface SheetResult {
   /** "Extra sheet" marked: the sheet continues a set started on another sheet. */
   readonly extraSheet: boolean;
   readonly fitError: number;
+  /** v9: the columns left out of the printed form: not recorded in this set. */
+  readonly untracked: readonly ScoutCodeString[];
+  /**
+   * v9 without the QR, one of the two block columns "!" and "/" left out: the
+   * grid is the same either way, so the user is asked which (blockColumn).
+   */
+  readonly blockColumnAsked: boolean;
   readonly rows: readonly RowResult[];
   readonly score: { readonly written: boolean; readonly team: RgbaImage; readonly opponent: RgbaImage };
 }
@@ -105,18 +112,21 @@ function looksBanded(gray: GrayImage, homography: Homography, layout: FormLayout
  * match the photo is taken, when there is one.
  */
 export function guessLayout(gray: GrayImage, homography: Homography): FormLayout {
-  const scored = Object.values(FORM_LAYOUTS).map((layout) => {
+  // Every printed layout, v9 in all its combinations of columns; the older ones first, so they win a tie.
+  const scored = [...Object.values(FORM_LAYOUTS), ...allV9Layouts()].map((layout) => {
     const contrasts: number[] = [];
     for (const row of layout.rows.slice(0, 3)) {
       for (const cell of row.cells) {
         for (const b of cell.bubbles) {
           const cx = b.x + b.width / 2;
           const cy = b.y + b.height / 2;
-          const r = b.width / 2;
+          // The outline of the bubble: a circle, or an ellipse (v9).
+          const rx = b.width / 2;
+          const ry = b.height / 2;
           let ring = 0;
           for (let k = 0; k < 8; k++) {
             const a = (k / 8) * 2 * Math.PI;
-            const p = project(homography, { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) });
+            const p = project(homography, { x: cx + rx * Math.cos(a), y: cy + ry * Math.sin(a) });
             ring += 255 - sample(gray, p.x, p.y);
           }
           // The centre, well clear of the outline: blank on an empty bubble.
@@ -126,12 +136,21 @@ export function guessLayout(gray: GrayImage, homography: Homography): FormLayout
       }
     }
     contrasts.sort((a, b) => a - b);
-    return { layout, score: contrasts[Math.floor(contrasts.length / 2)]! };
+    const mean = contrasts.reduce((n, c) => n + c, 0) / (contrasts.length || 1);
+    return { layout, score: contrasts[Math.floor(contrasts.length / 2)]!, mean };
   });
   const banded = looksBanded(gray, homography, CURRENT_FORM_LAYOUT);
   const fitting = scored.filter((s) => s.layout.rowBands === banded);
   // The oldest on a tie, as before: v4 and v5 share the grid, and the set marks are not read without the QR.
-  return (fitting.length > 0 ? fitting : scored).reduce((a, b) => (b.score > a.score ? b : a)).layout;
+  const pool = fitting.length > 0 ? fitting : scored;
+  const best = pool.reduce((a, b) => (b.score > a.score ? b : a));
+  if (best.layout.version !== 9) return best.layout;
+  // v9 forms differ only where their columns were left out: the median hides that, the mean over
+  // every bubble does not. Among the v9 forms nearly as good as the best, the one whose outlines
+  // are where the bubbles are printed everywhere.
+  return pool
+    .filter((s) => s.layout.version === 9 && s.score >= best.score * 0.8)
+    .reduce((a, b) => (b.mean > a.mean ? b : a)).layout;
 }
 
 /** A bubble as marked by hand: the share of ink inside its circle, printed outline left out. */
@@ -158,7 +177,8 @@ export function readSheetImage(image: RgbaImage): SheetResult | SheetFailure {
   const located = locateSheet(image);
   if (!isLocated(located)) return { ok: false, reason: located.reason, markersFound: located.found };
   const { gray, homography } = located;
-  const known = located.page && FORM_LAYOUTS[located.page.layoutVersion];
+  const page = located.page;
+  const known = page && (page.layoutVersion === 9 ? formLayout(9, page.hidden ?? []) : FORM_LAYOUTS[page.layoutVersion]);
   const layout = known ?? guessLayout(gray, homography);
   const crop = (r: Rect) => warpRect(gray, homography, r, CROP_PX_PER_MM);
   // The set marks are read only on a layout known from the QR: v4 and v5 share the grid.
@@ -198,7 +218,26 @@ export function readSheetImage(image: RgbaImage): SheetResult | SheetFailure {
     setsMarked: marks.setsMarked,
     extraSheet: marks.extraSheet,
     fitError: located.fitError,
+    untracked: layout.hidden,
+    blockColumnAsked: !page && layout.version === 9 && layout.hidden.includes('M!') !== layout.hidden.includes('M/'),
     rows,
     score: { written, team: crop(grow(join(t1, t2), 0.5)), opponent: crop(grow(join(o1, o2), 0.5)) },
   };
+}
+
+/**
+ * The same reading with the other block column left out ("M!" or "M/"): the
+ * block cells are where they were, their evaluations shift to those of the
+ * columns printed on that form.
+ */
+export function withBlockColumnLeftOut(result: SheetResult, hidden: 'M!' | 'M/'): SheetResult {
+  const current = result.untracked.includes('M!') ? 'M!' : 'M/';
+  if (current === hidden || !result.blockColumnAsked) return result;
+  const untracked = [...result.untracked.filter((c) => c !== current), hidden];
+  const layout = formLayout(9, untracked);
+  const rows = result.rows.map((row) => {
+    const printed = layout.rows[row.index]!.cells;
+    return { ...row, cells: row.cells.map((cell, i) => (cell.skill === 'M' ? { ...cell, code: cellCode(printed[i]!), evaluation: printed[i]!.evaluation } : cell)) };
+  });
+  return { ...result, untracked: layout.hidden, rows };
 }

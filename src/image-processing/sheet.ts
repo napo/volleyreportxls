@@ -148,16 +148,18 @@ export const INK_LEVEL = 0.35;
 export function inkInCircle(gray: GrayImage, homography: Homography, r: Rect, paper: number, shrink = 0.9, ignore?: (x: number, y: number) => boolean): number {
   const cx = r.x + r.width / 2;
   const cy = r.y + r.height / 2;
-  const radius = (Math.min(r.width, r.height) / 2) * shrink;
+  // A circle, or the ellipse of an oval bubble (v9): the same as before for round ones.
+  const rx = (r.width / 2) * shrink;
+  const ry = (r.height / 2) * shrink;
   const steps = 9;
   const threshold = paper * INK_LEVEL;
   let dark = 0;
   let total = 0;
   for (let i = -steps; i <= steps; i++) {
     for (let j = -steps; j <= steps; j++) {
-      const dx = (i / steps) * radius;
-      const dy = (j / steps) * radius;
-      if (dx * dx + dy * dy > radius * radius) continue;
+      const dx = (i / steps) * rx;
+      const dy = (j / steps) * ry;
+      if ((i / steps) ** 2 + (j / steps) ** 2 > 1) continue;
       const p = project(homography, { x: cx + dx, y: cy + dy });
       total++;
       if (!ignore?.(cx + dx, cy + dy) && sample(gray, p.x, p.y) < threshold) dark++;

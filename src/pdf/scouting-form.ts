@@ -9,7 +9,9 @@
  * on the sheet and the QR has no set.
  */
 
+import type { ScoutCodeString } from '../domain/codes';
 import type { SetNumber } from '../domain/model';
+import { hiddenMask, maskHidden } from './layout';
 
 export interface FormPageId {
   readonly layoutVersion: number;
@@ -17,19 +19,27 @@ export interface FormPageId {
   readonly setNumber: SetNumber | null;
   /** Page of the set (1, or 2+ for continuation sheets). */
   readonly page: number;
+  /** v9: the "!" and "/" columns left out of the form; the geometry is rebuilt from them. */
+  readonly hidden?: readonly ScoutCodeString[];
 }
 
-/** Compact QR payload, e.g. `VR|4|S1|P1`, or `VR|5|P1` without a printed set. */
+/**
+ * Compact QR payload, e.g. `VR|4|S1|P1`, `VR|5|P1` without a printed set, or
+ * `VR|9|P1|H2c` with the columns left out (hexadecimal code of OPTIONAL_FORM_CODES).
+ */
 export function formQrPayload(id: FormPageId): string {
-  return ['VR', id.layoutVersion, ...(id.setNumber === null ? [] : [`S${id.setNumber}`]), `P${id.page}`].join('|');
+  const mask = hiddenMask(id.hidden ?? []);
+  return ['VR', id.layoutVersion, ...(id.setNumber === null ? [] : [`S${id.setNumber}`]), `P${id.page}`, ...(mask ? [`H${mask.toString(16)}`] : [])].join('|');
 }
 
 export function parseFormQrPayload(payload: string): FormPageId | null {
-  const found = /^VR\|(\d+)(?:\|S([1-5]))?\|P(\d+)$/.exec(payload.trim());
+  const found = /^VR\|(\d+)(?:\|S([1-5]))?\|P(\d+)(?:\|H([0-9a-f]{1,2}))?$/.exec(payload.trim());
   if (!found) return null;
+  const hidden = found[4] === undefined ? [] : maskHidden(parseInt(found[4], 16));
   return {
     layoutVersion: Number(found[1]),
     setNumber: found[2] === undefined ? null : (Number(found[2]) as SetNumber),
     page: Number(found[3]),
+    ...(hidden.length && { hidden }),
   };
 }
