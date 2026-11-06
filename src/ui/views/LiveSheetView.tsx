@@ -223,9 +223,10 @@ interface CellProps {
 function Cell({ count, label, locked, last, first, alt, onTap, onRemove }: CellProps) {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const self = useRef<HTMLButtonElement>(null);
-  // The cell just counted comes into view (the keypad fills cells that may be out of sight on a phone).
+  // On desktop, the cell just counted comes into view when the sheet is wider than its panel.
   // Only the sheet scrolls: scrollIntoView would move the whole screen, keypad included.
   useEffect(() => {
+    if (window.matchMedia('(max-width: 1100px), (any-pointer: coarse)').matches) return;
     const cell = self.current;
     const sheet = cell?.closest<HTMLElement>('.vr-live-sheet');
     if (!last || !cell || !sheet) return;

@@ -463,6 +463,7 @@ export const en: Messages = {
     returnOnly: (out: number, enter: number) => `Number ${out} came in for number ${enter}: they can leave only for ${enter} to come back.`,
     pairClosed: (n: number) => `Number ${n} already closed their substitution: they cannot be substituted again in this set.`,
     substitution: 'Substitution',
+    numberUsed: (n: number) => `Number ${n} already took part in a substitution: they can return only for the player who replaced them, if the pair is still open.`,
     substitutionTitle: 'Substitution',
     substitutionsDone: (n: number) => (n === 0 ? 'No substitution so far in this set.' : n === 1 ? '1 substitution so far in this set.' : `${n} substitutions so far in this set.`),
     returnsDue: 'Expected return:',
@@ -738,7 +739,7 @@ export const en: Messages = {
           {
             id: 'phone',
             q: 'Can I scout from a smartphone?',
-            a: ['Yes, with the keypad: on a smartphone the sheet opens that way, on a tablet you switch to it with "Keypad" and back to the sheet with "Grid". Tap the number, then the skill, then the evaluation: the mark goes into the right cell of the sheet, which scrolls to show it. The last touch appears at the bottom, and "Undo" takes it back.', 'At the start of each set you give the lineup: the six numbers on court and the liberos, with a short name if you like, which appears small on the key. It starts from the lineup of the previous set.'],
+            a: ['Yes, with the keypad: on a smartphone the sheet opens that way, on a tablet you switch to it with "Keypad" and back to the sheet with "Grid". Tap the number, then the skill, then the evaluation: the mark goes into the right cell of the sheet. On smartphones and tablets, keypad and grid each fill the screen without scrolling: switch with "Grid" and "Keypad". The last touch appears at the bottom, and "Undo" takes it back.', 'At the start of each set you give the lineup: the six numbers on court and the liberos, with a short name if you like, which appears small on the key. It starts from the lineup of the previous set.'],
           },
           {
             id: 'substitutions',
@@ -913,11 +914,11 @@ export const en: Messages = {
       'Every touch is saved on the device at once and the screen stays on while scouting. A tablet in landscape works best.',
     ],
     keypadTitle: 'Scouting with the keypad',
-    keypadText: 'Made for smartphones, where the whole sheet does not fit the screen: three taps for every ball, and the sheet fills in by itself under the keypad.',
+    keypadText: 'Three taps for every ball and the sheet fills in by itself. On smartphones and tablets, keypad and grid each have a full screen without scrolling.',
     keypadSteps: [
       'On a smartphone the sheet opens with the keypad; on a tablet tap "Keypad" in the bar at the top. "Grid" goes back to the whole sheet and the device remembers the choice.',
       'At the start of each set give the lineup: the six numbers on court and the liberos, with a short name if you like. It starts from the lineup of the previous set, the numbers go on the sheet too and the name appears small on the key. "Lineup" changes it at any time.',
-      'For every ball touched: tap the number, then the skill, then the evaluation. The buttons light up in that order; for a libero only reception and set. The mark goes into the right cell of the sheet, which scrolls to show it.',
+      'For every ball touched: tap the number, then the skill, then the evaluation. The buttons light up in that order; for a libero only reception and set. The mark goes into the right cell of the sheet. On smartphones and tablets, keypad and grid each fill the screen without scrolling: switch with "Grid" and "Keypad".',
       'At the bottom of the keypad you see the last touch; "Undo" takes it back, and takes back the last substitution too.',
       'For a substitution tap the number of whoever leaves, then "Substitution": on the right choose whoever comes in with the arrows, or type a new number with its name. Whoever came in with a substitution can leave only for the one they replaced to come back: the app already proposes that pair. After the return the pair is closed for the set; numbers that already took part in a substitution are grey. Every set starts afresh.',
     ],

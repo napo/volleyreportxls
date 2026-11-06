@@ -59,10 +59,13 @@ export function LiveKeypad({ set, lineup, untracked, locked, last, canUndo, undo
     evaluations: c.evaluations.filter((e) => !untracked.has(codeOf(c.skill, e))),
   }));
   const allSkills = skillColumns('player');
+  // A formation edit or undo can remove the selected number from the court.
+  // Derive validity from the current keys, before accepting another touch.
+  const active = chosen && keys.some((key) => key?.number === chosen.number && key.kind === chosen.kind);
   const evaluations = skills.find((c) => c.skill === skill)?.evaluations ?? [];
 
   const enter = (code: ScoutCodeString) => {
-    if (!chosen) return;
+    if (!chosen || !active) return;
     onTouch(chosen.number, chosen.kind, code);
     setChosen(null);
     setSkill(null);
@@ -85,7 +88,7 @@ export function LiveKeypad({ set, lineup, untracked, locked, last, canUndo, undo
           {t.substitution}
           {subsCount > 0 && <span className="vr-keypad-count"> · {subsCount}</span>}
         </button>
-        <button type="button" className="vr-btn vr-btn-secondary vr-btn-small" onClick={onLineup} disabled={locked}>
+        <button type="button" className="vr-btn vr-btn-secondary vr-btn-small" onClick={() => { setChosen(null); setSkill(null); onLineup(); }} disabled={locked}>
           {t.lineup}
         </button>
         <button type="button" className="vr-btn vr-btn-secondary vr-btn-small" onClick={onGrid}>
@@ -116,7 +119,7 @@ export function LiveKeypad({ set, lineup, untracked, locked, last, canUndo, undo
 
       <div className="vr-keypad-skills" role="group" aria-label={t.keypadSkills}>
         {allSkills.map((c) => {
-          const usable = !!chosen && skills.some((x) => x.skill === c.skill);
+          const usable = !!active && skills.some((x) => x.skill === c.skill);
           return (
             <button
               key={c.skill}
@@ -139,7 +142,7 @@ export function LiveKeypad({ set, lineup, untracked, locked, last, canUndo, undo
             type="button"
             className="vr-keypad-eval"
             style={skill ? { background: tint(skill, e) } : undefined}
-            disabled={locked || !skill}
+            disabled={locked || !skill || !active}
             title={skill ? m.codes[skill][e] : undefined}
             onClick={() => skill && enter(codeOf(skill, e))}
           >
@@ -150,7 +153,7 @@ export function LiveKeypad({ set, lineup, untracked, locked, last, canUndo, undo
 
       <div className="vr-keypad-foot">
         <span aria-live="polite">{last ? t.keypadLast(last) : t.keypadHint}</span>
-        <button type="button" className="vr-btn vr-btn-secondary vr-btn-small" disabled={!canUndo} onClick={onUndo} aria-label={`${t.undoLabel}: ${undoText}`}>
+        <button type="button" className="vr-btn vr-btn-secondary vr-btn-small" disabled={!canUndo} onClick={() => { setChosen(null); setSkill(null); onUndo(); }} aria-label={`${t.undoLabel}: ${undoText}`}>
           {t.undo}
         </button>
       </div>
@@ -354,9 +357,11 @@ export function SubstitutionDialog({
         ? 'on-court'
         : liberos.includes(enter)
           ? 'libero'
-          : allowed.locked && enter !== allowed.options[0]
-            ? 'missing'
-            : null;
+          : !allowed.locked && involved.has(enter)
+            ? 'used'
+            : allowed.locked && enter !== allowed.options[0]
+              ? 'missing'
+              : null;
   return (
     <div className="vr-live-overlay" onKeyDown={(e) => e.key === 'Escape' && onCancel()}>
       <form
@@ -407,7 +412,7 @@ export function SubstitutionDialog({
         )}
         {problem && problem !== 'missing' && (
           <p className="vr-live-warning" role="status">
-            {problem === 'on-court' ? t.alreadyOnCourt(enter!) : t.isLibero(enter!)}
+            {problem === 'on-court' ? t.alreadyOnCourt(enter!) : problem === 'used' ? t.numberUsed(enter!) : t.isLibero(enter!)}
           </p>
         )}
         <div className="vr-live-dialog-actions">

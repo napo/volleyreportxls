@@ -3040,6 +3040,8 @@ button.vr-score-teams.selected {
   .vr-live-hint {
     display: none;
   }
+
+
 }
 
 /* A tablet keeps the whole scouting grid in view, including in portrait. */
@@ -3904,20 +3906,6 @@ button.vr-score-teams.selected {
   text-align: center;
 }
 
-/* Phone with the keypad: the screen does not scroll, the keypad stays in sight and the sheet scrolls in the room left below. */
-@media (max-width: 760px) {
-  .vr-live.keypad {
-    height: 100vh;
-    height: 100dvh;
-    overflow: hidden;
-  }
-
-  .vr-live.keypad .vr-live-sheet {
-    flex: 1;
-    min-height: 6rem;
-  }
-}
-
 /* Keypad substitution: who leaves on the left, who comes in on the right, each with up and down arrows. */
 .vr-sub {
   display: flex;
@@ -4086,4 +4074,291 @@ output.vr-sub-name {
 /* FAQ "where to download": the files of the latest release take the whole width under the links. */
 .vr-faq-downloads {
   flex-basis: 100%;
+}
+
+/* Touch scouting: one working surface at a time, always within the viewport.
+ * The keypad has large targets; Grid shows the complete sheet separately.
+ * Keep these rules after the older tablet and narrow-screen rules above.
+ */
+@media (max-width: 1100px), (any-pointer: coarse) {
+  /* The default body uses 100vh, which can exceed the visible mobile viewport. */
+  html:has(.vr-live),
+  body:has(.vr-live) {
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .vr-live {
+    --vr-live-name-min: 3.5rem;
+    --vr-live-name-max: 16%;
+    height: 100dvh;
+    min-height: 0;
+    padding: max(0.3rem, env(safe-area-inset-top)) max(0.4rem, env(safe-area-inset-right)) max(0.3rem, env(safe-area-inset-bottom)) max(0.4rem, env(safe-area-inset-left));
+    overflow: hidden;
+  }
+
+  .vr-live-narrow {
+    display: none;
+  }
+
+  .vr-live-sheet {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .vr-live-grid {
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .vr-live-grid > * {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .vr-live-head,
+  .vr-live-eval {
+    height: clamp(0.8rem, 3dvh, 1.75rem);
+    font-size: clamp(0.5rem, 1.6vw, 0.8rem);
+  }
+
+  .vr-live-head.libero {
+    height: clamp(0.7rem, 2.5dvh, 1.4rem);
+  }
+
+  .vr-live-number {
+    width: 40%;
+    font-size: clamp(0.65rem, 2vw, 1.2rem);
+  }
+
+  .vr-live-name {
+    padding-inline: 0.1rem;
+    font-size: clamp(0.5rem, 1.4vw, 0.9rem);
+  }
+
+  .vr-live-cell,
+  .vr-live-cell.counted {
+    font-size: clamp(0.5rem, min(2vw, 3dvh), 1.1rem);
+  }
+
+  .vr-live.keypad .vr-live-sheet {
+    display: none;
+  }
+
+  .vr-live.keypad .vr-keypad {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .vr-keypad-head {
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+
+  .vr-keypad-numbers {
+    flex: 2;
+    min-height: 0;
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+  }
+
+  .vr-keypad-skills,
+  .vr-keypad-evals {
+    flex: 1;
+    min-height: 0;
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .vr-keypad-key,
+  .vr-keypad-skill,
+  .vr-keypad-eval {
+    min-width: 0;
+    min-height: 0;
+    padding: 0.1rem;
+    overflow: hidden;
+  }
+
+  .vr-keypad-skill {
+    overflow-wrap: anywhere;
+    font-size: clamp(0.6rem, 2vw, 0.85rem);
+  }
+
+  .vr-keypad-foot {
+    flex-shrink: 0;
+    font-size: 0.8rem;
+    line-height: 1.2;
+  }
+
+  .vr-live-foot {
+    gap: 0.1rem;
+    font-size: 0.7rem;
+  }
+
+  .vr-live-hint {
+    display: none;
+  }
+  .vr-live-overlay {
+    padding: 0.5rem;
+  }
+
+  .vr-live-dialog {
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .vr-live-dialog:has(.vr-live-columns) .vr-live-columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-height: none;
+    overflow: visible;
+    gap: 0.5rem;
+  }
+
+  .vr-live-columns fieldset {
+    min-width: 0;
+    padding: 0.3rem;
+    font-size: 0.8rem;
+  }
+
+  .vr-live-dialog-actions {
+    flex-wrap: wrap;
+  }
+}
+
+/* Landscape phones: eight numbers in one row leave room for skill and grade. */
+@media (max-height: 500px) and (max-width: 1100px), (max-height: 500px) and (any-pointer: coarse) {
+  .vr-live,
+  .vr-keypad {
+    gap: 0.25rem;
+  }
+
+  .vr-live-bar {
+    gap: 0.25rem;
+  }
+
+  .vr-live-title {
+    flex-basis: 5rem;
+  }
+
+  .vr-live-sets {
+    flex: 1 1 40%;
+  }
+
+  .vr-live-tools {
+    flex: 1 1 auto;
+    gap: 0.25rem;
+  }
+
+  .vr-live-exit,
+  .vr-live-tool,
+  .vr-live-tools .vr-btn,
+  .vr-live-set {
+    min-height: 2rem;
+    height: 2rem;
+    padding-inline: 0.4rem;
+    font-size: 0.75rem;
+  }
+
+  .vr-live-tool small {
+    display: none;
+  }
+
+  .vr-keypad {
+    padding: 0.25rem;
+  }
+
+  .vr-keypad-numbers {
+    flex: 1;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .vr-keypad-key {
+    font-size: 1.2rem;
+    line-height: 1;
+  }
+
+  .vr-keypad-head .vr-btn,
+  .vr-keypad-foot .vr-btn {
+    padding-block: 0.15rem;
+  }
+
+  .vr-live-dialog {
+    width: min(44rem, 100%);
+    gap: 0.35rem;
+    padding: 0.6rem;
+  }
+
+  .vr-live-dialog h2 {
+    font-size: 1.1rem;
+  }
+
+  .vr-live-dialog p {
+    font-size: 0.8rem;
+    line-height: 1.2;
+  }
+
+  .vr-live-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.35rem;
+  }
+
+  .vr-live-field input {
+    height: 2rem;
+  }
+
+  .vr-live-dialog-actions .vr-btn {
+    min-height: 2rem;
+    font-size: 0.85rem;
+  }
+
+  .vr-live-dialog:has(.vr-lineup) {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+  }
+
+  .vr-live-dialog:has(.vr-lineup) > :not(fieldset) {
+    grid-column: 1 / -1;
+  }
+
+  .vr-lineup {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.2rem;
+    padding: 0.2rem;
+  }
+
+  .vr-lineup input {
+    padding: 0.15rem;
+    font-size: 1rem;
+  }
+
+  .vr-lineup input.vr-lineup-name {
+    padding: 0.1rem;
+  }
+
+  .vr-lineup + .vr-lineup {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .vr-live-dialog:has(.vr-live-columns) {
+    width: min(60rem, 100%);
+  }
+
+  .vr-live-dialog:has(.vr-live-columns) .vr-live-columns {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .vr-sub {
+    gap: 0.5rem;
+  }
+
+  .vr-sub-arrow {
+    min-height: 1.75rem;
+  }
+
+  .vr-sub-number {
+    height: 2.5rem;
+  }
 }

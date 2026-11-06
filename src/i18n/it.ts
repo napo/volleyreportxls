@@ -463,6 +463,7 @@ export const it = {
     returnOnly: (out: number, enter: number) => `Il n. ${out} è entrato al posto del n. ${enter}: può uscire solo per farlo rientrare.`,
     pairClosed: (n: number) => `Il n. ${n} ha già chiuso il suo cambio: in questo set non può più essere sostituito.`,
     substitution: 'Cambio',
+    numberUsed: (n: number) => `Il numero ${n} ha già partecipato a un cambio: può rientrare solo per chi lo ha sostituito, se la coppia non è già chiusa.`,
     substitutionTitle: 'Cambio',
     substitutionsDone: (n: number) => (n === 0 ? 'Nessun cambio finora in questo set.' : n === 1 ? '1 cambio finora in questo set.' : `${n} cambi finora in questo set.`),
     returnsDue: 'Rientro previsto:',
@@ -703,7 +704,7 @@ export const it = {
           {
             id: 'phone',
             q: 'Posso rilevare dallo smartphone?',
-            a: ['Sì, con il tastierino: sullo smartphone il foglio si apre già così, sul tablet lo attivi con "Tastierino" e torni al foglio con "Griglia". Tocchi il numero, poi il fondamentale, poi la valutazione: il segno va nella casella giusta del foglio, che scorre fino a mostrarla. In fondo vedi l’ultimo tocco, e "Annulla" lo toglie.', 'All’inizio di ogni set indichi la formazione: i sei numeri in campo e i liberi, con un nome breve se vuoi, che compare in piccolo sul tasto. Si parte dalla formazione del set precedente.'],
+            a: ['Sì, con il tastierino: sullo smartphone il foglio si apre già così, sul tablet lo attivi con "Tastierino" e torni al foglio con "Griglia". Tocchi il numero, poi il fondamentale, poi la valutazione: il segno va nella casella giusta del foglio. Su smartphone e tablet tastierino e griglia occupano lo schermo senza scorrimento: passi dall’uno all’altra con i pulsanti "Griglia" e "Tastierino". In fondo vedi l’ultimo tocco, e "Annulla" lo toglie.', 'All’inizio di ogni set indichi la formazione: i sei numeri in campo e i liberi, con un nome breve se vuoi, che compare in piccolo sul tasto. Si parte dalla formazione del set precedente.'],
           },
           {
             id: 'substitutions',
@@ -878,11 +879,11 @@ export const it = {
       'Ogni tocco è salvato subito sul dispositivo e lo schermo resta acceso durante la rilevazione. Va meglio un tablet in orizzontale.',
     ],
     keypadTitle: 'Rilevare con il tastierino',
-    keypadText: 'Pensato per lo smartphone, dove il foglio intero non entra nello schermo: tre tocchi per ogni pallone, e il foglio si compila da solo sotto il tastierino.',
+    keypadText: 'Tre tocchi per ogni pallone: il foglio si compila da solo. Su smartphone e tablet tastierino e griglia hanno ciascuno una schermata completa, senza scorrimento.',
     keypadSteps: [
       'Sullo smartphone il foglio si apre già con il tastierino; sul tablet tocca "Tastierino" nella barra in alto. "Griglia" riporta al foglio completo e il dispositivo ricorda la scelta.',
       'All’inizio di ogni set indica la formazione: i sei numeri in campo e i liberi, con un nome breve se vuoi. Si parte da quella del set precedente, i numeri finiscono anche nel foglio e il nome compare in piccolo sul tasto. "Formazione" la cambia in ogni momento.',
-      'Per ogni pallone toccato: tocca il numero, poi il fondamentale, poi la valutazione. I pulsanti si attivano in quest’ordine; per il libero solo ricezione e alzata. Il segno va nella casella giusta del foglio, che scorre fino a mostrarla.',
+      'Per ogni pallone toccato: tocca il numero, poi il fondamentale, poi la valutazione. I pulsanti si attivano in quest’ordine; per il libero solo ricezione e alzata. Il segno va nella casella giusta del foglio. Su smartphone e tablet tastierino e griglia occupano lo schermo senza scorrimento: passi dall’uno all’altra con i pulsanti "Griglia" e "Tastierino".',
       'In fondo al tastierino vedi l’ultimo tocco; "Annulla" lo toglie, e toglie anche l’ultimo cambio.',
       'Per un cambio tocca il numero di chi esce e poi "Cambio": a destra scegli chi entra con le frecce, o scrivi un numero nuovo con il suo nome. Chi è entrato con un cambio può uscire solo per far rientrare chi ha sostituito: l’app propone già quella coppia. Dopo il rientro la coppia è chiusa per il set; i numeri che hanno già fatto un cambio sono in grigio. Ogni set riparte da zero.',
     ],
