@@ -550,7 +550,7 @@ export function LiveSheetView({ id }: { id: string }) {
   const rows = (kind: RowKind) => set.rows.filter((r) => r.kind === kind);
   const players = rows('player');
   const liberos = rows('libero');
-  const gridRows = `auto auto repeat(${players.length}, minmax(2.25rem, 1fr)) auto repeat(${liberos.length}, minmax(2.25rem, 1fr))`;
+  const gridRows = `auto auto repeat(${players.length}, minmax(0, 1fr)) auto repeat(${liberos.length}, minmax(0, 1fr))`;
 
   const renderRow = (row: SetRecord['rows'][number], index: number) => {
     const libero = row.kind === 'libero';
@@ -712,7 +712,7 @@ export function LiveSheetView({ id }: { id: string }) {
       <div className={`vr-live-sheet${isLocked ? ' locked' : ''}`}>
         <div
           className="vr-live-grid"
-          style={{ gridTemplateRows: gridRows, gridTemplateColumns: `minmax(9rem, 11rem) repeat(${cells.length}, minmax(0, 1fr))` } as CSSProperties}
+          style={{ gridTemplateRows: gridRows, gridTemplateColumns: `minmax(var(--vr-live-name-min, 9rem), var(--vr-live-name-max, 11rem)) repeat(${cells.length}, minmax(0, 1fr))` } as CSSProperties}
         >
           <span className="vr-live-head">{t.numberAndName}</span>
           {headers.map((c) => (
