@@ -483,6 +483,12 @@ export const it = {
     columnsText:
       'Le colonne "#", "+", "-" e "=" ci sono sempre. Togli le "!" e le "/" che non rilevi: il foglio diventa più semplice e la partita ricorda che quei dati non sono stati raccolti. La prossima partita su questo dispositivo parte con la stessa scelta; la puoi cambiare in ogni momento.',
     columnsCounted: (n: number) => (n === 1 ? '(c’è già 1 tocco: resta nei conteggi)' : `(ci sono già ${n} tocchi: restano nei conteggi)`),
+    orderTitle: 'Ordine dei fondamentali',
+    orderText: 'Sposta i fondamentali nell’ordine in cui li vuoi, da sinistra a destra, nel foglio e nel tastierino. Gli errori di alzata restano in fondo a destra. Vale per questo dispositivo; il modulo da stampare non cambia.',
+    moveUp: (skill: string) => `Sposta ${skill} prima`,
+    moveDown: (skill: string) => `Sposta ${skill} dopo`,
+    legend: 'Legenda',
+    legendHint: 'Tocca un fondamentale per vedere il significato di ogni valutazione.',
     libero: 'Libero',
     setFault: 'Alz.',
     shirtOf: (libero: boolean, row: number) => `${libero ? 'Libero' : 'Riga'} ${row}: numero di divisa`,

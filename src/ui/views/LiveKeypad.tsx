@@ -8,12 +8,12 @@
  * reception and set, as on the form). Buttons light up in that order; an
  * evaluation alone in its skill is entered with the skill.
  */
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Evaluation, ScoutCodeString, Skill } from '../../domain/codes';
 import { useI18n } from '../../i18n';
 import type { Lineup, RowKind, Substitution } from '../../matches/record';
 import { evaluationTint } from '../../report/evaluation-colors';
-import { codeOf, skillColumns } from '../components/counts-columns';
+import { type MovableSkill, codeOf, orderedColumns } from '../components/counts-columns';
 
 const tint = (skill: Skill, evaluation: Evaluation) => `rgb(${evaluationTint(skill, evaluation).map((v) => Math.round(v * 255)).join(' ')})`;
 
@@ -26,6 +26,8 @@ export interface KeypadProps {
   readonly set: number;
   readonly lineup: Lineup;
   readonly untracked: ReadonlySet<ScoutCodeString>;
+  /** The order of the skill buttons, as the columns of the sheet. */
+  readonly order: readonly MovableSkill[];
   readonly locked: boolean;
   /** The last touch, as shown at the bottom ("7 · A#"), or null. */
   readonly last: string | null;
@@ -43,7 +45,7 @@ export interface KeypadProps {
   readonly nameOf: (number: number) => string;
 }
 
-export function LiveKeypad({ set, lineup, untracked, locked, last, canUndo, undoText, onTouch, onUndo, onLineup, onGrid, subsCount, onSubstitute, nameOf }: KeypadProps) {
+export function LiveKeypad({ set, lineup, untracked, order, locked, last, canUndo, undoText, onTouch, onUndo, onLineup, onGrid, subsCount, onSubstitute, nameOf }: KeypadProps) {
   const { m } = useI18n();
   const t = m.live;
   const [chosen, setChosen] = useState<Chosen | null>(null);
@@ -54,11 +56,11 @@ export function LiveKeypad({ set, lineup, untracked, locked, last, canUndo, undo
     ...Array.from({ length: 2 }, (_, i) => (lineup.liberos[i] !== undefined ? { number: lineup.liberos[i]!, kind: 'libero' as const } : null)),
   ];
   // Skills of the chosen key (a libero has fewer), each with the evaluations shown in the sheet.
-  const skills = skillColumns(chosen?.kind ?? 'player').map((c) => ({
+  const skills = orderedColumns(chosen?.kind ?? 'player', order).map((c) => ({
     skill: c.skill,
     evaluations: c.evaluations.filter((e) => !untracked.has(codeOf(c.skill, e))),
   }));
-  const allSkills = skillColumns('player');
+  const allSkills = orderedColumns('player', order);
   // A formation edit or undo can remove the selected number from the court.
   // Derive validity from the current keys, before accepting another touch.
   const active = chosen && keys.some((key) => key?.number === chosen.number && key.kind === chosen.kind);
@@ -76,8 +78,11 @@ export function LiveKeypad({ set, lineup, untracked, locked, last, canUndo, undo
     else setSkill(s);
   };
 
+  const room = useLegendRoom();
+  const legendSkill = skill ?? null;
+
   return (
-    <section className="vr-keypad" aria-label={t.keypad}>
+    <section ref={room.ref} className={`vr-keypad legend-${room.place}`} aria-label={t.keypad}>
       <div className="vr-keypad-head">
         <strong>{t.set(set)}</strong>
         <button type="button" className="vr-btn vr-btn-primary vr-btn-small" onClick={() => {
@@ -96,6 +101,8 @@ export function LiveKeypad({ set, lineup, untracked, locked, last, canUndo, undo
         </button>
       </div>
 
+      <div className="vr-keypad-body">
+      <div className="vr-keypad-main">
       <div className="vr-keypad-numbers" role="group" aria-label={t.keypadNumbers}>
         {keys.map((key, i) => (
           <button
@@ -151,6 +158,28 @@ export function LiveKeypad({ set, lineup, untracked, locked, last, canUndo, undo
         ))}
       </div>
 
+      </div>
+      {room.place !== 'none' && (
+        <aside className="vr-keypad-legend" aria-label={t.legend} aria-live="polite">
+          {legendSkill ? (
+            <>
+              <h3>{legendSkill === 'P' ? t.setFault : m.skills[legendSkill]}</h3>
+              <dl>
+                {evaluations.map((e) => (
+                  <div key={e}>
+                    <dt style={{ background: tint(legendSkill, e) }}>{e}</dt>
+                    <dd>{m.codes[legendSkill][e]}</dd>
+                  </div>
+                ))}
+              </dl>
+            </>
+          ) : (
+            <p>{t.legendHint}</p>
+          )}
+        </aside>
+      )}
+      </div>
+
       <div className="vr-keypad-foot">
         <span aria-live="polite">{last ? t.keypadLast(last) : t.keypadHint}</span>
         <button type="button" className="vr-btn vr-btn-secondary vr-btn-small" disabled={!canUndo} onClick={() => { setChosen(null); setSkill(null); onUndo(); }} aria-label={`${t.undoLabel}: ${undoText}`}>
@@ -159,6 +188,37 @@ export function LiveKeypad({ set, lineup, untracked, locked, last, canUndo, undo
       </div>
     </section>
   );
+}
+
+type LegendPlace = 'side' | 'below' | 'none';
+
+/**
+ * Where the legend fits: on the right when the keypad is much wider than tall
+ * (a desktop), below when it is tall enough to spare a band under the
+ * evaluations (a tablet, a phone upright), nowhere otherwise (a phone sideways).
+ */
+function useLegendRoom() {
+  const ref = useRef<HTMLElement>(null);
+  const [place, setPlace] = useState<LegendPlace>('none');
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const measure = () => {
+      const { width, height } = el.getBoundingClientRect();
+      const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+      setPlace((current) => {
+        if (width >= 56 * rem && width >= 1.4 * height) return 'side';
+        // Keep the band below while it fits, so the legend does not flicker as it takes its room.
+        if (height >= (current === 'below' ? 26 : 30) * rem) return 'below';
+        return width >= 56 * rem && current === 'side' && width >= 1.25 * height ? 'side' : 'none';
+      });
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return { ref, place };
 }
 
 /** The six on court and the liberos at the start of a set: proposed from the previous set, changed here. */

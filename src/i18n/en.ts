@@ -483,6 +483,12 @@ export const en: Messages = {
     columnsText:
       'The “#”, “+”, “-” and “=” columns are always there. Remove the “!” and “/” ones you do not record: the sheet gets simpler and the match remembers that those data were not collected. The next match on this device starts with the same choice; you can change it at any time.',
     columnsCounted: (n: number) => (n === 1 ? '(1 touch already counted: it stays in the counts)' : `(${n} touches already counted: they stay in the counts)`),
+    orderTitle: 'Order of the skills',
+    orderText: 'Move the skills into the order you want, from left to right, on the sheet and on the keypad. Set faults stay last on the right. It applies to this device; the printable form does not change.',
+    moveUp: (skill: string) => `Move ${skill} earlier`,
+    moveDown: (skill: string) => `Move ${skill} later`,
+    legend: 'Legend',
+    legendHint: 'Tap a skill to see what each evaluation means.',
     libero: 'Libero',
     setFault: 'Set',
     shirtOf: (libero: boolean, row: number) => `${libero ? 'Libero' : 'Row'} ${row}: shirt number`,

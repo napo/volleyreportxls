@@ -41,3 +41,17 @@ export function parseShirtNumber(text: string): number | null {
   const digits = text.replace(/\D/g, '').slice(0, 2);
   return digits === '' ? null : Number(digits);
 }
+
+/** The skills whose columns can be moved; set faults (P) stay last, on the right. */
+export type MovableSkill = 'B' | 'M' | 'A' | 'R';
+export const DEFAULT_ORDER: readonly MovableSkill[] = ['B', 'M', 'A', 'R'];
+
+/** The columns of a row kind, with the movable skills in the given order and set faults last. */
+export const orderedColumns = (kind: RowKind, order: readonly MovableSkill[]): readonly SkillColumns[] => {
+  const all = SKILLS[kind];
+  const rank = (skill: Skill) => {
+    const i = order.indexOf(skill as MovableSkill);
+    return i < 0 ? order.length : i;
+  };
+  return [...all].sort((a, b) => rank(a.skill) - rank(b.skill));
+};

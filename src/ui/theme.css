@@ -3855,6 +3855,112 @@ button.vr-score-teams.selected {
   outline-offset: 2px;
 }
 
+/* The keypad buttons, and the legend of the chosen skill beside or below them when there is room. */
+.vr-keypad-body,
+.vr-keypad-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.vr-keypad.legend-side .vr-keypad-body {
+  flex-direction: row;
+}
+
+.vr-keypad-legend {
+  flex-shrink: 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--vr-live-line);
+  border-radius: 0.6rem;
+  background: var(--vr-bg);
+  overflow-y: auto;
+  font-size: 0.85rem;
+  line-height: 1.3;
+}
+
+.vr-keypad.legend-side .vr-keypad-legend {
+  flex: 0 0 clamp(16rem, 30%, 24rem);
+}
+
+.vr-keypad.legend-below .vr-keypad-legend {
+  height: 10rem;
+}
+
+.vr-keypad-legend h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+}
+
+.vr-keypad-legend p {
+  margin: 0;
+  color: var(--vr-text-secondary, #5b6670);
+}
+
+.vr-keypad-legend dl {
+  display: grid;
+  gap: 0.3rem 1rem;
+  margin: 0;
+}
+
+.vr-keypad.legend-below .vr-keypad-legend dl {
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+}
+
+.vr-keypad-legend dl > div {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.vr-keypad-legend dt {
+  flex: 0 0 1.8rem;
+  border-radius: 0.3rem;
+  color: #1d1d1d;
+  font-weight: 700;
+  text-align: center;
+}
+
+.vr-keypad-legend dd {
+  margin: 0;
+}
+
+/* Live sheet: the order of the skill columns. */
+.vr-live-order-title {
+  margin: 0.5rem 0 0;
+  font-size: 1rem;
+}
+
+.vr-live-order {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vr-live-order li {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.4rem;
+  border: 1px solid var(--vr-live-line);
+  border-radius: 0.6rem;
+}
+
+.vr-live-order li span {
+  padding-inline: 0.3rem;
+  font-weight: 700;
+}
+
+.vr-live-order li.fixed {
+  color: var(--vr-text-secondary, #5b6670);
+  border-style: dashed;
+}
+
 /* On a phone the keypad takes the room it needs, the sheet scrolls below. */
 @media (max-width: 760px) {
   .vr-keypad-key,
@@ -4360,5 +4466,29 @@ output.vr-sub-name {
 
   .vr-sub-number {
     height: 2.5rem;
+  }
+}
+
+.vr-live-order .vr-sub-arrow {
+  width: 2.6rem;
+  min-height: 2.4rem;
+}
+
+/* On a phone the legend is a compact band: the keys keep most of the room. */
+@media (max-width: 760px) {
+  .vr-keypad.legend-below .vr-keypad-legend {
+    height: 13.5rem;
+    padding: 0.35rem 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1.25;
+  }
+
+  .vr-keypad-legend h3 {
+    margin-bottom: 0.2rem;
+    font-size: 0.8rem;
+  }
+
+  .vr-keypad-legend dl {
+    gap: 0.2rem;
   }
 }
