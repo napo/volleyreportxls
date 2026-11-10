@@ -412,6 +412,91 @@ a {
   }
 }
 
+/*
+ * Every page of the guide fits the screen without scrolling: the text keeps its
+ * size, the picture takes the room left. Wide, low screens put them side by side.
+ */
+.vr-guide[open] {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.vr-guide-head,
+.vr-guide-foot {
+  flex-shrink: 0;
+}
+
+.vr-guide-step {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.vr-guide-step img {
+  flex: 0 1 auto;
+  min-height: 5rem;
+}
+
+.vr-guide-step figcaption {
+  flex-shrink: 0;
+}
+
+@media (max-width: 760px) {
+  .vr-guide-step {
+    gap: 0.6rem;
+    margin: 0.6rem 0;
+  }
+
+  /* The picture takes what the text leaves. */
+  .vr-guide-step img {
+    flex: 1 1 0;
+    max-height: none;
+  }
+
+  .vr-guide-step p {
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+  }
+
+  .vr-guide-foot {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    padding-top: 0.6rem;
+  }
+
+  .vr-guide-foot .vr-check {
+    flex: 1 1 auto;
+    font-size: 0.85rem;
+  }
+
+  .vr-guide-foot .vr-actions {
+    flex: 1 1 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 761px) and (max-height: 860px) {
+  .vr-guide {
+    width: min(1100px, calc(100vw - 2rem));
+  }
+
+  .vr-guide-step {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(16rem, 2fr);
+    align-items: start;
+    gap: 1.25rem;
+  }
+
+  .vr-guide-step img {
+    max-height: calc(100dvh - 13rem);
+  }
+}
+
 @media print {
   .vr-guide {
     display: none;
@@ -3947,7 +4032,7 @@ button.vr-score-teams.selected {
   align-items: center;
   gap: 0.25rem;
   padding: 0.25rem 0.4rem;
-  border: 1px solid var(--vr-live-line);
+  border: 1px solid var(--vr-live-line, #d5dde4);
   border-radius: 0.6rem;
 }
 
@@ -4472,6 +4557,11 @@ output.vr-sub-name {
 .vr-live-order .vr-sub-arrow {
   width: 2.6rem;
   min-height: 2.4rem;
+  border: 2px solid var(--vr-live-line, #d5dde4);
+  border-radius: 0.6rem;
+  background: var(--vr-surface);
+  color: var(--vr-navy);
+  cursor: pointer;
 }
 
 /* On a phone the legend is a compact band: the keys keep most of the room. */
@@ -4491,4 +4581,12 @@ output.vr-sub-name {
   .vr-keypad-legend dl {
     gap: 0.2rem;
   }
+}
+
+/* "Step 1 of 2" over the title of a dialog in two steps. */
+.vr-dialog-step {
+  margin: 0;
+  color: var(--vr-text-secondary, #5b6670);
+  font-size: 0.8rem;
+  font-weight: 600;
 }

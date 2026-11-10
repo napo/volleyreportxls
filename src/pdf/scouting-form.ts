@@ -11,7 +11,7 @@
 
 import type { ScoutCodeString } from '../domain/codes';
 import type { SetNumber } from '../domain/model';
-import { hiddenMask, maskHidden } from './layout';
+import { DEFAULT_FORM_ORDER, type FormOrder, hiddenMask, isFormOrder, maskHidden } from './layout';
 
 export interface FormPageId {
   readonly layoutVersion: number;
@@ -21,25 +21,32 @@ export interface FormPageId {
   readonly page: number;
   /** v9: the "!" and "/" columns left out of the form; the geometry is rebuilt from them. */
   readonly hidden?: readonly ScoutCodeString[];
+  /** v9: the order of serve, block, attack and reception, when it is not the one of v8. */
+  readonly order?: FormOrder;
 }
 
 /**
  * Compact QR payload, e.g. `VR|4|S1|P1`, `VR|5|P1` without a printed set, or
- * `VR|9|P1|H2c` with the columns left out (hexadecimal code of OPTIONAL_FORM_CODES).
+ * `VR|9|P1|H2c` with the columns left out (hexadecimal code of OPTIONAL_FORM_CODES),
+ * `VR|9|P1|OBRAM` with the skills in another order.
  */
 export function formQrPayload(id: FormPageId): string {
   const mask = hiddenMask(id.hidden ?? []);
-  return ['VR', id.layoutVersion, ...(id.setNumber === null ? [] : [`S${id.setNumber}`]), `P${id.page}`, ...(mask ? [`H${mask.toString(16)}`] : [])].join('|');
+  const order = id.order && id.order.join('') !== DEFAULT_FORM_ORDER.join('') ? [`O${id.order.join('')}`] : [];
+  return ['VR', id.layoutVersion, ...(id.setNumber === null ? [] : [`S${id.setNumber}`]), `P${id.page}`, ...(mask ? [`H${mask.toString(16)}`] : []), ...order].join('|');
 }
 
 export function parseFormQrPayload(payload: string): FormPageId | null {
-  const found = /^VR\|(\d+)(?:\|S([1-5]))?\|P(\d+)(?:\|H([0-9a-f]{1,2}))?$/.exec(payload.trim());
+  const found = /^VR\|(\d+)(?:\|S([1-5]))?\|P(\d+)(?:\|H([0-9a-f]{1,2}))?(?:\|O([BMAR]{4}))?$/.exec(payload.trim());
   if (!found) return null;
   const hidden = found[4] === undefined ? [] : maskHidden(parseInt(found[4], 16));
+  const order = found[5]?.split('') ?? [];
+  if (found[5] !== undefined && !isFormOrder(order)) return null;
   return {
     layoutVersion: Number(found[1]),
     setNumber: found[2] === undefined ? null : (Number(found[2]) as SetNumber),
     page: Number(found[3]),
     ...(hidden.length && { hidden }),
+    ...(isFormOrder(order) && { order }),
   };
 }

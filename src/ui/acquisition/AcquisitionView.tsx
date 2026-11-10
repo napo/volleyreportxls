@@ -14,6 +14,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ScoutCodeString } from '../../domain/codes';
 import { SET_NUMBERS, type SetNumber, type SetScore } from '../../domain/model';
 import { type SheetResult, withBlockColumnLeftOut } from '../../image-processing/read-sheet';
+import { DEFAULT_FORM_ORDER, type FormOrder } from '../../pdf/layout';
+import { OrderChoice } from '../components/OrderChoice';
 import { type SetMerge, correctionKey, ignoredTouches, missingSheetNumbers, numbersNotInAll, setFromSheet, untrackedOf, withSets } from '../../matches/from-sheets';
 import { type MatchRecord, type SetRecord, newMatchRecord, newId, setIsPlayed } from '../../matches/record';
 import { mobilePlatform } from '../../platform/updates';
@@ -49,7 +51,13 @@ interface Photo {
   readonly score: { readonly team: string; readonly opponent: string };
   /** v9 read without the QR: the block column "!" or "/" the user says was left out (null: not answered yet). */
   readonly blockColumn: 'M!' | 'M/' | null;
+  /** The image, to read it again with another order of the skills. */
+  readonly file: Blob | null;
+  /** v8/v9 read without the QR: the order of the skills the user says is on the sheet. */
+  readonly order: FormOrder;
 }
+
+const sameOrder = (a: FormOrder, b: FormOrder) => a.join('') === b.join('');
 
 /**
  * The reading with the block column the user says was left out; corrections
@@ -121,21 +129,27 @@ export function AcquisitionView({ matchId }: { matchId: string | null }) {
 
   const update = (id: string, change: (p: Photo) => Photo) => setPhotos((list) => list.map((p) => (p.id === id ? change(p) : p)));
 
-  const read = (id: string, file: Blob) => {
+  /** Reads a photo; with an order, reads it again keeping what the user already said (set, extra sheet, block column). */
+  const read = (id: string, file: Blob, order?: FormOrder) => {
     queue.current = queue.current.then(async () => {
       try {
         const decoded = await decodePhoto(file);
         update(id, (p) => ({ ...p, thumbnail: decoded.thumbnail }));
-        const result = await readPhoto(decoded.image);
+        const result = await readPhoto(decoded.image, order ? { order } : {});
         if (!result.ok) return update(id, (p) => ({ ...p, status: 'failed', markersFound: result.markersFound, failure: result.reason }));
-        update(id, (p) => ({ ...p, status: 'read', result, urls: urlsOf(result), setNumber: result.setNumber, extra: result.extraSheet }));
+        update(id, (p) => {
+          if (!order) return { ...p, status: 'read', result, urls: urlsOf(result), setNumber: result.setNumber, extra: result.extraSheet, order: result.order };
+          // The cells moved: corrections typed for the old ones no longer apply.
+          const again: Photo = { ...p, status: 'read', result, urls: urlsOf(result), corrections: {}, blockColumn: null, order: result.order };
+          return p.blockColumn && result.blockColumnAsked ? answerBlockColumn(again, p.blockColumn) : again;
+        });
       } catch {
         update(id, (p) => ({ ...p, status: 'error' }));
       }
     });
   };
 
-  const blank = (name: string): Photo => ({
+  const blank = (name: string, file: Blob | null = null): Photo => ({
     id: newId(),
     name,
     thumbnail: null,
@@ -150,6 +164,8 @@ export function AcquisitionView({ matchId }: { matchId: string | null }) {
     corrections: {},
     score: { team: '', opponent: '' },
     blockColumn: null,
+    file,
+    order: DEFAULT_FORM_ORDER,
   });
 
   const addFiles = (files: readonly File[] | readonly Blob[]) => {
@@ -157,11 +173,11 @@ export function AcquisitionView({ matchId }: { matchId: string | null }) {
     if (replacing.current && images[0]) {
       const id = replacing.current;
       replacing.current = null;
-      update(id, (p) => ({ ...blank(p.name), id, name: images[0] instanceof File ? images[0].name : p.name }));
+      update(id, (p) => ({ ...blank(p.name, images[0]!), id, name: images[0] instanceof File ? images[0].name : p.name }));
       read(id, images[0]);
       return;
     }
-    const added = images.map((f, i) => blank(f instanceof File ? f.name : `${t.camera.title} ${photos.length + i + 1}`));
+    const added = images.map((f, i) => blank(f instanceof File ? f.name : `${t.camera.title} ${photos.length + i + 1}`, f));
     setPhotos((list) => [...list, ...added]);
     added.forEach((p, i) => read(p.id, images[i]!));
   };
@@ -197,7 +213,8 @@ export function AcquisitionView({ matchId }: { matchId: string | null }) {
   const waiting = photos.some((p) => p.status === 'reading');
   const blocking =
     photos.some(
-      (p) => p.status === 'failed' || p.status === 'error' || (p.status === 'read' && (p.setNumber === null || (p.result!.blockColumnAsked && p.blockColumn === null))),
+      (p) => p.status === 'failed' || p.status === 'error' || (p.status === 'read' &&
+          (p.setNumber === null || (p.result!.blockColumnAsked && p.blockColumn === null) || (p.result!.orderAsked && !sameOrder(p.order, p.result!.order)))),
     ) ||
     conflicts.some((n) => !decided(n));
   const missingNumbers = read_.reduce(
@@ -282,6 +299,11 @@ export function AcquisitionView({ matchId }: { matchId: string | null }) {
           lonely={lonely(photo)}
           others={otherNumbers(photo)}
           onChange={(change) => update(photo.id, change)}
+          onReread={() => {
+            if (!photo.file) return;
+            update(photo.id, (p) => ({ ...p, status: 'reading' }));
+            read(photo.id, photo.file, photo.order);
+          }}
           onRemove={() => {
             setPhotos((list) => list.filter((p) => p.id !== photo.id));
             // A new photo of the same set asks again.
@@ -364,9 +386,11 @@ interface CardProps {
   readonly onChange: (change: (p: Photo) => Photo) => void;
   readonly onRemove: () => void;
   readonly onReplace: () => void;
+  /** Reads the photo again with the order of the skills chosen by the user. */
+  readonly onReread: () => void;
 }
 
-function SheetCard({ photo, duplicate, lonely, others, onChange, onRemove, onReplace }: CardProps) {
+function SheetCard({ photo, duplicate, lonely, others, onChange, onRemove, onReplace, onReread }: CardProps) {
   const { m } = useI18n();
   const t = m.acquisition.sheet;
   const result = photo.result;
@@ -430,6 +454,19 @@ function SheetCard({ photo, duplicate, lonely, others, onChange, onRemove, onRep
                   </label>
                 );
               })}
+            </fieldset>
+          )}
+          {photo.status === 'read' && result!.orderAsked && (
+            <fieldset className="vr-sheet-block vr-sheet-order">
+              <legend>{t.orderQuestion}</legend>
+              <OrderChoice order={photo.order} onChange={(order) => onChange((p) => ({ ...p, order }))} text={t.orderText} heading={false} />
+              {!sameOrder(photo.order, result!.order) && (
+                <div className="vr-actions start">
+                  <button type="button" className="vr-btn vr-btn-primary vr-btn-small" onClick={onReread} disabled={!photo.file}>
+                    {t.orderReread}
+                  </button>
+                </div>
+              )}
             </fieldset>
           )}
           {duplicate && <p className="vr-message warning">{t.duplicate(photo.setNumber!)}</p>}

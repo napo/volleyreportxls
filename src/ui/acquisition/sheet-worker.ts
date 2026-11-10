@@ -3,13 +3,14 @@
 
 /// <reference lib="webworker" />
 /** Reads photos of sheets off the main thread, so the page stays responsive. */
-import { type SheetFailure, type SheetResult, readSheetImage } from '../../image-processing/read-sheet';
+import { type SheetFailure, type SheetForcing, type SheetResult, readSheetImage } from '../../image-processing/read-sheet';
 
 export interface SheetRequest {
   readonly id: number;
   readonly width: number;
   readonly height: number;
   readonly buffer: ArrayBuffer;
+  readonly forcing?: SheetForcing;
 }
 
 export type SheetResponse = { readonly id: number; readonly result: SheetResult | SheetFailure } | { readonly id: number; readonly error: string };
@@ -17,9 +18,9 @@ export type SheetResponse = { readonly id: number; readonly result: SheetResult 
 const scope = self as unknown as DedicatedWorkerGlobalScope;
 
 scope.onmessage = (event: MessageEvent<SheetRequest>) => {
-  const { id, width, height, buffer } = event.data;
+  const { id, width, height, buffer, forcing } = event.data;
   try {
-    const result = readSheetImage({ width, height, data: new Uint8ClampedArray(buffer) });
+    const result = readSheetImage({ width, height, data: new Uint8ClampedArray(buffer) }, forcing);
     const crops = result.ok
       ? [...result.rows.flatMap((r) => [r.numberCrop, ...r.cells.flatMap((c) => (c.crop ? [c.crop] : []))]), result.score.team, result.score.opponent]
       : [];

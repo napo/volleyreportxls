@@ -42,7 +42,9 @@
  * become ovals as wide as the columns allow (the height of the rows does not
  * change). The QR carries the columns left out, so the geometry is rebuilt
  * from it when a photo is read (see formLayout). With no column left out the
- * form is v8.
+ * form is v8. A v9 form can also have its skills in another order (serve,
+ * block, attack and reception moved, set faults always last): the QR carries
+ * that order too, when it is not the one of v8.
  *
  * Layout v5 is kept to read those sheets.
  *
@@ -120,6 +122,8 @@ export interface FormLayout {
   readonly version: number;
   /** v9: the "!" and "/" columns left out of this form (none for every other version). */
   readonly hidden: readonly ScoutCodeString[];
+  /** The order of serve, block, attack and reception on the form (set faults last); the one of v8 but on some v9 forms. */
+  readonly order: FormOrder;
   /** v7: meanings under the symbols and ordinary bubbles in every slot. */
   readonly evaluationCaptions: boolean;
   readonly page: { readonly width: number; readonly height: number };
@@ -182,6 +186,8 @@ interface LayoutSpec {
   readonly rowBands?: boolean;
   /** v9: columns left out; the others share the width. */
   readonly hidden?: readonly ScoutCodeString[];
+  /** v9: the order of the movable skills, when it is not the one of v8. */
+  readonly order?: FormOrder;
   /** v9: bubbles as wide as the columns allow, as high as before. */
   readonly ovalBubbles?: boolean;
 }
@@ -232,6 +238,15 @@ const V3: LayoutSpec = {
 /** v9: the columns that can be left out, in the order of the bits of their code (never to be changed). */
 export const OPTIONAL_FORM_CODES: readonly ScoutCodeString[] = ['B/', 'B!', 'M!', 'M/', 'A!', 'A/', 'R!', 'R/'] as ScoutCodeString[];
 
+/** Skills that can change place on a v9 form; set faults stay last. */
+export type MovableFormSkill = 'B' | 'M' | 'A' | 'R';
+export type FormOrder = readonly MovableFormSkill[];
+/** The order of v8, and of every v9 form whose QR names none. */
+export const DEFAULT_FORM_ORDER: FormOrder = ['B', 'M', 'A', 'R'];
+export const isFormOrder = (order: readonly string[]): order is FormOrder =>
+  order.length === DEFAULT_FORM_ORDER.length && DEFAULT_FORM_ORDER.every((skill) => order.includes(skill));
+const sameOrder = (a: FormOrder, b: FormOrder) => a.every((skill, i) => skill === b[i]);
+
 /** v9: the widest an oval bubble gets, as a multiple of its height. */
 const OVAL_MAX_RATIO = 1.8;
 
@@ -244,9 +259,14 @@ function buildTallyLayout(base: LayoutSpec): FormLayout {
   // v9: the columns left out are simply not there; the others take their room.
   const hidden = base.hidden ?? [];
   const keep = (skill: FormSkill, columns: Columns): Columns => columns.filter(([e]) => !hidden.includes(`${skill}${e}` as ScoutCodeString));
+  const order = base.order ?? DEFAULT_FORM_ORDER;
+  const rank = (skill: FormSkill) => {
+    const i = order.indexOf(skill as MovableFormSkill);
+    return i < 0 ? order.length : i;
+  };
   const spec: LayoutSpec = {
     ...base,
-    player: base.player.map(([skill, columns]) => [skill, keep(skill, columns)] as const),
+    player: (base.order ? [...base.player].sort(([a], [b]) => rank(a) - rank(b)) : base.player).map(([skill, columns]) => [skill, keep(skill, columns)] as const),
     libero: base.libero.map((l) => ({ ...l, columns: keep(l.skill, l.columns) })),
   };
   const page = { width: 297, height: 210 }; // A4 landscape
@@ -431,6 +451,7 @@ function buildTallyLayout(base: LayoutSpec): FormLayout {
   return {
     version: spec.version,
     hidden: OPTIONAL_FORM_CODES.filter((code) => hidden.includes(code)),
+    order: [...order],
     evaluationCaptions,
     page,
     markers: [
@@ -490,19 +511,20 @@ export function cellCode(cell: TallyCell): ScoutCodeString | null {
   return SKILL_DEFINITIONS[cell.skill].evaluations[cell.evaluation] !== undefined ? code : null;
 }
 
-const v9Layouts = new Map<number, FormLayout>();
+const v9Layouts = new Map<string, FormLayout>();
 
 /** The code of the columns left out: one bit per OPTIONAL_FORM_CODES. */
 export const hiddenMask = (hidden: readonly ScoutCodeString[]) => OPTIONAL_FORM_CODES.reduce((mask, code, i) => (hidden.includes(code) ? mask | (1 << i) : mask), 0);
 export const maskHidden = (mask: number) => OPTIONAL_FORM_CODES.filter((_, i) => (mask >> i) & 1);
 
-/** v9 with these columns left out (each built once). */
-export function v9Layout(hidden: readonly ScoutCodeString[]): FormLayout {
+/** v9 with these columns left out and the skills in this order (each built once). */
+export function v9Layout(hidden: readonly ScoutCodeString[], order: FormOrder = DEFAULT_FORM_ORDER): FormLayout {
   const mask = hiddenMask(hidden);
-  let layout = v9Layouts.get(mask);
+  const key = `${mask}|${order.join('')}`;
+  let layout = v9Layouts.get(key);
   if (!layout) {
-    layout = buildTallyLayout({ ...V9, hidden: maskHidden(mask) });
-    v9Layouts.set(mask, layout);
+    layout = buildTallyLayout({ ...V9, hidden: maskHidden(mask), ...(!sameOrder(order, DEFAULT_FORM_ORDER) && { order }) });
+    v9Layouts.set(key, layout);
   }
   return layout;
 }
@@ -510,12 +532,12 @@ export function v9Layout(hidden: readonly ScoutCodeString[]): FormLayout {
 /** Every v9 form that can be printed: one per combination of columns left out (at least one). */
 export const allV9Layouts = (): FormLayout[] => Array.from({ length: (1 << OPTIONAL_FORM_CODES.length) - 1 }, (_, i) => v9Layout(maskHidden(i + 1)));
 
-/** The form to print with these columns left out: v8 when none is, v9 otherwise. */
-export const printableLayout = (hidden: readonly ScoutCodeString[]): FormLayout =>
-  OPTIONAL_FORM_CODES.some((code) => hidden.includes(code)) ? v9Layout(hidden) : CURRENT_FORM_LAYOUT;
+/** The form to print with these columns left out and this order: v8 when nothing changes, v9 otherwise. */
+export const printableLayout = (hidden: readonly ScoutCodeString[], order: FormOrder = DEFAULT_FORM_ORDER): FormLayout =>
+  OPTIONAL_FORM_CODES.some((code) => hidden.includes(code)) || !sameOrder(order, DEFAULT_FORM_ORDER) ? v9Layout(hidden, order) : CURRENT_FORM_LAYOUT;
 
-export function formLayout(version: number, hidden: readonly ScoutCodeString[] = []): FormLayout {
-  if (version === 9) return v9Layout(hidden);
+export function formLayout(version: number, hidden: readonly ScoutCodeString[] = [], order: FormOrder = DEFAULT_FORM_ORDER): FormLayout {
+  if (version === 9) return v9Layout(hidden, order);
   const layout = FORM_LAYOUTS[version];
   if (!layout) throw new Error(`unknown scouting form layout v${version}`);
   return layout;

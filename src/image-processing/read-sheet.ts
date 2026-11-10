@@ -10,7 +10,7 @@
 
 import type { ScoutCodeString } from '../domain/codes';
 import type { SetNumber } from '../domain/model';
-import { type FormLayout, type FormSkill, type Rect, type RowKind, CURRENT_FORM_LAYOUT, FORM_LAYOUTS, allV9Layouts, cellCode, formLayout } from '../pdf/layout';
+import { type FormLayout, type FormSkill, type Rect, type RowKind, CURRENT_FORM_LAYOUT, FORM_LAYOUTS, DEFAULT_FORM_ORDER, type FormOrder, OPTIONAL_FORM_CODES, allV9Layouts, cellCode, formLayout, maskHidden, v9Layout } from '../pdf/layout';
 import type { FormPageId } from '../pdf/scouting-form';
 import { BUBBLE_MARKED, readCell } from './cells';
 import { type GrayImage, sample } from './gray';
@@ -62,11 +62,18 @@ export interface SheetResult {
   readonly fitError: number;
   /** v9: the columns left out of the printed form: not recorded in this set. */
   readonly untracked: readonly ScoutCodeString[];
+  /** v9: the order of serve, block, attack and reception on the printed form. */
+  readonly order: FormOrder;
   /**
    * v9 without the QR, one of the two block columns "!" and "/" left out: the
    * grid is the same either way, so the user is asked which (blockColumn).
    */
   readonly blockColumnAsked: boolean;
+  /**
+   * v8 or v9 without the QR: the order of the skills cannot be told from the
+   * bubbles, so the user is asked, and the photo read again with that order.
+   */
+  readonly orderAsked: boolean;
   readonly rows: readonly RowResult[];
   readonly score: { readonly written: boolean; readonly team: RgbaImage; readonly opponent: RgbaImage };
 }
@@ -111,9 +118,9 @@ function looksBanded(gray: GrayImage, homography: Homography, layout: FormLayout
  * bubbles with different meanings: only a layout whose grey row bands (v8)
  * match the photo is taken, when there is one.
  */
-export function guessLayout(gray: GrayImage, homography: Homography): FormLayout {
+export function guessLayout(gray: GrayImage, homography: Homography, order: FormOrder = DEFAULT_FORM_ORDER): FormLayout {
   // Every printed layout, v9 in all its combinations of columns; the older ones first, so they win a tie.
-  const scored = [...Object.values(FORM_LAYOUTS), ...allV9Layouts()].map((layout) => {
+  const score = (layout: FormLayout) => {
     const contrasts: number[] = [];
     for (const row of layout.rows.slice(0, 3)) {
       for (const cell of row.cells) {
@@ -138,7 +145,13 @@ export function guessLayout(gray: GrayImage, homography: Homography): FormLayout
     contrasts.sort((a, b) => a - b);
     const mean = contrasts.reduce((n, c) => n + c, 0) / (contrasts.length || 1);
     return { layout, score: contrasts[Math.floor(contrasts.length / 2)]!, mean };
-  });
+  };
+  // Another order (told by the user): only v9 forms with that order, every set of columns.
+  const standard = order.join('') === DEFAULT_FORM_ORDER.join('');
+  const candidates = standard
+    ? [...Object.values(FORM_LAYOUTS), ...allV9Layouts()]
+    : Array.from({ length: 1 << OPTIONAL_FORM_CODES.length }, (_, mask) => v9Layout(maskHidden(mask), order));
+  const scored = candidates.map(score);
   const banded = looksBanded(gray, homography, CURRENT_FORM_LAYOUT);
   const fitting = scored.filter((s) => s.layout.rowBands === banded);
   // The oldest on a tie, as before: v4 and v5 share the grid, and the set marks are not read without the QR.
@@ -147,7 +160,8 @@ export function guessLayout(gray: GrayImage, homography: Homography): FormLayout
   if (best.layout.version !== 9) return best.layout;
   // v9 forms differ only where their columns were left out: the median hides that, the mean over
   // every bubble does not. Among the v9 forms nearly as good as the best, the one whose outlines
-  // are where the bubbles are printed everywhere.
+  // are where the bubbles are printed everywhere. The order of the skills cannot be told from the
+  // bubbles (they sit on the same grid of columns whatever the order): without the QR, the order of v8.
   return pool
     .filter((s) => s.layout.version === 9 && s.score >= best.score * 0.8)
     .reduce((a, b) => (b.mean > a.mean ? b : a)).layout;
@@ -173,13 +187,18 @@ function readSetMarks(gray: GrayImage, homography: Homography, layout: FormLayou
   };
 }
 
-export function readSheetImage(image: RgbaImage): SheetResult | SheetFailure {
+/** The photo read again without the QR, with the order of the skills the user gave. */
+export interface SheetForcing {
+  readonly order?: FormOrder;
+}
+
+export function readSheetImage(image: RgbaImage, forcing: SheetForcing = {}): SheetResult | SheetFailure {
   const located = locateSheet(image);
   if (!isLocated(located)) return { ok: false, reason: located.reason, markersFound: located.found };
   const { gray, homography } = located;
   const page = located.page;
-  const known = page && (page.layoutVersion === 9 ? formLayout(9, page.hidden ?? []) : FORM_LAYOUTS[page.layoutVersion]);
-  const layout = known ?? guessLayout(gray, homography);
+  const known = page && (page.layoutVersion === 9 ? formLayout(9, page.hidden ?? [], page.order) : FORM_LAYOUTS[page.layoutVersion]);
+  const layout = known ?? guessLayout(gray, homography, forcing.order);
   const crop = (r: Rect) => warpRect(gray, homography, r, CROP_PX_PER_MM);
   // The set marks are read only on a layout known from the QR: v4 and v5 share the grid.
   const marks = known ? readSetMarks(gray, homography, layout) : { setsMarked: [], setNumber: null, extraSheet: false };
@@ -219,7 +238,9 @@ export function readSheetImage(image: RgbaImage): SheetResult | SheetFailure {
     extraSheet: marks.extraSheet,
     fitError: located.fitError,
     untracked: layout.hidden,
+    order: layout.order,
     blockColumnAsked: !page && layout.version === 9 && layout.hidden.includes('M!') !== layout.hidden.includes('M/'),
+    orderAsked: !known && layout.rowBands,
     rows,
     score: { written, team: crop(grow(join(t1, t2), 0.5)), opponent: crop(grow(join(o1, o2), 0.5)) },
   };
@@ -234,7 +255,7 @@ export function withBlockColumnLeftOut(result: SheetResult, hidden: 'M!' | 'M/')
   const current = result.untracked.includes('M!') ? 'M!' : 'M/';
   if (current === hidden || !result.blockColumnAsked) return result;
   const untracked = [...result.untracked.filter((c) => c !== current), hidden];
-  const layout = formLayout(9, untracked);
+  const layout = formLayout(9, untracked, result.order);
   const rows = result.rows.map((row) => {
     const printed = layout.rows[row.index]!.cells;
     return { ...row, cells: row.cells.map((cell, i) => (cell.skill === 'M' ? { ...cell, code: cellCode(printed[i]!), evaluation: printed[i]!.evaluation } : cell)) };

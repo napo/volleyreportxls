@@ -5,7 +5,7 @@
  * Photos on the device: decoding (with the camera orientation), thumbnails,
  * crops as images, and the reading done in a worker. Nothing leaves the device.
  */
-import { type SheetFailure, type SheetResult, readSheetImage } from '../../image-processing/read-sheet';
+import { type SheetFailure, type SheetForcing, type SheetResult, readSheetImage } from '../../image-processing/read-sheet';
 import type { RgbaImage } from '../../image-processing/synthetic';
 import type { SheetRequest, SheetResponse } from './sheet-worker';
 
@@ -87,13 +87,13 @@ function getWorker(): Worker | null {
 }
 
 /** Reads a decoded photo; in the worker when available, otherwise here. */
-export function readPhoto(image: RgbaImage): Promise<SheetResult | SheetFailure> {
+export function readPhoto(image: RgbaImage, forcing: SheetForcing = {}): Promise<SheetResult | SheetFailure> {
   const w = getWorker();
-  if (!w) return Promise.resolve(readSheetImage(image));
+  if (!w) return Promise.resolve(readSheetImage(image, forcing));
   const id = nextId++;
   return new Promise((resolve, reject) => {
     pending.set(id, { resolve, reject });
-    const request: SheetRequest = { id, width: image.width, height: image.height, buffer: image.data.buffer as ArrayBuffer };
+    const request: SheetRequest = { id, width: image.width, height: image.height, buffer: image.data.buffer as ArrayBuffer, forcing };
     w.postMessage(request, [request.buffer]);
   });
 }

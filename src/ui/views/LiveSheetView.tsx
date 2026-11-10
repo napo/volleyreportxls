@@ -45,6 +45,7 @@ import { evaluationTint } from '../../report/evaluation-colors';
 import { href } from '../routes';
 import { LineupDialog, LiveKeypad, SubstitutionDialog } from './LiveKeypad';
 import { ColumnsChoice } from '../components/ColumnsChoice';
+import { OrderChoice } from '../components/OrderChoice';
 import { lastUntracked, rememberUntracked } from '../untracked-setting';
 import { lastOrder, rememberOrder } from '../skill-order-setting';
 
@@ -108,12 +109,8 @@ function ColumnsDialog({
   const t = m.live;
   const [hidden, setHidden] = useState<ReadonlySet<ScoutCodeString>>(new Set(record.untracked ?? []));
   const [order, setOrder] = useState<MovableSkill[]>([...initialOrder]);
-  const move = (i: number, delta: number) =>
-    setOrder((o) => {
-      const next = [...o];
-      [next[i], next[i + delta]] = [next[i + delta]!, next[i]!];
-      return next;
-    });
+  // Two steps, so that each fits the screen: the columns, then the order.
+  const [step, setStep] = useState<1 | 2>(1);
   return (
     <div className="vr-live-overlay" onKeyDown={(e) => e.key === 'Escape' && onCancel()}>
       <form
@@ -123,44 +120,34 @@ function ColumnsDialog({
         aria-labelledby="vr-live-columns-title"
         onSubmit={(e) => {
           e.preventDefault();
+          if (step === 1) return setStep(2);
           onConfirm(OPTIONAL_CODES.filter((code) => hidden.has(code)), order);
         }}
       >
-        <h2 id="vr-live-columns-title">{t.columnsTitle}</h2>
-        <p>{t.columnsText}</p>
-        <ColumnsChoice
-          hidden={hidden}
-          onChange={setHidden}
-          skillLabel={(skill) => m.skills[skill]}
-          note={(code) => {
-            const counted = columnTouches(record, code);
-            return hidden.has(code) && counted > 0 ? <small className="vr-live-columns-note"> {t.columnsCounted(counted)}</small> : null;
-          }}
-        />
-        <h3 className="vr-live-order-title">{t.orderTitle}</h3>
-        <p>{t.orderText}</p>
-        <ol className="vr-live-order">
-          {order.map((skill, i) => (
-            <li key={skill}>
-              <span>{m.skills[skill]}</span>
-              <button type="button" className="vr-sub-arrow" aria-label={t.moveUp(m.skills[skill])} disabled={i === 0} onClick={() => move(i, -1)}>
-                ◀
-              </button>
-              <button type="button" className="vr-sub-arrow" aria-label={t.moveDown(m.skills[skill])} disabled={i === order.length - 1} onClick={() => move(i, 1)}>
-                ▶
-              </button>
-            </li>
-          ))}
-          <li className="fixed">
-            <span>{m.skills.P}</span>
-          </li>
-        </ol>
+        <p className="vr-dialog-step">{m.guide.stepOf(step, 2)}</p>
+        <h2 id="vr-live-columns-title">{step === 1 ? t.columnsTitle : t.orderTitle}</h2>
+        {step === 1 ? (
+          <>
+            <p>{t.columnsText}</p>
+            <ColumnsChoice
+              hidden={hidden}
+              onChange={setHidden}
+              skillLabel={(skill) => m.skills[skill]}
+              note={(code) => {
+                const counted = columnTouches(record, code);
+                return hidden.has(code) && counted > 0 ? <small className="vr-live-columns-note"> {t.columnsCounted(counted)}</small> : null;
+              }}
+            />
+          </>
+        ) : (
+          <OrderChoice order={order} onChange={setOrder} text={t.orderText} heading={false} />
+        )}
         <div className="vr-live-dialog-actions">
-          <button type="button" className="vr-btn vr-btn-secondary" onClick={onCancel}>
-            {t.back}
+          <button type="button" className="vr-btn vr-btn-secondary" onClick={step === 1 ? onCancel : () => setStep(1)}>
+            {step === 1 ? t.back : m.guide.back}
           </button>
           <button type="submit" className="vr-btn vr-live-primary">
-            {t.save}
+            {step === 1 ? m.guide.next : t.save}
           </button>
         </div>
       </form>

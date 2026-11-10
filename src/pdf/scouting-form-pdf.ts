@@ -368,7 +368,7 @@ export async function renderScoutingFormPdf(options: ScoutingFormOptions): Promi
   // One sheet for every set when the set is marked by hand.
   const sets: readonly (SetNumber | null)[] = layout.setMarks ? [null] : options.sets ?? SET_NUMBERS;
   for (const setNumber of sets) {
-    const page: FormPageId = { layoutVersion: layout.version, setNumber, page: 1, hidden: layout.hidden };
+    const page: FormPageId = { layoutVersion: layout.version, setNumber, page: 1, hidden: layout.hidden, order: layout.order };
     const sheet = new Sheet(doc.addPage([layout.page.width * MM, layout.page.height * MM]), layout, fonts, texts, logo);
     drawMarkers(sheet);
     drawHeader(sheet, page);

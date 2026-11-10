@@ -9,7 +9,7 @@
  */
 
 import type { ScoutCodeString } from '../domain/codes';
-import { type FormLayout, OPTIONAL_FORM_CODES, cellCode, maskHidden, v9Layout } from '../pdf/layout';
+import { type FormLayout, type FormOrder, OPTIONAL_FORM_CODES, cellCode, maskHidden, printableLayout, v9Layout } from '../pdf/layout';
 import { formQrPayload } from '../pdf/scouting-form';
 import { readSheetImage, withBlockColumnLeftOut } from './read-sheet';
 import { type RgbaImage, renderSyntheticForm } from './synthetic';
@@ -107,5 +107,50 @@ describe('reading v9 forms', () => {
     const result = readSheetImage(photo(layout, formQrPayload({ layoutVersion: 9, setNumber: null, page: 1, hidden: layout.hidden }), new Map()));
     if (!result.ok) throw new Error(result.reason);
     expect(result.blockColumnAsked).toBe(false);
+  });
+
+  const orders: [FormOrder, ScoutCodeString[]][] = [
+    [['B', 'R', 'A', 'M'], []],
+    [['R', 'A', 'M', 'B'], ['R!', 'B/']],
+    [['A', 'B', 'R', 'M'], ['R!', 'R/']],
+  ];
+
+  test.each(orders.map(([o, h]) => [o.join(''), h.join(' ') || 'none', o, h] as const))('with the QR: skills in order %s, columns %s left out, every mark in its cell', (_, __, order, hidden) => {
+    const layout = v9Layout(hidden, order);
+    expect(layout.skills.filter((h) => h.kind === 'player').map((h) => h.skill)).toEqual([...order, 'P']);
+    const marks = marksFor(layout);
+    const result = readSheetImage(photo(layout, formQrPayload({ layoutVersion: 9, setNumber: null, page: 1, hidden, order }), marks));
+    if (!result.ok) throw new Error(result.reason);
+    expect(result.page?.order).toEqual(order);
+    expect(result.order).toEqual(order);
+    expect(counts(result)).toEqual(marks);
+  });
+
+  test.each(orders.map(([o, h]) => [o.join(''), h.join(' ') || 'none', o, h] as const))('without the QR: the order %s is asked, and read again with it (columns %s left out)', (_, __, order, hidden) => {
+    const layout = v9Layout(hidden, order);
+    const marks = marksFor(layout);
+    const image = photo(layout, 'no QR here', marks);
+    const first = readSheetImage(image);
+    if (!first.ok) throw new Error(first.reason);
+    expect(first.orderAsked).toBe(true);
+    const again = readSheetImage(image, { order });
+    if (!again.ok) throw new Error(again.reason);
+    expect(again.order).toEqual(order);
+    expect(again.untracked).toEqual(layout.hidden);
+    expect(counts(again)).toEqual(marks);
+  });
+
+  test('with the QR the order is not asked', () => {
+    const layout = v9Layout([], ['R', 'B', 'M', 'A']);
+    const result = readSheetImage(photo(layout, formQrPayload({ layoutVersion: 9, setNumber: null, page: 1, order: layout.order }), new Map()));
+    if (!result.ok) throw new Error(result.reason);
+    expect(result.orderAsked).toBe(false);
+  });
+
+  test('the default order is not written in the QR, and v9 with all columns and another order is printed', () => {
+    expect(formQrPayload({ layoutVersion: 9, setNumber: null, page: 1, hidden: ['A/'], order: ['B', 'M', 'A', 'R'] })).toBe('VR|9|P1|H20');
+    expect(formQrPayload({ layoutVersion: 9, setNumber: null, page: 1, order: ['R', 'B', 'M', 'A'] })).toBe('VR|9|P1|ORBMA');
+    expect(printableLayout([], ['R', 'B', 'M', 'A']).version).toBe(9);
+    expect(printableLayout([]).version).toBe(8);
   });
 });

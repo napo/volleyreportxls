@@ -7,16 +7,20 @@
  * device): with all of them, the form published with the site (a plain file,
  * made at build time, src/pdf/form-files.ts); without some, a v9 form made
  * here, whose other columns are wider and whose bubbles are ovals, with the
- * columns left out in its QR code.
+ * columns left out in its QR code. The skills can also be printed in another
+ * order (the one of the live sheet on this device), a v9 form with that order in its QR.
  */
 import { useState } from 'react';
 import type { ScoutCodeString } from '../../domain/codes';
 import { messagesFor, useI18n } from '../../i18n';
-import { OPTIONAL_FORM_CODES, printableLayout } from '../../pdf/layout';
+import { DEFAULT_FORM_ORDER, OPTIONAL_FORM_CODES, printableLayout } from '../../pdf/layout';
 import { FORM_FILES } from '../../pdf/form-files';
 import { type SavedFile, saveFile } from '../../platform/save-file';
 import { isTauriApp } from '../../platform/updates';
 import { rememberUntracked } from '../untracked-setting';
+import { lastOrder, rememberOrder } from '../skill-order-setting';
+import type { MovableSkill } from './counts-columns';
+import { OrderChoice } from './OrderChoice';
 import { ColumnsChoice } from './ColumnsChoice';
 import { SavedFileLink } from './SavedFileLink';
 
@@ -35,11 +39,13 @@ export function DownloadFormButton({ label, variant = 'primary' }: Props) {
   const className = variant === 'link' ? 'vr-link-button' : `vr-btn vr-btn-${variant}`;
   const text = label ?? m.info.formButton;
 
-  async function download(hidden: readonly ScoutCodeString[]) {
+  async function download(hidden: readonly ScoutCodeString[], order: readonly MovableSkill[]) {
     setChoosing(false);
+    rememberOrder(order);
+    const standardOrder = order.join('') === DEFAULT_FORM_ORDER.join('');
     // Every column, in a browser: a plain link to the published file, followed at once within the tap
     // (phones download a real file far more reliably than one made in the page).
-    if (hidden.length === 0 && !isTauriApp()) {
+    if (hidden.length === 0 && standardOrder && !isTauriApp()) {
       rememberUntracked(hidden);
       const link = document.createElement('a');
       link.href = import.meta.env.BASE_URL + FORM_FILES[lang];
@@ -56,7 +62,7 @@ export function DownloadFormButton({ label, variant = 'primary' }: Props) {
     const texts = messagesFor(lang);
     try {
       const file = await saveFile(texts.form.fileName, async () => {
-        if (hidden.length === 0) {
+        if (hidden.length === 0 && standardOrder) {
           // Every column: the form published with the site.
           const url = import.meta.env.BASE_URL + FORM_FILES[lang];
           const response = await fetch(url);
@@ -65,7 +71,7 @@ export function DownloadFormButton({ label, variant = 'primary' }: Props) {
         }
         const [{ renderScoutingFormPdf }, { loadPdfFonts, loadLogoPng }] = await Promise.all([import('../../pdf/scouting-form-pdf'), import('../pdf-assets')]);
         const [fonts, logoPng] = await Promise.all([loadPdfFonts(), loadLogoPng()]);
-        return renderScoutingFormPdf({ layout: printableLayout(hidden), fonts, logoPng, texts });
+        return renderScoutingFormPdf({ layout: printableLayout(hidden, order), fonts, logoPng, texts });
       });
       // A link for the browsers that ignore a download started a moment after the tap.
       if (file?.url && !isTauriApp()) setSaved(file);
@@ -89,11 +95,16 @@ export function DownloadFormButton({ label, variant = 'primary' }: Props) {
 }
 
 /** The "!" and "/" columns to print, skill by skill; "#", "+", "-" and "=" are always there. */
-function FormColumnsDialog({ onCancel, onConfirm }: { onCancel: () => void; onConfirm: (hidden: ScoutCodeString[]) => void }) {
+function FormColumnsDialog({ onCancel, onConfirm }: { onCancel: () => void; onConfirm: (hidden: ScoutCodeString[], order: MovableSkill[]) => void }) {
   const { m } = useI18n();
   const t = m.formColumns;
   // Every column selected at first: the standard form, unless the user leaves some out.
   const [hidden, setHidden] = useState<ReadonlySet<ScoutCodeString>>(new Set());
+  // The order last chosen on this device, as on the live sheet.
+  const [order, setOrder] = useState<MovableSkill[]>(lastOrder);
+  const standard = hidden.size === 0 && order.join('') === DEFAULT_FORM_ORDER.join('');
+  // Two steps, so that each fits the screen: the columns, then the order.
+  const [step, setStep] = useState<1 | 2>(1);
   return (
     <div className="vr-live-overlay" onKeyDown={(e) => e.key === 'Escape' && onCancel()}>
       <form
@@ -103,19 +114,29 @@ function FormColumnsDialog({ onCancel, onConfirm }: { onCancel: () => void; onCo
         aria-labelledby="vr-form-columns-title"
         onSubmit={(e) => {
           e.preventDefault();
-          onConfirm(OPTIONAL_FORM_CODES.filter((code) => hidden.has(code)));
+          if (step === 1) return setStep(2);
+          onConfirm(OPTIONAL_FORM_CODES.filter((code) => hidden.has(code)), order);
         }}
       >
-        <h2 id="vr-form-columns-title">{t.title}</h2>
-        <p>{t.text}</p>
-        <ColumnsChoice hidden={hidden} onChange={setHidden} />
-        <p className="vr-note">{hidden.size === 0 ? t.standard : t.custom}</p>
+        <p className="vr-dialog-step">{m.guide.stepOf(step, 2)}</p>
+        <h2 id="vr-form-columns-title">{step === 1 ? t.title : m.live.orderTitle}</h2>
+        {step === 1 ? (
+          <>
+            <p>{t.text}</p>
+            <ColumnsChoice hidden={hidden} onChange={setHidden} />
+          </>
+        ) : (
+          <>
+            <OrderChoice order={order} onChange={setOrder} text={t.orderText} heading={false} />
+            <p className="vr-note">{standard ? t.standard : t.custom}</p>
+          </>
+        )}
         <div className="vr-live-dialog-actions">
-          <button type="button" className="vr-btn vr-btn-secondary" onClick={onCancel}>
-            {t.cancel}
+          <button type="button" className="vr-btn vr-btn-secondary" onClick={step === 1 ? onCancel : () => setStep(1)}>
+            {step === 1 ? t.cancel : m.guide.back}
           </button>
           <button type="submit" className="vr-btn vr-btn-primary">
-            {t.download}
+            {step === 1 ? m.guide.next : t.download}
           </button>
         </div>
       </form>

@@ -88,8 +88,8 @@ export const it = {
     customForm: {
       eyebrow: 'Se vuoi',
       title: 'Un modulo più semplice',
-      text: 'Se non rilevi tutte le valutazioni, toccando "Scarica il modulo" togli le colonne "!" e "/" che non ti servono, fondamentale per fondamentale. Le altre colonne si allargano e i pallini diventano ovali, più facili da riempire. Il codice QR del foglio ricorda le colonne tolte: non scriverci sopra, così la foto si legge da sola. Con tutte le colonne selezionate scarichi il modulo standard.',
-      alt: 'La scelta delle colonne con le valutazioni "!" tolte, e il modulo che ne risulta: colonne più larghe e pallini ovali',
+      text: 'Se non rilevi tutte le valutazioni, toccando "Scarica il modulo" togli le colonne "!" e "/" che non ti servono, fondamentale per fondamentale. Le altre colonne si allargano e i pallini diventano ovali, più facili da riempire. Nel secondo passo puoi cambiare l’ordine dei fondamentali, da sinistra a destra; l’alzata resta in fondo. Il codice QR del foglio ricorda colonne tolte e ordine: non scriverci sopra, così la foto si legge da sola. Con tutte le colonne selezionate scarichi il modulo standard.',
+      alt: 'I due passi del download: le valutazioni "!" tolte e la ricezione spostata al primo posto; il modulo che ne risulta inizia con la ricezione, con colonne più larghe e pallini ovali',
     },
     /** After the last step: the report shared with a link. */
     share: {
@@ -401,8 +401,9 @@ export const it = {
   formColumns: {
     title: 'Modulo da stampare',
     text: 'Le colonne "#", "+", "-" e "=" ci sono sempre. Togli le "!" e le "/" che non rilevi: le altre colonne si allargano e i pallini diventano ovali, più facili da riempire. Il codice QR del foglio ricorda le colonne tolte, così la foto si legge da sola.',
-    standard: 'Con tutte le colonne scarichi il modulo standard.',
-    custom: 'Il modulo viene preparato con le colonne scelte.',
+    orderText: 'Sposta i fondamentali nell’ordine in cui li vuoi, da sinistra a destra; gli errori di alzata restano in fondo a destra. Il codice QR ricorda l’ordine: fotografa il foglio con il QR leggibile, perché dai soli pallini l’ordine non si riconosce.',
+    standard: 'Con tutte le colonne e l’ordine standard scarichi il modulo standard.',
+    custom: 'Il modulo viene preparato con le colonne e l’ordine scelti.',
     download: 'Scarica il PDF',
     selectAll: 'Seleziona tutte',
     clearAll: 'Deseleziona tutte',
@@ -484,7 +485,7 @@ export const it = {
       'Le colonne "#", "+", "-" e "=" ci sono sempre. Togli le "!" e le "/" che non rilevi: il foglio diventa più semplice e la partita ricorda che quei dati non sono stati raccolti. La prossima partita su questo dispositivo parte con la stessa scelta; la puoi cambiare in ogni momento.',
     columnsCounted: (n: number) => (n === 1 ? '(c’è già 1 tocco: resta nei conteggi)' : `(ci sono già ${n} tocchi: restano nei conteggi)`),
     orderTitle: 'Ordine dei fondamentali',
-    orderText: 'Sposta i fondamentali nell’ordine in cui li vuoi, da sinistra a destra, nel foglio e nel tastierino. Gli errori di alzata restano in fondo a destra. Vale per questo dispositivo; il modulo da stampare non cambia.',
+    orderText: 'Sposta i fondamentali nell’ordine in cui li vuoi, da sinistra a destra, nel foglio e nel tastierino. Gli errori di alzata restano in fondo a destra. Vale per questo dispositivo ed è proposto anche quando scarichi il modulo da stampare.',
     moveUp: (skill: string) => `Sposta ${skill} prima`,
     moveDown: (skill: string) => `Sposta ${skill} dopo`,
     legend: 'Legenda',
@@ -700,7 +701,7 @@ export const it = {
           {
             id: 'simpleForm',
             q: 'Posso stampare un modulo più semplice?',
-            a: ['Sì. Toccando "Scarica il modulo da stampare (PDF)" scegli le colonne: tutte selezionate danno il modulo standard; togliendo le valutazioni "!" e "/" che non rilevi, fondamentale per fondamentale, l’app prepara un modulo in cui le altre colonne si allargano e i pallini diventano ovali, più facili da riempire. Ci sono pulsanti per selezionare o deselezionare tutte le colonne o quelle di un fondamentale.', 'Il codice QR del foglio ricorda le colonne tolte: fotografando il foglio l’app lo legge da solo e la partita sa che quei dati non sono stati raccolti. Per questo è importante non scrivere sul QR. Se il QR non si legge e il modulo è senza una sola delle due colonne del muro, l’app chiede quale manca.'],
+            a: ['Sì. Toccando "Scarica il modulo da stampare (PDF)" scegli le colonne: tutte selezionate danno il modulo standard; togliendo le valutazioni "!" e "/" che non rilevi, fondamentale per fondamentale, l’app prepara un modulo in cui le altre colonne si allargano e i pallini diventano ovali, più facili da riempire. Ci sono pulsanti per selezionare o deselezionare tutte le colonne o quelle di un fondamentale. Nel secondo passo puoi cambiare l’ordine di battuta, muro, attacco e ricezione; l’alzata resta in fondo a destra.', 'Il codice QR del foglio ricorda le colonne tolte e l’ordine: fotografando il foglio l’app lo legge da solo e la partita sa che quei dati non sono stati raccolti. Per questo è importante non scrivere sul QR. Se il QR non si legge e il modulo è senza una sola delle due colonne del muro, l’app chiede quale manca; chiede anche in che ordine sono i fondamentali e, se è diverso da quello standard, rilegge la foto.'],
           },
         ],
       },
@@ -713,6 +714,24 @@ export const it = {
             a: ['Sì, con il tastierino: sullo smartphone il foglio si apre già così, sul tablet lo attivi con "Tastierino" e torni al foglio con "Griglia". Tocchi il numero, poi il fondamentale, poi la valutazione: il segno va nella casella giusta del foglio. Su smartphone e tablet tastierino e griglia occupano lo schermo senza scorrimento: passi dall’uno all’altra con i pulsanti "Griglia" e "Tastierino". In fondo vedi l’ultimo tocco, e "Annulla" lo toglie.', 'All’inizio di ogni set indichi la formazione: i sei numeri in campo e i liberi, con un nome breve se vuoi, che compare in piccolo sul tasto. Si parte dalla formazione del set precedente.'],
           },
           {
+            id: 'keypad',
+            q: 'Come funziona il tastierino?',
+            a: [
+              'Il tastierino ha tre file di pulsanti, da usare in quest’ordine per ogni pallone toccato. In alto gli otto numeri di divisa: i sei in campo, presi dalla formazione del set, e i due liberi. Sotto i fondamentali: battuta, muro, attacco, ricezione e, in fondo, l’errore di alzata. Infine le sei valutazioni, colorate dalla più favorevole (verde) alla meno favorevole (rosso). Un pulsante si attiva solo quando la scelta precedente è fatta; per un libero ci sono solo ricezione e alzata.',
+              'Toccata la valutazione, il segno va nella casella giusta del foglio e il tastierino torna pronto per il tocco successivo. L’errore di alzata ha una sola valutazione e si segna direttamente con il fondamentale. In fondo vedi l’ultimo tocco (per esempio "7 · A#"); "Annulla" lo toglie, e toglie anche l’ultimo cambio.',
+              'Quando c’è spazio, il tastierino mostra la legenda del fondamentale scelto, con il significato di ogni valutazione: a destra sugli schermi larghi, sotto i pulsanti sul tablet e sullo smartphone in verticale. Sugli schermi piccoli o in orizzontale non compare, per lasciare spazio ai pulsanti.',
+              'In alto ci sono "Cambio" per le sostituzioni, "Formazione" per correggere i numeri in campo e "Griglia" per tornare al foglio intero.',
+            ],
+          },
+          {
+            id: 'skillOrder',
+            q: 'Posso cambiare l’ordine dei fondamentali?',
+            a: [
+              'Sì. Nella rilevazione tocca "Colonne" e, nel secondo passo, sposta battuta, muro, attacco e ricezione con le frecce, da sinistra a destra; l’errore di alzata resta sempre in fondo a destra. L’ordine vale per la griglia e per il tastierino, resta sul dispositivo e viene proposto anche quando scarichi il modulo da stampare.',
+              'Sul modulo stampato il codice QR ricorda l’ordine, così la foto si legge da sola. Se il QR non si legge, l’app chiede in che ordine sono i fondamentali sul foglio: dai soli pallini non si capisce. Se l’ordine non è quello standard, sistemalo e tocca "Rileggi con questo ordine".',
+            ],
+          },
+          {
             id: 'substitutions',
             q: 'Come si segnano i cambi?',
             a: ['Sul tastierino tocca il numero di chi esce e poi "Cambio": a destra scegli chi entra con le frecce, oppure scrivi un numero nuovo con il suo nome. Chi è entrato con un cambio può uscire solo per far rientrare chi ha sostituito, e l’app propone già quella coppia; dopo il rientro la coppia è chiusa per il resto del set. I numeri che hanno già fatto un cambio sono in grigio. Ogni set riparte da zero e non c’è un limite al numero di cambi, perché le regole cambiano da un campionato all’altro. I liberi non passano dai cambi.'],
@@ -720,7 +739,7 @@ export const it = {
           {
             id: 'columnsLive',
             q: 'Posso togliere le colonne che non rilevo?',
-            a: ['Sì: nella rilevazione sul tablet o sullo smartphone, "Colonne" toglie le valutazioni "!" e "/" che non ti servono, con pulsanti per selezionarle o deselezionarle tutte o per fondamentale. Il foglio si semplifica, le caselle restano più grandi e la partita ricorda che quei dati non sono stati raccolti. Una nuova partita sul dispositivo parte con l’ultima scelta. Lo stesso vale per il modulo da stampare.'],
+            a: ['Sì: nella rilevazione sul tablet o sullo smartphone, "Colonne" toglie le valutazioni "!" e "/" che non ti servono, con pulsanti per selezionarle o deselezionarle tutte o per fondamentale. Il foglio si semplifica, le caselle restano più grandi e la partita ricorda che quei dati non sono stati raccolti. Una nuova partita sul dispositivo parte con l’ultima scelta. Nel secondo passo scegli anche l’ordine dei fondamentali, uguale nella griglia e nel tastierino. Lo stesso vale per il modulo da stampare.'],
           },
         ],
       },
@@ -858,7 +877,7 @@ export const it = {
       'Un foglio A4 orizzontale da stampare in bianco e nero, una copia per ogni set: il set si segna in alto, insieme a "Foglio aggiuntivo" se il set continua su un secondo foglio. Dodici righe di gioco (battuta, muro, attacco, ricezione, falli di alzata), alternate bianche e grigie per seguirle meglio e, in fondo, due blocchi affiancati per il ruolo di libero (ricezione, falli di alzata). Il modulo è lo stesso per tutte le partite: squadra, campionato, data e nomi scritti sul foglio servono all’archivio cartaceo, nell’app si inseriscono dopo la foto.',
     formButton: 'Scarica il modulo (PDF, 1 pagina)',
     formColumnsText:
-      'Se non rilevi tutte le valutazioni, toccando "Scarica il modulo" puoi togliere le colonne "!" e "/" che non ti servono, fondamentale per fondamentale: le altre colonne si allargano e i pallini diventano ovali, più facili da riempire. Il codice QR ricorda le colonne tolte e l’app le riconosce dalla foto; con tutte le colonne selezionate scarichi il modulo standard.',
+      'Se non rilevi tutte le valutazioni, toccando "Scarica il modulo" puoi togliere le colonne "!" e "/" che non ti servono, fondamentale per fondamentale: le altre colonne si allargano e i pallini diventano ovali, più facili da riempire. Nel secondo passo scegli l’ordine dei fondamentali. Il codice QR ricorda colonne tolte e ordine, e l’app li riconosce dalla foto; con tutte le colonne selezionate scarichi il modulo standard.',
     howTitle: 'Come si compila',
     howText: 'Penna scura, un pallino per ogni pallone toccato.',
     howSteps: [
@@ -881,7 +900,7 @@ export const it = {
       'Per ogni pallone toccato, tocca la casella sotto fondamentale e valutazione: il numero sale di uno e l’ultima casella toccata resta evidenziata in arancione.',
       'Per togliere un tocco: "Annulla" toglie l’ultimo; una pressione prolungata sulla casella (clic destro con il mouse) toglie 1 da quella casella; con "Modalità −1" ogni tocco toglie 1, finché non la spegni.',
       'A fine set tocca "Chiudi set" e inserisci il punteggio finale: il set successivo riparte con gli stessi numeri di divisa e gli stessi nomi. Un set chiuso resta in sola lettura; per correggerlo tocca "Riapri set".',
-      'Con "Colonne" togli le valutazioni "!" e "/" che non rilevi: il foglio si semplifica e la partita ricorda che quei dati non sono stati raccolti.',
+      'Con "Colonne" togli le valutazioni "!" e "/" che non rilevi: il foglio si semplifica e la partita ricorda che quei dati non sono stati raccolti. Nel secondo passo scegli l’ordine dei fondamentali, da sinistra a destra; l’alzata resta in fondo.',
       'Ogni tocco è salvato subito sul dispositivo e lo schermo resta acceso durante la rilevazione. Va meglio un tablet in orizzontale.',
     ],
     keypadTitle: 'Rilevare con il tastierino',
@@ -889,7 +908,7 @@ export const it = {
     keypadSteps: [
       'Sullo smartphone il foglio si apre già con il tastierino; sul tablet tocca "Tastierino" nella barra in alto. "Griglia" riporta al foglio completo e il dispositivo ricorda la scelta.',
       'All’inizio di ogni set indica la formazione: i sei numeri in campo e i liberi, con un nome breve se vuoi. Si parte da quella del set precedente, i numeri finiscono anche nel foglio e il nome compare in piccolo sul tasto. "Formazione" la cambia in ogni momento.',
-      'Per ogni pallone toccato: tocca il numero, poi il fondamentale, poi la valutazione. I pulsanti si attivano in quest’ordine; per il libero solo ricezione e alzata. Il segno va nella casella giusta del foglio. Su smartphone e tablet tastierino e griglia occupano lo schermo senza scorrimento: passi dall’uno all’altra con i pulsanti "Griglia" e "Tastierino".',
+      'Per ogni pallone toccato: tocca il numero, poi il fondamentale, poi la valutazione. I pulsanti si attivano in quest’ordine; per il libero solo ricezione e alzata. Il segno va nella casella giusta del foglio. Su smartphone e tablet tastierino e griglia occupano lo schermo senza scorrimento: passi dall’uno all’altra con i pulsanti "Griglia" e "Tastierino". Quando c’è spazio, a destra o sotto il tastierino compare la legenda del fondamentale scelto, con il significato di ogni valutazione.',
       'In fondo al tastierino vedi l’ultimo tocco; "Annulla" lo toglie, e toglie anche l’ultimo cambio.',
       'Per un cambio tocca il numero di chi esce e poi "Cambio": a destra scegli chi entra con le frecce, o scrivi un numero nuovo con il suo nome. Chi è entrato con un cambio può uscire solo per far rientrare chi ha sostituito: l’app propone già quella coppia. Dopo il rientro la coppia è chiusa per il set; i numeri che hanno già fatto un cambio sono in grigio. Ogni set riparte da zero.',
     ],
@@ -1221,6 +1240,9 @@ export const it = {
       qrUnread: 'Il codice QR non si legge: indica tu il set di questo foglio.',
       blockColumnQuestion: 'Il codice QR non si legge e questo modulo è stampato senza una colonna del muro: quale manca sul foglio?',
       blockColumnOption: (symbol: string, meaning: string) => `Manca "${symbol}" (${meaning})`,
+      orderQuestion: 'Il codice QR non si legge: in che ordine sono i fondamentali sul foglio?',
+      orderText: 'Il foglio è letto con l’ordine standard. Se sul modulo stampato l’ordine è diverso, mettilo uguale qui e rileggi la foto: dai soli pallini l’ordine non si riconosce.',
+      orderReread: 'Rileggi con questo ordine',
       noSet: 'Sul foglio non è segnato il set: indicalo tu.',
       manySets: (sets: readonly number[]) => `Sul foglio sono segnati più set (${sets.join(', ')}): indica quello giusto.`,
       extra: 'Foglio aggiuntivo: si somma agli altri fogli dello stesso set',
