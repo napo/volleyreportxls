@@ -14,6 +14,7 @@ import { useI18n } from '../../i18n';
 import type { Lineup, RowKind, Substitution } from '../../matches/record';
 import { evaluationTint } from '../../report/evaluation-colors';
 import { type MovableSkill, codeOf, orderedColumns } from '../components/counts-columns';
+import { LiveSituation, type Situation } from './LiveSituation';
 
 const tint = (skill: Skill, evaluation: Evaluation) => `rgb(${evaluationTint(skill, evaluation).map((v) => Math.round(v * 255)).join(' ')})`;
 
@@ -43,13 +44,16 @@ export interface KeypadProps {
   readonly onSubstitute: (chosen: number | null) => void;
   /** The name written for a shirt number (on the sheet or in the lineup), shown small on its key. */
   readonly nameOf: (number: number) => string;
+  /** How the set and the match are going, shown on request. */
+  readonly situation: Situation;
 }
 
-export function LiveKeypad({ set, lineup, untracked, order, locked, last, canUndo, undoText, onTouch, onUndo, onLineup, onGrid, subsCount, onSubstitute, nameOf }: KeypadProps) {
+export function LiveKeypad({ set, lineup, untracked, order, locked, last, canUndo, undoText, onTouch, onUndo, onLineup, onGrid, subsCount, onSubstitute, nameOf, situation }: KeypadProps) {
   const { m } = useI18n();
   const t = m.live;
   const [chosen, setChosen] = useState<Chosen | null>(null);
   const [skill, setSkill] = useState<Skill | null>(null);
+  const [looking, setLooking] = useState(false);
 
   const keys: (Chosen | null)[] = [
     ...Array.from({ length: 6 }, (_, i) => (lineup.court[i] !== undefined ? { number: lineup.court[i]!, kind: 'player' as const } : null)),
@@ -96,11 +100,17 @@ export function LiveKeypad({ set, lineup, untracked, order, locked, last, canUnd
         <button type="button" className="vr-btn vr-btn-secondary vr-btn-small" onClick={() => { setChosen(null); setSkill(null); onLineup(); }} disabled={locked}>
           {t.lineup}
         </button>
+        <button type="button" className="vr-btn vr-btn-secondary vr-btn-small" aria-pressed={looking} onClick={() => setLooking((l) => !l)}>
+          {t.situationButton}
+        </button>
         <button type="button" className="vr-btn vr-btn-secondary vr-btn-small" onClick={onGrid}>
           {t.toGrid}
         </button>
       </div>
 
+      {looking ? (
+        <LiveSituation situation={situation} set={set} nameOf={nameOf} onClose={() => setLooking(false)} />
+      ) : (
       <div className="vr-keypad-body">
       <div className="vr-keypad-main">
       <div className="vr-keypad-numbers" role="group" aria-label={t.keypadNumbers}>
@@ -179,6 +189,7 @@ export function LiveKeypad({ set, lineup, untracked, order, locked, last, canUnd
         </aside>
       )}
       </div>
+      )}
 
       <div className="vr-keypad-foot">
         <span aria-live="polite">{last ? t.keypadLast(last) : t.keypadHint}</span>

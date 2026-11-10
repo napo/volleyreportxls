@@ -3618,6 +3618,10 @@ button.vr-score-teams.selected {
   --vr-bad: #a85a00;
   --vr-bad-soft: #fde7c8;
   --vr-bad-ink: #6e3b00;
+  /* Situation on the keypad: blue, sky blue, orange (Okabe-Ito). */
+  --vr-level-good: #005a8d;
+  --vr-level-fair: #56b4e9;
+  --vr-level-poor: #a85a00;
 }
 
 :root[data-text='1'] {
@@ -4589,4 +4593,184 @@ output.vr-sub-name {
   color: var(--vr-text-secondary, #5b6670);
   font-size: 0.8rem;
   font-weight: 600;
+}
+
+/* Keypad: "Live stats", the set and the match so far at a glance. */
+.vr-situation {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.vr-situation-facts {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vr-situation h3 {
+  margin: 0.2rem 0 0;
+  font-size: 0.95rem;
+}
+
+.vr-situation-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.vr-situation-facts li {
+  padding: 0.35rem 0.6rem;
+  border-left: 4px solid;
+  border-radius: 0.3rem;
+  background: var(--vr-bg);
+  font-weight: 600;
+}
+
+.vr-situation-facts li.negative {
+  border-color: var(--vr-level-poor, #c62828);
+}
+
+.vr-situation-facts li.positive {
+  border-color: var(--vr-level-good, #2e7d32);
+}
+
+.vr-situation-empty {
+  margin: 0;
+  color: var(--vr-text-secondary, #5b6670);
+}
+
+.vr-situation-close {
+  margin-top: auto;
+  min-height: 3rem;
+}
+
+
+.vr-situation-scale {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--vr-text-secondary, #5b6670);
+}
+
+@media (min-width: 900px) {
+  .vr-situation-scale { grid-area: scale; }
+}
+
+/* Phone: the whole situation and the way back on one screen. */
+@media (max-width: 899px) {
+  .vr-situation { gap: 0.35rem; }
+  .vr-situation-facts { gap: 0.2rem; }
+  .vr-situation-facts li { padding-block: 0.2rem; }
+  .vr-situation-close { min-height: 2.6rem; flex-shrink: 0; }
+}
+
+/* Nothing in the situation shrinks onto the next line: with larger text the panel scrolls. */
+.vr-situation > * {
+  flex-shrink: 0;
+}
+
+/* Live stats: each skill with two lines, the set and the match, value always written. */
+.vr-stats {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vr-stats li {
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--vr-live-line, #d5dde4);
+  border-radius: 0.6rem;
+}
+
+.vr-stats h3 {
+  margin: 0 0 0.15rem;
+  font-size: 0.9rem;
+}
+
+.vr-stats-line {
+  display: grid;
+  grid-template-columns: 4.2rem 1fr 3rem minmax(4.8rem, auto);
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.vr-stats-line.match {
+  color: var(--vr-text-secondary, #5b6670);
+}
+
+.vr-stats-track {
+  height: 0.7rem;
+  border-radius: 0.2rem;
+  background: var(--vr-bg);
+  overflow: hidden;
+}
+
+.vr-stats-bar {
+  display: block;
+  height: 100%;
+  border-radius: 0.2rem;
+}
+
+.vr-stats-line.match .vr-stats-bar {
+  opacity: 0.5;
+}
+
+.vr-stats-bar.good { background: var(--vr-level-good, #2e7d32); }
+.vr-stats-bar.fair { background: var(--vr-level-fair, #e8710a); }
+.vr-stats-bar.poor { background: var(--vr-level-poor, #c62828); }
+.vr-stats-bar.unknown { background: #9aa9b7; }
+
+.vr-stats-value {
+  font-weight: 700;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.vr-stats-line.set .vr-stats-value.poor {
+  color: var(--vr-level-poor, #c62828);
+}
+
+.vr-stats-balls {
+  font-size: 0.75rem;
+  color: var(--vr-text-secondary, #5b6670);
+}
+
+/* Wide keypad: stats on the left, facts on the right. */
+@media (min-width: 900px) {
+  .vr-situation {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    grid-template-areas:
+      'stats facts-title'
+      'stats facts'
+      'scale facts'
+      'close close';
+    grid-template-rows: auto auto 1fr auto;
+    align-content: start;
+    column-gap: 1.5rem;
+    row-gap: 0.4rem;
+  }
+
+  .vr-stats { grid-area: stats; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .vr-stats-line { grid-template-columns: 3.6rem 1fr 2.8rem; }
+  .vr-stats-balls { grid-column: 2 / -1; margin-top: -0.2rem; }
+  .vr-situation-scale { grid-area: scale; }
+  .vr-situation-facts-title { grid-area: facts-title; margin: 0; }
+  .vr-situation-facts,
+  .vr-situation-empty { grid-area: facts; align-self: start; }
+  .vr-situation-close { grid-area: close; min-height: 2.4rem; }
+}
+
+@media (max-width: 899px) {
+  .vr-stats { gap: 0.3rem; }
+  .vr-stats li { padding: 0.25rem 0.5rem; }
+  .vr-stats h3 { margin: 0; font-size: 0.85rem; }
+  .vr-stats-line { gap: 0.4rem; line-height: 1.25; }
+  .vr-situation-scale { line-height: 1.25; }
 }

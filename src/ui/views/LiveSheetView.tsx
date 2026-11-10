@@ -44,6 +44,7 @@ import { type MovableSkill, codeOf, orderedColumns, parseShirtNumber, skillColum
 import { evaluationTint } from '../../report/evaluation-colors';
 import { href } from '../routes';
 import { LineupDialog, LiveKeypad, SubstitutionDialog } from './LiveKeypad';
+import { setFacts, setsUpTo, teamIndicators } from '../../matches/live-situation';
 import { ColumnsChoice } from '../components/ColumnsChoice';
 import { OrderChoice } from '../components/OrderChoice';
 import { lastUntracked, rememberUntracked } from '../untracked-setting';
@@ -733,6 +734,7 @@ export function LiveSheetView({ id }: { id: string }) {
           subsCount={set.subs?.length ?? 0}
           onSubstitute={(chosen) => setSubstituting(chosen)}
           nameOf={(n) => playerName(record, n)}
+          situation={{ set: teamIndicators([set]), match: teamIndicators(setsUpTo(record, view)), facts: setFacts(set) }}
         />
       )}
 
