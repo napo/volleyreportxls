@@ -17,9 +17,10 @@
 import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate';
 import { EVALUATIONS, SKILLS, type ScoutCodeString, formatScoutCode, isAllowed, scoutCode } from '../domain/codes';
 import { SET_NUMBERS, type SetNumber } from '../domain/model';
+import type { AttackTally, PhaseStats } from '../domain/phases';
 import type { Athlete } from '../athletes/matching';
 import { type Squad, normalizeTeam } from '../athletes/squads';
-import { type Lineup, type MatchRecord, type Substitution, OPTIONAL_CODES, type PlayerRecord, type SetRecord, type TallyRowRecord } from './record';
+import { type Lineup, type MatchRecord, type Rally, type Substitution, OPTIONAL_CODES, type PlayerRecord, type SetRecord, type TallyRowRecord } from './record';
 
 export const VRP_EXTENSION = 'vrp';
 export const VRP_MEDIA_TYPE = 'application/zip';
@@ -120,6 +121,32 @@ function readSubs(v: unknown): Substitution[] {
     .slice(0, 50);
 }
 
+/** The rally the keypad was following. */
+function readRally(v: unknown): Rally | null {
+  if (!isObject(v) || (v.phase !== 'serve' && v.phase !== 'reception')) return null;
+  const server = shirt(v.server);
+  return {
+    phase: v.phase,
+    open: v.open === true,
+    ...(server !== null && { server }),
+    ...((v.quality === 'positive' || v.quality === 'negative') && { quality: v.quality }),
+  };
+}
+
+/** The statistics by phase of a set: counts, or nothing when any is missing. */
+function readPhases(v: unknown): PhaseStats | null {
+  if (!isObject(v)) return null;
+  const tally = (t: unknown): AttackTally | null => {
+    if (!isObject(t)) return null;
+    const [total, errors, blocked, points] = [count(t.total), count(t.errors), count(t.blocked), count(t.points)];
+    return total === null || errors === null || blocked === null || points === null ? null : { total, errors, blocked, points };
+  };
+  const [onPositive, onNegative, counter] = [tally(v.onPositive), tally(v.onNegative), tally(v.counter)];
+  const [receptions, sideOuts, serves, breakPoints] = [count(v.receptions), count(v.sideOuts), count(v.serves), count(v.breakPoints)];
+  if (!onPositive || !onNegative || !counter || receptions === null || sideOuts === null || serves === null || breakPoints === null) return null;
+  return { onPositive, onNegative, counter, receptions, sideOuts, serves, breakPoints };
+}
+
 function readSet(v: unknown): SetRecord | null {
   if (!isObject(v) || !SET_NUMBERS.includes(v.number as SetNumber) || !Array.isArray(v.rows)) return null;
   const score = isObject(v.score) && count(v.score.team) !== null && count(v.score.opponent) !== null
@@ -128,7 +155,9 @@ function readSet(v: unknown): SetRecord | null {
   const lineup = readLineup(v.lineup);
   const subs = readSubs(v.subs);
   const turned = isObject(v.serve) ? count(v.serve.rotation) : null;
-  const serve = isObject(v.serve) && turned !== null && turned < 6 ? { rotation: turned, received: v.serve.received === true } : null;
+  const rally = isObject(v.serve) ? readRally(v.serve.rally) : null;
+  const serve = isObject(v.serve) && turned !== null && turned < 6 ? { rotation: turned, received: v.serve.received === true, ...(rally && { rally }) } : null;
+  const phases = readPhases(v.phases);
   return {
     number: v.number as SetNumber,
     score,
@@ -136,6 +165,7 @@ function readSet(v: unknown): SetRecord | null {
     ...(lineup && { lineup }),
     ...(subs.length && { subs }),
     ...(serve && { serve }),
+    ...(phases && { phases }),
   };
 }
 

@@ -4,6 +4,7 @@
 import { formatBracketedPercent, formatCount, formatPercent, formatRating, formatSigned } from '../../report/format';
 import { type Tabellino, type TabellinoLine, type TabellinoPlayerRow, type TabellinoSkills, playedSets, setsCell } from '../../report/tabellino';
 import { useI18n } from '../../i18n';
+import type { AttackTally, PhaseStats } from '../../domain/phases';
 
 export function SkillCells({ row }: { row: TabellinoSkills }) {
   return (
@@ -162,5 +163,55 @@ export function TabellinoSetTable({ tabellino }: { tabellino: Tabellino }) {
         </tbody>
       </table>
     </div>
+  );
+}
+
+/**
+ * The tables at the bottom of the DataVolley scoresheet: attack on reception
+ * and counter-attack, points won receiving (CP) and serving (BP). Only for the
+ * touches entered in order with the keypad.
+ */
+export function TabellinoPhases({ phases }: { phases: PhaseStats }) {
+  const t = useI18n().m.scoresheet;
+  const row = (label: string, a: AttackTally) => (
+    <tr>
+      <td>{label}</td>
+      <td className="num group-start">{formatCount(a.total)}</td>
+      <td className="num">{formatCount(a.errors)}</td>
+      <td className="num">{formatCount(a.blocked)}</td>
+      <td className="num">{formatCount(a.points)}</td>
+      <td className="num">{formatPercent(a.total ? a.points / a.total : null)}</td>
+    </tr>
+  );
+  return (
+    <>
+      <div className="vr-scroll">
+        <table className="vr-table">
+          <thead>
+            <tr>
+              <th>{t.attack}</th>
+              <th className="num group-start">{t.tot}</th>
+              <th className="num">{t.err}</th>
+              <th className="num">{t.blocked}</th>
+              <th className="num">{t.pt}</th>
+              <th className="num">{t.ptPct}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {row(t.phases.onPositive, phases.onPositive)}
+            {row(t.phases.onNegative, phases.onNegative)}
+            {row(t.phases.counter, phases.counter)}
+          </tbody>
+        </table>
+      </div>
+      <ul className="vr-phase-points">
+        <li>
+          <strong>{t.phases.sideOut}</strong> {t.phases.sideOutText(phases.sideOuts, phases.receptions)}
+        </li>
+        <li>
+          <strong>{t.phases.breakPoint}</strong> {t.phases.breakPointText(phases.breakPoints, phases.serves)}
+        </li>
+      </ul>
+    </>
   );
 }

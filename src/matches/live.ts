@@ -13,7 +13,8 @@
 
 import type { ScoutCodeString } from '../domain/codes';
 import type { SetNumber, SetScore } from '../domain/model';
-import { type Lineup, type MatchRecord, type ServeState, type Substitution, type PlayerRecord, type RowKind, type SetRecord, emptyRow, matchWinner, setIsPlayed, setScoreIsFinal, withNumbersFromPreviousSet } from './record';
+import { NO_PHASES, type PhaseStats, withAttack } from '../domain/phases';
+import { type Lineup, type MatchRecord, type Rally, type ServeState, type Substitution, type PlayerRecord, type RowKind, type SetRecord, emptyRow, matchWinner, setIsPlayed, setScoreIsFinal, withNumbersFromPreviousSet } from './record';
 
 /** One change of a count, kept to undo it. */
 export interface Touch {
@@ -219,6 +220,83 @@ export function serveAfter(set: SetRecord, number: number, kind: RowKind, code: 
   // A missed serve gives the ball away as a reception does: our next serve comes after a rotation.
   const next: ServeState = { rotation: place >= 0 ? place : now.rotation, received: code === 'B=' };
   return next.rotation === now.rotation && next.received === now.received ? null : next;
+}
+
+/** What the keypad follows from touch to touch: the rotation with the rally, and the statistics by phase. */
+export interface Followed {
+  readonly serve: ServeState | null;
+  readonly phases: PhaseStats | null;
+}
+
+export const followedOf = (set: SetRecord): Followed => ({ serve: set.serve ?? null, phases: set.phases ?? null });
+
+/**
+ * The rally and the statistics by phase after a touch of the keypad, as in the
+ * tables at the bottom of the DataVolley scoresheet.
+ * - A serve or a reception starts a rally, and tells how the one before ended
+ *   when no touch did: serving after a reception rally is a side-out won (the
+ *   opponent made the error); the same server again is a break point won.
+ * - The first attack after a reception "#"/"+" or "!"/"-" is an attack on
+ *   reception; every other attack of a rally is a counter-attack. "R/" and
+ *   "R=" allow no attack on reception.
+ * - A touch that wins the rally ("B#", "A#", "M#") is a break point or a
+ *   side-out by the phase; one that loses it ("B=", "R=", "A=", "A/", "M=",
+ *   "M/", "P=") closes it.
+ * A touch outside any rally (before the first serve or reception of the set)
+ * is in the counts only.
+ */
+export function phasesAfter(set: SetRecord, number: number, kind: RowKind, code: ScoutCodeString): { readonly rally: Rally | undefined; readonly phases: PhaseStats } {
+  const skill = code[0]!;
+  const evaluation = code.slice(1);
+  let phases = set.phases ?? NO_PHASES;
+  const before = set.serve?.rally;
+  const won = (rally: Rally): PhaseStats =>
+    rally.phase === 'serve' ? { ...phases, breakPoints: phases.breakPoints + 1 } : { ...phases, sideOuts: phases.sideOuts + 1 };
+
+  if (skill === 'B' && kind === 'player') {
+    // How the rally before ended, when no touch told: our serve now means we won it, unless another server came (we lost, then won the serve back).
+    if (before?.open && (before.phase === 'reception' || before.server === number)) phases = won(before);
+    phases = { ...phases, serves: phases.serves + 1, ...(evaluation === '#' && { breakPoints: phases.breakPoints + 1 }) };
+    return { rally: { phase: 'serve', open: evaluation !== '#' && evaluation !== '=', server: number }, phases };
+  }
+  if (skill === 'R') {
+    phases = { ...phases, receptions: phases.receptions + 1 };
+    const quality = evaluation === '#' || evaluation === '+' ? 'positive' : evaluation === '!' || evaluation === '-' ? 'negative' : undefined;
+    return { rally: { phase: 'reception', open: evaluation !== '=', ...(quality && { quality }) }, phases };
+  }
+  if (!before) return { rally: before, phases };
+  let rally = before;
+  if (skill === 'A') {
+    const on = rally.open && rally.phase === 'reception' ? rally.quality : undefined;
+    const where = on === 'positive' ? 'onPositive' : on === 'negative' ? 'onNegative' : 'counter';
+    phases = { ...phases, [where]: withAttack(phases[where], evaluation) };
+    // The attack on reception is the first one only.
+    if (rally.quality) rally = { phase: rally.phase, open: rally.open };
+  }
+  const wins = (skill === 'A' || skill === 'M') && evaluation === '#';
+  const loses = (skill === 'A' && (evaluation === '=' || evaluation === '/')) || (skill === 'M' && (evaluation === '=' || evaluation === '/')) || skill === 'P';
+  if (rally.open && (wins || loses)) {
+    if (wins) phases = won(rally);
+    rally = { ...rally, open: false };
+  }
+  return { rally, phases };
+}
+
+/** Everything the keypad follows after a touch: rotation, rally and statistics by phase. */
+export function followAfter(set: SetRecord, number: number, kind: RowKind, code: ScoutCodeString): Followed {
+  const { rally, phases } = phasesAfter(set, number, kind, code);
+  const turned = serveAfter(set, number, kind, code) ?? set.serve ?? NO_SERVE;
+  const serve: ServeState = { rotation: turned.rotation, received: turned.received, ...(rally && { rally }) };
+  const some = phases !== NO_PHASES;
+  return { serve: serve.rotation || serve.received || serve.rally ? serve : null, phases: some ? phases : null };
+}
+
+/** Sets what the keypad follows in a set (null clears). */
+export function setFollowed(record: MatchRecord, set: SetNumber, followed: Followed): MatchRecord {
+  const target = record.sets.find((s) => s.number === set);
+  if (!target) return record;
+  const { serve: _s, phases: _p, ...rest } = target;
+  return replaceSet(record, { ...rest, ...(followed.serve && { serve: followed.serve }), ...(followed.phases && { phases: followed.phases }) });
 }
 
 /** Sets (or, with null, clears) the rotation of a set. */

@@ -12,6 +12,7 @@
  */
 
 import type { ScoutCode } from './codes';
+import type { PhaseStats } from './phases';
 
 export const SET_NUMBERS = [1, 2, 3, 4, 5] as const;
 export type SetNumber = (typeof SET_NUMBERS)[number];
@@ -52,6 +53,8 @@ export interface MatchSet {
   /** Final score; null while the set has not been played or entered. */
   readonly score: SetScore | null;
   readonly lines: readonly ScoutLine[];
+  /** Attack on reception, counter-attack, side-outs and break points, when the touches were entered in order. */
+  readonly phases?: PhaseStats;
 }
 
 export interface Match {

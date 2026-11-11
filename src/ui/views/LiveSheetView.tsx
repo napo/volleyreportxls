@@ -25,8 +25,10 @@ import {
   currentSet,
   placeNumbers,
   expectedServer,
-  serveAfter,
-  setServe,
+  type Followed,
+  followAfter,
+  followedOf,
+  setFollowed,
   zonesNow,
   playerName,
   proposedLineup,
@@ -41,7 +43,7 @@ import {
   undoSubstitution,
   undoTouch,
 } from '../../matches/live';
-import { type MatchRecord, type PlayerRecord, type RowKind, type ServeState, type SetRecord, matchWinner, OPTIONAL_CODES, sameContent, setIsPlayed } from '../../matches/record';
+import { type MatchRecord, type PlayerRecord, type RowKind, type SetRecord, matchWinner, OPTIONAL_CODES, sameContent, setIsPlayed } from '../../matches/record';
 import type { Archive } from '../../storage/archive';
 import { useArchive } from '../archive-context';
 import { type MovableSkill, codeOf, orderedColumns, parseShirtNumber, skillColumns } from '../components/counts-columns';
@@ -55,7 +57,7 @@ import { lastUntracked, rememberUntracked } from '../untracked-setting';
 import { lastOrder, rememberOrder } from '../skill-order-setting';
 
 /** What "Undo" takes back: a touch, or a substitution of the keypad. */
-type Step = (Touch & { readonly serveBefore?: ServeState | null }) | { readonly set: SetNumber; readonly sub: true };
+type Step = (Touch & { readonly before?: Followed }) | { readonly set: SetNumber; readonly sub: true };
 const isTouch = (step: Step | undefined): step is Touch => !!step && 'code' in step;
 
 const LONG_PRESS = 500;
@@ -545,9 +547,8 @@ export function LiveSheetView({ id }: { id: string }) {
     if (isLocked) return;
     const done = bumpShirt(record, view, number, kind, code, known);
     if (!done) return;
-    // A reception or a serve moves the rotation on; the step remembers where it was, for "Undo".
-    const serve = serveAfter(set, number, kind, code);
-    applied(serve ? { record: setServe(done.record, view, serve), touch: { ...done.touch, serveBefore: set.serve ?? null } as Touch } : done);
+    // The rotation, the rally and the statistics by phase move on; the step remembers where they were, for "Undo".
+    applied({ record: setFollowed(done.record, view, followAfter(set, number, kind, code)), touch: { ...done.touch, before: followedOf(set) } as Touch });
   };
   // The keypad needs who is on court: asked when a set without a lineup is opened with the keypad.
   const needsLineup = mode === 'keypad' && !isLocked && !set.lineup;
@@ -575,7 +576,7 @@ export function LiveSheetView({ id }: { id: string }) {
       return;
     }
     const undone = undoTouch(record, lastStep);
-    setRecord(lastStep.serveBefore !== undefined ? setServe(undone, lastStep.set, lastStep.serveBefore) : undone);
+    setRecord(lastStep.before !== undefined ? setFollowed(undone, lastStep.set, lastStep.before) : undone);
     setLast(`${lastStep.rowId}:${lastStep.code}`);
   };
   const lastSub = lastSet?.subs?.at(-1);

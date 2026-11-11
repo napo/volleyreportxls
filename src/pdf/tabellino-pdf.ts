@@ -19,6 +19,7 @@ import {
 import { type Tabellino, type TabellinoPlayerRow, type TabellinoSetRow, type TabellinoSkills, playedSets, setsCell } from '../report/tabellino';
 import type { Messages } from '../i18n/it';
 import { it } from '../i18n/it';
+import type { AttackTally } from '../domain/phases';
 import { type PdfFontFiles, embedPdfFonts } from './fonts';
 import { type Align, MARGIN, MM, MUTED, NAVY, PAGE, ROW, Writer, drawMatchHeader, footer } from './pdf-page';
 
@@ -246,6 +247,47 @@ export async function renderTabellinoPdf(tabellino: Tabellino, options: Tabellin
   w.text(tabellino.set ? t.oneSetStats : t.setStats, MARGIN, y, 9, { heading: true, color: NAVY });
   y = drawTable(w, y - 1.5 * MM, setGroups(t), tabellino.sets, () => false);
   w.text(tabellino.set ? t.opponentErrorsSet(tabellino.opponentErrors) : t.opponentErrorsTotal(tabellino.opponentErrors), MARGIN, y - 4.5 * MM, 7.5);
+  y -= 4.5 * MM;
+
+  // Attack on reception, counter-attack, side-out and break points: only when the touches were entered in order.
+  if (tabellino.phases) {
+    const phases = tabellino.phases;
+    const needed = 6 * MM + 5 * ROW + 14 * MM;
+    // No room left under a long roster: on a page of its own.
+    const onNewPage = y - needed < MARGIN + 8 * MM;
+    const pw = onNewPage ? new Writer(doc.addPage([PAGE.width, PAGE.height]), w.fonts) : w;
+    let py = onNewPage ? PAGE.height - MARGIN - 6 * MM : y - 7 * MM;
+    pw.text(t.phases.title, MARGIN, py, 9, { heading: true, color: NAVY });
+    type PhaseRow = { label: string; a: AttackTally };
+    const attacks: PhaseRow[] = [
+      { label: t.phases.onPositive, a: phases.onPositive },
+      { label: t.phases.onNegative, a: phases.onNegative },
+      { label: t.phases.counter, a: phases.counter },
+    ];
+    py = drawTable(
+      pw,
+      py - 1.5 * MM,
+      [
+        { title: '', columns: [{ header: t.attack, width: 50, align: 'left', value: (r) => r.label }] },
+        {
+          title: '',
+          columns: [
+            num<PhaseRow>(t.tot, (r) => formatCount(r.a.total)),
+            num<PhaseRow>(t.err, (r) => formatCount(r.a.errors)),
+            num<PhaseRow>(t.blocked, (r) => formatCount(r.a.blocked)),
+            num<PhaseRow>(t.pt, (r) => formatCount(r.a.points)),
+            num<PhaseRow>(t.ptPct, (r) => formatPercent(r.a.total ? r.a.points / r.a.total : null), 9),
+          ],
+        },
+      ],
+      attacks,
+      () => false,
+    );
+    pw.text(`${t.phases.sideOut} ${t.phases.sideOutText(phases.sideOuts, phases.receptions)}`, MARGIN, py - 4.5 * MM, 7.5);
+    pw.text(`${t.phases.breakPoint} ${t.phases.breakPointText(phases.breakPoints, phases.serves)}`, MARGIN, py - 8.5 * MM, 7.5);
+    pw.text(t.phases.pdfNote, MARGIN, py - 12.5 * MM, 6, { color: MUTED });
+    if (onNewPage) pw.text(footer(t), MARGIN, MARGIN, 6, { color: MUTED });
+  }
 
   w.text(t.pdfLegend, MARGIN, MARGIN + 4 * MM, 6, { color: MUTED });
   w.text(footer(t), MARGIN, MARGIN, 6, { color: MUTED });

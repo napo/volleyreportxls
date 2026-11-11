@@ -4,7 +4,7 @@
 import { useMemo, useState } from 'react';
 import type { SetNumber } from '../../domain/model';
 import { Scoreboard } from '../components/Scoreboard';
-import { TabellinoSetTable, TabellinoTable } from '../components/TabellinoTable';
+import { TabellinoPhases, TabellinoSetTable, TabellinoTable } from '../components/TabellinoTable';
 import { type SavedFile, saveFile } from '../../platform/save-file';
 import { SavedFileLink } from '../components/SavedFileLink';
 import { loadLogoPng, loadPdfFonts } from '../pdf-assets';
@@ -144,6 +144,18 @@ export function TabellinoView({ report, shared }: Props) {
             </div>
           </div>
           <TabellinoSetTable tabellino={tabellino} />
+        </section>
+      )}
+
+      {shown('sets') && tabellino.phases && (
+        <section className="vr-card">
+          <div className="vr-card-head">
+            <div>
+              <h2>{t.phases.title}</h2>
+              <p>{t.phases.text}</p>
+            </div>
+          </div>
+          <TabellinoPhases phases={tabellino.phases} />
         </section>
       )}
 

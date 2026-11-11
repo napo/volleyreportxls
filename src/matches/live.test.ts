@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { bump, checkScore, closeSet, currentSet, playerName, reachableSets, setMatchDetails, setPlayerName, setShirtNumber, undoTouch , bumpShirt, proposedLineup, setLineup, benchNumbers, courtNow, returnsDue, substitute, undoSubstitution, placeNumbers, canEnter, canLeave, substitutionState, serveAfter, setServe, zonesNow, expectedServer} from './live';
+import { bump, checkScore, closeSet, currentSet, playerName, reachableSets, setMatchDetails, setPlayerName, setShirtNumber, undoTouch , bumpShirt, proposedLineup, setLineup, benchNumbers, courtNow, returnsDue, substitute, undoSubstitution, placeNumbers, canEnter, canLeave, substitutionState, serveAfter, setServe, zonesNow, expectedServer, followAfter, setFollowed} from './live';
 import { type MatchRecord, newMatchRecord } from './record';
 
 const firstRow = (record: MatchRecord, set = 1) => record.sets.find((s) => s.number === set)!.rows[0]!;
@@ -243,5 +243,55 @@ describe('rotation followed by the keypad', () => {
     record = substitute(record, 1, { out: 2, in: 12 });
     expect(zonesNow(first(record))).toEqual([12, 3, 4, 5, 6, 1]);
     expect(first(setLineup(record, 1, { court: [6, 5, 4, 3, 2, 1], liberos: [] })).serve).toBeUndefined();
+  });
+});
+
+describe('phases followed by the keypad (DataVolley: attack on reception, counter-attack, CP and BP points)', () => {
+  const start = () => setLineup(newMatchRecord(), 1, { court: [1, 2, 3, 4, 5, 6], liberos: [9] });
+  const first = (record: MatchRecord) => record.sets.find((s) => s.number === 1)!;
+  /** Touches as "number code", in order. */
+  const play = (...touches: string[]) =>
+    touches.reduce((record, touch) => {
+      const [number, code] = touch.split(' ') as [string, string];
+      return setFollowed(record, 1, followAfter(first(record), Number(number), 'player', code as never));
+    }, start());
+  const phases = (...touches: string[]) => first(play(...touches)).phases!;
+
+  test('the first attack after a reception is on reception, positive or negative; the others are counter-attacks', () => {
+    const p = phases('5 R+', '3 A-', '4 A#', '6 R-', '3 A=', '5 R#', '2 A/');
+    expect(p.onPositive).toEqual({ total: 2, errors: 0, blocked: 1, points: 0 });
+    expect(p.onNegative).toEqual({ total: 1, errors: 1, blocked: 0, points: 0 });
+    expect(p.counter).toEqual({ total: 1, errors: 0, blocked: 0, points: 1 });
+  });
+
+  test('"R/" and "R=" allow no attack on reception; attacks after our serve are counter-attacks', () => {
+    const p = phases('5 R/', '3 A#', '1 B+', '4 A#');
+    expect(p.onPositive.total + p.onNegative.total).toBe(0);
+    expect(p.counter).toEqual({ total: 2, errors: 0, blocked: 0, points: 2 });
+  });
+
+  test('side-outs: won with a point of ours, or told by our serve that follows (the opponent made the error); lost otherwise', () => {
+    // Won by attack; lost (ace conceded); won by an opponent error (we serve next); lost (another reception follows).
+    const p = phases('5 R+', '3 A#', '2 B-', '5 R=', '6 R+', '3 A-', '3 B-', '5 R-', '6 R+');
+    expect(p.receptions).toBe(5);
+    expect(p.sideOuts).toBe(2);
+  });
+
+  test('break points: ace, a point of ours in the rally, or the same server again; another server means the rally was lost', () => {
+    // Ace; then a rally won by block; then one won by an opponent error (same server again); then lost (number 2 serves next).
+    const p = phases('1 B#', '1 B+', '4 M#', '1 B+', '1 B+', '2 B+');
+    expect(p.serves).toBe(5);
+    expect(p.breakPoints).toBe(3);
+  });
+
+  test('a serve missed is no break point, and a rally closed by a touch is not counted again at the next serve', () => {
+    const p = phases('1 B=', '5 R+', '3 A#', '2 B+', '4 A#', '2 B+');
+    expect(p.serves).toBe(3);
+    expect(p.breakPoints).toBe(1);
+    expect(p.sideOuts).toBe(1);
+  });
+
+  test('touches before any serve or reception are in the counts only', () => {
+    expect(first(play('3 A#')).phases).toBeUndefined();
   });
 });

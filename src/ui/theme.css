@@ -4907,3 +4907,13 @@ output.vr-sub-name {
     display: none;
   }
 }
+
+/* Scoresheet: points won receiving and serving, under the attack by phase. */
+.vr-phase-points {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 2rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}

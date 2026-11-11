@@ -6,6 +6,8 @@ import { type Evaluation, type Skill, SKILL_DEFINITIONS } from '../domain/codes'
 import type { Anomaly } from '../matches/checks';
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+const each = (points: number, balls: number, one: string, many: string) =>
+  points === 0 ? '' : ` · 1 punto ogni ${(balls / points).toLocaleString('it-IT', { maximumFractionDigits: 1 })} ${balls / points === 1 ? one : many}`;
 
 export const it = {
   skills: { B: 'Battuta', R: 'Ricezione', A: 'Attacco', M: 'Muro', P: 'Alzata', F: 'Free ball', D: 'Difesa' },
@@ -592,6 +594,18 @@ export const it = {
     matchSheet: 'Tabellino della partita',
     setSheet: (set: number) => `Tabellino del set ${set}`,
     setScores: 'Punteggi dei set',
+    phases: {
+      title: 'Cambio palla e break point',
+      text: 'Come nel tabellino DataVolley: il primo attacco dopo la ricezione, il contrattacco, e i punti vinti in ricezione (CP) e in battuta (BP), compresi quelli per errore della squadra avversaria. Solo per i tocchi inseriti con il tastierino, che segue l’ordine dello scambio.',
+      onPositive: 'Su ricezione positiva (#, +)',
+      onNegative: 'Su ricezione negativa (!, -)',
+      counter: 'Contrattacco',
+      sideOut: 'Punti CP (cambio palla):',
+      sideOutText: (points: number, receptions: number) => `${points} su ${plural(receptions, 'ricezione', 'ricezioni')}${each(points, receptions, 'ricezione', 'ricezioni')}`,
+      breakPoint: 'Punti BP (break point):',
+      breakPointText: (points: number, serves: number) => `${points} su ${plural(serves, 'battuta', 'battute')}${each(points, serves, 'battuta', 'battute')}`,
+      pdfNote: 'Cambio palla e break point: solo per i tocchi inseriti con il tastierino.',
+    },
   },
 
   charts: {
@@ -757,6 +771,15 @@ export const it = {
               'I sei tasti dei numeri in campo sono disposti come le zone: 4 3 2 a rete, 5 6 1 dietro; i liberi restano nei loro tasti a destra. In "Formazione" scrivi i numeri zona per zona.',
               'Il tastierino segue sempre la rotazione: se dopo una nostra battuta registri una ricezione, o se la nostra battuta è un errore, vuol dire che ha battuto la squadra avversaria, e toccando "Battuta" trovi già selezionato chi segue nella rotazione. In "Formazione" puoi attivare "Ruota al cambio di servizio" (all’inizio è spento: i tasti restano dove li hai messi): da attivo anche i tasti si spostano, e chi batte è sempre in zona 1.',
               'Se la battuta cambia senza una nostra ricezione, per esempio perché la squadra avversaria ha sbagliato il servizio, tocca "Battuta" e poi il numero di chi batte: la rotazione riparte da lì. "Annulla" riporta indietro anche la rotazione.',
+            ],
+          },
+          {
+            id: 'phases',
+            q: 'Il tabellino mostra cambio palla e break point?',
+            a: [
+              'Sì, per le partite rilevate con il tastierino, che segue l’ordine dei tocchi nello scambio. In fondo al tabellino e nel PDF compare "Cambio palla e break point", come nel tabellino DataVolley: l’attacco su ricezione positiva (#, +) e negativa (!, -), cioè il primo attacco dopo la ricezione; il contrattacco, cioè tutti gli altri attacchi; i punti CP, gli scambi vinti in ricezione; i punti BP, quelli vinti in battuta.',
+              'Uno scambio vinto per errore della squadra avversaria si riconosce da quello che segue: dopo una ricezione tocca a noi battere, oppure ribatte la stessa persona. Dopo R= e R/ non c’è attacco su ricezione. Per avere numeri affidabili inserisci i tocchi nell’ordine in cui avvengono.',
+              'I fogli di carta e i tocchi fatti sulla griglia non hanno un ordine: restano nei conteggi, ma non entrano in questa sezione.',
             ],
           },
           {

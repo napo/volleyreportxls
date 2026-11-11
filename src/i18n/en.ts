@@ -7,6 +7,8 @@ import type { Anomaly } from '../matches/checks';
 import type { Messages } from './it';
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+const each = (points: number, balls: number, one: string, many: string) =>
+  points === 0 ? '' : ` · 1 point every ${(balls / points).toLocaleString('en-GB', { maximumFractionDigits: 1 })} ${balls / points === 1 ? one : many}`;
 
 export const en: Messages = {
   skills: { B: 'Serve', R: 'Reception', A: 'Attack', M: 'Block', P: 'Setting', F: 'Free ball', D: 'Dig' },
@@ -628,6 +630,18 @@ export const en: Messages = {
     matchSheet: 'Scoresheet of the match',
     setSheet: (set: number) => `Scoresheet of set ${set}`,
     setScores: 'Set scores',
+    phases: {
+      title: 'Side-out and break point',
+      text: 'As on the DataVolley scoresheet: the first attack after the reception, the counter-attack, and the points won receiving (side-out) and serving (break point), opponent errors included. Only for the touches entered with the keypad, which follows the order of the rally.',
+      onPositive: 'On positive reception (#, +)',
+      onNegative: 'On negative reception (!, -)',
+      counter: 'Counter-attack',
+      sideOut: 'Side-out points:',
+      sideOutText: (points: number, receptions: number) => `${points} of ${plural(receptions, 'reception', 'receptions')}${each(points, receptions, 'reception', 'receptions')}`,
+      breakPoint: 'Break points:',
+      breakPointText: (points: number, serves: number) => `${points} of ${plural(serves, 'serve', 'serves')}${each(points, serves, 'serve', 'serves')}`,
+      pdfNote: 'Side-out and break point: only for the touches entered with the keypad.',
+    },
   },
 
   charts: {
@@ -792,6 +806,15 @@ export const en: Messages = {
               'The six keys of the numbers on court are laid out as the zones: 4 3 2 at the net, 5 6 1 behind; the liberos keep their keys on the right. In "Lineup" you write the numbers zone by zone.',
               'The keypad always follows the rotation: if you record a reception after our serve, or our serve is missed, the opponent served, and tapping "Serve" you find the next in the rotation already chosen. In "Lineup" you can turn on "Rotate when the serve changes" (off at first: the keys stay where you put them): when on the keys move too, and whoever serves is always in zone 1.',
               'If the serve changes without a reception of ours, for example because the opponent missed their serve, tap "Serve" and then the number of who serves: the rotation goes on from there. "Undo" takes the rotation back too.',
+            ],
+          },
+          {
+            id: 'phases',
+            q: 'Does the scoresheet show side-out and break point?',
+            a: [
+              'Yes, for the matches scouted with the keypad, which follows the order of the touches in a rally. At the bottom of the scoresheet and in the PDF you find "Side-out and break point", as on the DataVolley scoresheet: the attack on positive (#, +) and negative (!, -) reception, that is the first attack after the reception; the counter-attack, every other attack; side-out points, the rallies won receiving; break points, those won serving.',
+              'A rally won by an opponent error is told by what follows: after a reception it is our turn to serve, or the same server serves again. After R= and R/ there is no attack on reception. For reliable numbers enter the touches in the order they happen.',
+              'Paper sheets and touches made on the grid have no order: they stay in the counts, but not in this section.',
             ],
           },
           {

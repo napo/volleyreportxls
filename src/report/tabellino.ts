@@ -8,12 +8,15 @@
  * This module only selects and arranges numbers; it never computes a
  * statistic itself. Rates are null when the skill was never performed.
  *
- * Not reproduced, because the paper sheet does not record rally order:
- * break points (BP), points per rotation, side-out and counter-attack tables.
+ * The tables that need the order of the touches in a rally (attack on
+ * reception, counter-attack, side-out and break points) are there only for
+ * the touches entered in order with the keypad of the live sheet; the paper
+ * sheet does not record that order. Points per rotation are not reproduced.
  */
 
 import type { Skill } from '../domain/codes';
 import type { Match, Player, SetNumber, SetScore } from '../domain/model';
+import { type PhaseStats, sumPhases } from '../domain/phases';
 import { type MatchStats, type StatLine, calculateMatchStats } from '../domain/stats/aggregate';
 
 export interface TabellinoServe {
@@ -97,6 +100,8 @@ export interface Tabellino {
   readonly sets: readonly TabellinoSetRow[];
   readonly opponentErrors: number;
   readonly pointsBreakdown: PointsBreakdown;
+  /** Attack on reception, counter-attack, side-outs and break points; null when no touch was entered in order. */
+  readonly phases: PhaseStats | null;
 }
 
 const rate = (value: number, total: number): number | null => (total > 0 ? value : null);
@@ -172,6 +177,7 @@ export function buildTabellino(match: Match, stats: MatchStats): Tabellino {
       },
       lost: team.summary.lostBySkill,
     },
+    phases: sumPhases(match.sets.map((s) => s.phases)),
   };
 }
 

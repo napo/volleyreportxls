@@ -12,6 +12,7 @@
 import { SHEET_SKILLS, type ScoutCodeString, skillEvaluations } from '../domain/codes';
 import { type Match, type Player, type SetNumber, type SetScore, SET_NUMBERS } from '../domain/model';
 import { tallyLine } from '../domain/tally';
+import type { PhaseStats } from '../domain/phases';
 
 export type RowKind = 'player' | 'libero';
 
@@ -32,6 +33,23 @@ export interface SetRecord {
   readonly subs?: readonly Substitution[];
   /** Where the rotation is and whether the opponent served since our last serve (keypad of the live sheet). */
   readonly serve?: ServeState;
+  /** Attack on reception, counter-attack, side-outs and break points of the touches entered with the keypad. */
+  readonly phases?: PhaseStats;
+}
+
+/**
+ * The rally being played, as the keypad follows it: how it started (our serve
+ * or our reception), whether its outcome is still to be known, and what the
+ * first attack after a reception needs.
+ */
+export interface Rally {
+  readonly phase: 'serve' | 'reception';
+  /** False once a touch decided it (a point, an error): the next rally tells nothing more about it. */
+  readonly open: boolean;
+  /** Serve: who served (the same server again means the break point was won). */
+  readonly server?: number;
+  /** Reception: positive ("#", "+") or negative ("!", "-"), until the first attack is entered. */
+  readonly quality?: 'positive' | 'negative';
 }
 
 /**
@@ -44,6 +62,7 @@ export interface SetRecord {
 export interface ServeState {
   readonly rotation: number;
   readonly received: boolean;
+  readonly rally?: Rally;
 }
 
 /** A substitution: the shirt number leaving the court and the one entering in its place. */
@@ -216,6 +235,7 @@ export function toMatch(record: MatchRecord): Match {
       number: set.number,
       score: set.score,
       lines: set.rows.filter(rowIsUsed).map((row) => tallyLine({ id: row.id, playerNumber: row.playerNumber, counts: row.counts })),
+      ...(set.phases && { phases: set.phases }),
     })),
     ...(record.opponentErrors !== undefined && { opponentErrors: record.opponentErrors }),
   };
