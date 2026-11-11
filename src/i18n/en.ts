@@ -111,7 +111,7 @@ export const en: Messages = {
     phone: {
       eyebrow: 'Or else',
       title: 'On a smartphone: the keypad',
-      text: 'Tap the number, then the skill, then the evaluation: the mark goes by itself into the right cell of the sheet. At the start of a set choose the lineup, with a short name on the keys; with "Substitution" you record changes and the app proposes the return the rules expect.',
+      text: 'Tap the number and the skill, in the order you prefer, then the evaluation: the mark goes by itself into the right cell of the sheet. At the start of a set choose the lineup, with a short name on the keys; with "Substitution" you record changes and the app proposes the return the rules expect.',
       alt: 'The keypad on a smartphone during an attack touch, and the substitution window proposing number 13 back for number 15',
       start: 'Start a new match',
     },
@@ -450,7 +450,7 @@ export const en: Messages = {
     keypadNumbers: 'Shirt number',
     keypadSkills: 'Skill',
     keypadEvaluations: 'Evaluation',
-    keypadHint: 'Tap the number, then the skill, then the evaluation.',
+    keypadHint: 'Tap number and skill, in the order you prefer, then the evaluation.',
     keypadLast: (touch: string) => `Last touch: ${touch}`,
     lineupTitle: (set: number) => `Lineup of set ${set}`,
     lineupText: 'The numbers on court at the start of the set and the liberos: they become the keys of the keypad. It starts from the lineup of the previous set.',
@@ -768,13 +768,13 @@ export const en: Messages = {
           {
             id: 'phone',
             q: 'Can I scout from a smartphone?',
-            a: ['Yes, with the keypad: on a smartphone the sheet opens that way, on a tablet you switch to it with "Keypad" and back to the sheet with "Grid". Tap the number, then the skill, then the evaluation: the mark goes into the right cell of the sheet. On smartphones and tablets, keypad and grid each fill the screen without scrolling: switch with "Grid" and "Keypad". The last touch appears at the bottom, and "Undo" takes it back.', 'At the start of each set you give the lineup: the six numbers on court and the liberos, with a short name if you like, which appears small on the key. It starts from the lineup of the previous set.'],
+            a: ['Yes, with the keypad: on a smartphone the sheet opens that way, on a tablet you switch to it with "Keypad" and back to the sheet with "Grid". Tap the number and the skill, in the order you prefer, then the evaluation: the mark goes into the right cell of the sheet. On smartphones and tablets, keypad and grid each fill the screen without scrolling: switch with "Grid" and "Keypad". The last touch appears at the bottom, and "Undo" takes it back.', 'At the start of each set you give the lineup: the six numbers on court and the liberos, with a short name if you like, which appears small on the key. It starts from the lineup of the previous set.'],
           },
           {
             id: 'keypad',
             q: 'How does the keypad work?',
             a: [
-              'The keypad has three rows of buttons, used in this order for every ball touched. At the top the eight shirt numbers: the six on court, taken from the lineup of the set, and the two liberos. Below them the skills: serve, block, attack, reception and, last, the set fault. Then the six evaluations, coloured from the most favourable (green) to the least favourable (red). A button lights up only once the previous choice is made; a libero has only reception and set.',
+              'The keypad has three rows of buttons, for every ball touched. At the top the eight shirt numbers: the six on court, taken from the lineup of the set, and the two liberos. Below them the skills: serve, block, attack, reception and, last, the set fault. Then the six evaluations, coloured from the most favourable (green) to the least favourable (red). Number and skill are tapped in the order you prefer, for example "Reception" first and then who receives; the evaluations light up once both are there, and the row still missing has an orange border. A libero has only reception and set.',
               'Once the evaluation is tapped, the mark goes into the right cell of the sheet and the keypad is ready for the next touch. The set fault has a single evaluation and is entered with the skill itself. At the bottom you see the last touch (for example "7 · A#"); "Undo" takes it back, and takes back the last substitution too.',
               'When there is room, the keypad shows the legend of the chosen skill, with what each evaluation means: on the right on wide screens, below the buttons on tablets and on smartphones held upright. On small screens or in landscape it does not appear, to leave room for the buttons.',
               'At the top there are "Substitution", "Lineup" to correct the numbers on court, and "Grid" to go back to the whole sheet.',
@@ -965,7 +965,7 @@ export const en: Messages = {
     keypadSteps: [
       'On a smartphone the sheet opens with the keypad; on a tablet tap "Keypad" in the bar at the top. "Grid" goes back to the whole sheet and the device remembers the choice.',
       'At the start of each set give the lineup: the six numbers on court and the liberos, with a short name if you like. It starts from the lineup of the previous set, the numbers go on the sheet too and the name appears small on the key. "Lineup" changes it at any time.',
-      'For every ball touched: tap the number, then the skill, then the evaluation. The buttons light up in that order; for a libero only reception and set. The mark goes into the right cell of the sheet. On smartphones and tablets, keypad and grid each fill the screen without scrolling: switch with "Grid" and "Keypad". When there is room, the legend of the chosen skill appears on the right of or below the keypad, with what each evaluation means.',
+      'For every ball touched: tap the number and the skill, in the order you prefer, then the evaluation. The row still missing has an orange border; for a libero only reception and set. The mark goes into the right cell of the sheet. On smartphones and tablets, keypad and grid each fill the screen without scrolling: switch with "Grid" and "Keypad". When there is room, the legend of the chosen skill appears on the right of or below the keypad, with what each evaluation means.',
       'At the bottom of the keypad you see the last touch; "Undo" takes it back, and takes back the last substitution too.',
       'For a substitution tap the number of whoever leaves, then "Substitution": on the right choose whoever comes in with the arrows, or type a new number with its name. Whoever came in with a substitution can leave only for the one they replaced to come back: the app already proposes that pair. After the return the pair is closed for the set; numbers that already took part in a substitution are grey. Every set starts afresh.',
     ],

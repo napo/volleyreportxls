@@ -4774,3 +4774,8 @@ output.vr-sub-name {
   .vr-stats-line { gap: 0.4rem; line-height: 1.25; }
   .vr-situation-scale { line-height: 1.25; }
 }
+
+/* Keypad: number and skill in either order; the row still to tap is outlined. */
+.vr-keypad .awaiting button:not(:disabled) {
+  border-color: var(--vr-orange, #e8710a);
+}

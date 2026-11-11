@@ -3,9 +3,9 @@
 
 /**
  * Scouting with the keypad of the live sheet, made for phones: the shirt
- * number, then the skill, then the evaluation; the touch goes into the sheet
+ * number and the skill, in either order, then the evaluation; the touch goes into the sheet
  * below. Eight keys: the six on court and the two liberos (a libero has only
- * reception and set, as on the form). Buttons light up in that order; an
+ * reception and set, as on the form). The row still missing is outlined; an
  * evaluation alone in its skill is entered with the skill.
  */
 import { useEffect, useRef, useState } from 'react';
@@ -59,28 +59,46 @@ export function LiveKeypad({ set, lineup, untracked, order, locked, last, canUnd
     ...Array.from({ length: 6 }, (_, i) => (lineup.court[i] !== undefined ? { number: lineup.court[i]!, kind: 'player' as const } : null)),
     ...Array.from({ length: 2 }, (_, i) => (lineup.liberos[i] !== undefined ? { number: lineup.liberos[i]!, kind: 'libero' as const } : null)),
   ];
-  // Skills of the chosen key (a libero has fewer), each with the evaluations shown in the sheet.
-  const skills = orderedColumns(chosen?.kind ?? 'player', order).map((c) => ({
-    skill: c.skill,
-    evaluations: c.evaluations.filter((e) => !untracked.has(codeOf(c.skill, e))),
-  }));
-  const allSkills = orderedColumns('player', order);
   // A formation edit or undo can remove the selected number from the court.
   // Derive validity from the current keys, before accepting another touch.
-  const active = chosen && keys.some((key) => key?.number === chosen.number && key.kind === chosen.kind);
+  const active = chosen && keys.some((key) => key?.number === chosen.number && key.kind === chosen.kind) ? chosen : null;
+  // Skills of a kind of key (a libero has fewer), each with the evaluations shown in the sheet.
+  const skillsOf = (kind: RowKind) =>
+    orderedColumns(kind, order).map((c) => ({
+      skill: c.skill,
+      evaluations: c.evaluations.filter((e) => !untracked.has(codeOf(c.skill, e))),
+    }));
+  const skills = skillsOf(active?.kind ?? 'player');
+  const allSkills = orderedColumns('player', order);
+  const liberoSkills = new Set(skillsOf('libero').map((c) => c.skill));
+  const fits = (kind: RowKind, s: Skill) => kind === 'player' || liberoSkills.has(s);
   const evaluations = skills.find((c) => c.skill === skill)?.evaluations ?? [];
 
-  const enter = (code: ScoutCodeString) => {
-    if (!chosen || !active) return;
-    onTouch(chosen.number, chosen.kind, code);
+  const enter = (who: Chosen, code: ScoutCodeString) => {
+    onTouch(who.number, who.kind, code);
     setChosen(null);
     setSkill(null);
   };
-  const chooseSkill = (s: Skill) => {
-    const only = skills.find((c) => c.skill === s)?.evaluations;
-    if (only?.length === 1) enter(codeOf(s, only[0]!));
-    else setSkill(s);
+  /** A skill with a single evaluation (set faults) is entered as soon as number and skill are both there. */
+  const only = (kind: RowKind, s: Skill) => {
+    const found = skillsOf(kind).find((c) => c.skill === s)?.evaluations;
+    return found?.length === 1 ? codeOf(s, found[0]!) : null;
   };
+  // Number and skill in either order: the second one keeps the first, unless they do not go together.
+  const chooseSkill = (s: Skill) => {
+    const code = active && only(active.kind, s);
+    if (active && code) enter(active, code);
+    else setSkill(skill === s ? null : s);
+  };
+  const chooseKey = (key: Chosen) => {
+    const kept = skill && fits(key.kind, skill) ? skill : null;
+    const code = kept && only(key.kind, kept);
+    if (code) return enter(key, code);
+    setChosen(key);
+    setSkill(kept);
+  };
+  // What is still missing, to draw the eye to its row.
+  const awaiting = active && skill ? 'evals' : active ? 'skills' : skill ? 'numbers' : null;
 
   const room = useLegendRoom();
   const legendSkill = skill ?? null;
@@ -113,19 +131,15 @@ export function LiveKeypad({ set, lineup, untracked, order, locked, last, canUnd
       ) : (
       <div className="vr-keypad-body">
       <div className="vr-keypad-main">
-      <div className="vr-keypad-numbers" role="group" aria-label={t.keypadNumbers}>
+      <div className={`vr-keypad-numbers${awaiting === 'numbers' ? ' awaiting' : ''}`} role="group" aria-label={t.keypadNumbers}>
         {keys.map((key, i) => (
           <button
             key={i}
             type="button"
             className={`vr-keypad-key${key?.kind === 'libero' ? ' libero' : ''}${key && chosen?.number === key.number && chosen.kind === key.kind ? ' chosen' : ''}`}
-            disabled={locked || !key}
+            disabled={locked || !key || (!!skill && !active && !fits(key.kind, skill))}
             aria-pressed={!!key && chosen?.number === key.number && chosen.kind === key.kind}
-            onClick={() => {
-              if (!key) return;
-              setChosen(key);
-              setSkill(null);
-            }}
+            onClick={() => key && chooseKey(key)}
           >
             {key && nameOf(key.number) && <small className="vr-keypad-name">{nameOf(key.number)}</small>}
             {key ? key.number : ''}
@@ -134,9 +148,9 @@ export function LiveKeypad({ set, lineup, untracked, order, locked, last, canUnd
         ))}
       </div>
 
-      <div className="vr-keypad-skills" role="group" aria-label={t.keypadSkills}>
+      <div className={`vr-keypad-skills${awaiting === 'skills' ? ' awaiting' : ''}`} role="group" aria-label={t.keypadSkills}>
         {allSkills.map((c) => {
-          const usable = !!active && skills.some((x) => x.skill === c.skill);
+          const usable = !active || fits(active.kind, c.skill);
           return (
             <button
               key={c.skill}
@@ -152,7 +166,7 @@ export function LiveKeypad({ set, lineup, untracked, order, locked, last, canUnd
         })}
       </div>
 
-      <div className="vr-keypad-evals" role="group" aria-label={t.keypadEvaluations}>
+      <div className={`vr-keypad-evals${awaiting === 'evals' ? ' awaiting' : ''}`} role="group" aria-label={t.keypadEvaluations}>
         {(skill ? evaluations : (['#', '+', '!', '-', '/', '='] as const)).map((e) => (
           <button
             key={e}
@@ -161,7 +175,7 @@ export function LiveKeypad({ set, lineup, untracked, order, locked, last, canUnd
             style={skill ? { background: tint(skill, e) } : undefined}
             disabled={locked || !skill || !active}
             title={skill ? m.codes[skill][e] : undefined}
-            onClick={() => skill && enter(codeOf(skill, e))}
+            onClick={() => skill && active && enter(active, codeOf(skill, e))}
           >
             {e}
           </button>

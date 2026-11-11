@@ -110,7 +110,7 @@ export const it = {
     phone: {
       eyebrow: 'In alternativa',
       title: 'Sullo smartphone: il tastierino',
-      text: 'Tocchi il numero, poi il fondamentale, poi la valutazione: il segno va da solo nella casella giusta del foglio. A inizio set scegli la formazione, con un nome breve sui tasti; con "Cambio" segni le sostituzioni e l’app propone il rientro previsto dalle regole.',
+      text: 'Tocchi il numero e il fondamentale, nell’ordine che preferisci, poi la valutazione: il segno va da solo nella casella giusta del foglio. A inizio set scegli la formazione, con un nome breve sui tasti; con "Cambio" segni le sostituzioni e l’app propone il rientro previsto dalle regole.',
       alt: 'Il tastierino sullo smartphone durante un tocco di attacco, e la finestra del cambio che propone il rientro del n. 13 al posto del n. 15',
       start: 'Inizia una nuova partita',
     },
@@ -450,7 +450,7 @@ export const it = {
     keypadNumbers: 'Numero di divisa',
     keypadSkills: 'Fondamentale',
     keypadEvaluations: 'Valutazione',
-    keypadHint: 'Tocca il numero, poi il fondamentale, poi la valutazione.',
+    keypadHint: 'Tocca numero e fondamentale, nell’ordine che preferisci, poi la valutazione.',
     keypadLast: (touch: string) => `Ultimo tocco: ${touch}`,
     lineupTitle: (set: number) => `Formazione del set ${set}`,
     lineupText: 'I numeri in campo a inizio set e i liberi: diventano i tasti del tastierino. Si parte dalla formazione del set precedente.',
@@ -733,13 +733,13 @@ export const it = {
           {
             id: 'phone',
             q: 'Posso rilevare dallo smartphone?',
-            a: ['Sì, con il tastierino: sullo smartphone il foglio si apre già così, sul tablet lo attivi con "Tastierino" e torni al foglio con "Griglia". Tocchi il numero, poi il fondamentale, poi la valutazione: il segno va nella casella giusta del foglio. Su smartphone e tablet tastierino e griglia occupano lo schermo senza scorrimento: passi dall’uno all’altra con i pulsanti "Griglia" e "Tastierino". In fondo vedi l’ultimo tocco, e "Annulla" lo toglie.', 'All’inizio di ogni set indichi la formazione: i sei numeri in campo e i liberi, con un nome breve se vuoi, che compare in piccolo sul tasto. Si parte dalla formazione del set precedente.'],
+            a: ['Sì, con il tastierino: sullo smartphone il foglio si apre già così, sul tablet lo attivi con "Tastierino" e torni al foglio con "Griglia". Tocchi il numero e il fondamentale, nell’ordine che preferisci, poi la valutazione: il segno va nella casella giusta del foglio. Su smartphone e tablet tastierino e griglia occupano lo schermo senza scorrimento: passi dall’uno all’altra con i pulsanti "Griglia" e "Tastierino". In fondo vedi l’ultimo tocco, e "Annulla" lo toglie.', 'All’inizio di ogni set indichi la formazione: i sei numeri in campo e i liberi, con un nome breve se vuoi, che compare in piccolo sul tasto. Si parte dalla formazione del set precedente.'],
           },
           {
             id: 'keypad',
             q: 'Come funziona il tastierino?',
             a: [
-              'Il tastierino ha tre file di pulsanti, da usare in quest’ordine per ogni pallone toccato. In alto gli otto numeri di divisa: i sei in campo, presi dalla formazione del set, e i due liberi. Sotto i fondamentali: battuta, muro, attacco, ricezione e, in fondo, l’errore di alzata. Infine le sei valutazioni, colorate dalla più favorevole (verde) alla meno favorevole (rosso). Un pulsante si attiva solo quando la scelta precedente è fatta; per un libero ci sono solo ricezione e alzata.',
+              'Il tastierino ha tre file di pulsanti, per ogni pallone toccato. In alto gli otto numeri di divisa: i sei in campo, presi dalla formazione del set, e i due liberi. Sotto i fondamentali: battuta, muro, attacco, ricezione e, in fondo, l’errore di alzata. Infine le sei valutazioni, colorate dalla più favorevole (verde) alla meno favorevole (rosso). Numero e fondamentale si toccano nell’ordine che preferisci, per esempio prima "Ricezione" e poi chi riceve; le valutazioni si attivano quando ci sono tutti e due, e la fila che manca ha il bordo arancione. Per un libero ci sono solo ricezione e alzata.',
               'Toccata la valutazione, il segno va nella casella giusta del foglio e il tastierino torna pronto per il tocco successivo. L’errore di alzata ha una sola valutazione e si segna direttamente con il fondamentale. In fondo vedi l’ultimo tocco (per esempio "7 · A#"); "Annulla" lo toglie, e toglie anche l’ultimo cambio.',
               'Quando c’è spazio, il tastierino mostra la legenda del fondamentale scelto, con il significato di ogni valutazione: a destra sugli schermi larghi, sotto i pulsanti sul tablet e sullo smartphone in verticale. Sugli schermi piccoli o in orizzontale non compare, per lasciare spazio ai pulsanti.',
               'In alto ci sono "Cambio" per le sostituzioni, "Formazione" per correggere i numeri in campo e "Griglia" per tornare al foglio intero.',
@@ -930,7 +930,7 @@ export const it = {
     keypadSteps: [
       'Sullo smartphone il foglio si apre già con il tastierino; sul tablet tocca "Tastierino" nella barra in alto. "Griglia" riporta al foglio completo e il dispositivo ricorda la scelta.',
       'All’inizio di ogni set indica la formazione: i sei numeri in campo e i liberi, con un nome breve se vuoi. Si parte da quella del set precedente, i numeri finiscono anche nel foglio e il nome compare in piccolo sul tasto. "Formazione" la cambia in ogni momento.',
-      'Per ogni pallone toccato: tocca il numero, poi il fondamentale, poi la valutazione. I pulsanti si attivano in quest’ordine; per il libero solo ricezione e alzata. Il segno va nella casella giusta del foglio. Su smartphone e tablet tastierino e griglia occupano lo schermo senza scorrimento: passi dall’uno all’altra con i pulsanti "Griglia" e "Tastierino". Quando c’è spazio, a destra o sotto il tastierino compare la legenda del fondamentale scelto, con il significato di ogni valutazione.',
+      'Per ogni pallone toccato: tocca il numero e il fondamentale, nell’ordine che preferisci, poi la valutazione. La fila che manca ha il bordo arancione; per il libero solo ricezione e alzata. Il segno va nella casella giusta del foglio. Su smartphone e tablet tastierino e griglia occupano lo schermo senza scorrimento: passi dall’uno all’altra con i pulsanti "Griglia" e "Tastierino". Quando c’è spazio, a destra o sotto il tastierino compare la legenda del fondamentale scelto, con il significato di ogni valutazione.',
       'In fondo al tastierino vedi l’ultimo tocco; "Annulla" lo toglie, e toglie anche l’ultimo cambio.',
       'Per un cambio tocca il numero di chi esce e poi "Cambio": a destra scegli chi entra con le frecce, o scrivi un numero nuovo con il suo nome. Chi è entrato con un cambio può uscire solo per far rientrare chi ha sostituito: l’app propone già quella coppia. Dopo il rientro la coppia è chiusa per il set; i numeri che hanno già fatto un cambio sono in grigio. Ogni set riparte da zero.',
     ],
