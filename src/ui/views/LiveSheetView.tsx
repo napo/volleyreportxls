@@ -24,6 +24,10 @@ import {
   courtNow,
   currentSet,
   placeNumbers,
+  expectedServer,
+  serveAfter,
+  setServe,
+  zonesNow,
   playerName,
   proposedLineup,
   reachableSets,
@@ -37,7 +41,7 @@ import {
   undoSubstitution,
   undoTouch,
 } from '../../matches/live';
-import { type MatchRecord, type PlayerRecord, type RowKind, type SetRecord, matchWinner, OPTIONAL_CODES, sameContent, setIsPlayed } from '../../matches/record';
+import { type MatchRecord, type PlayerRecord, type RowKind, type ServeState, type SetRecord, matchWinner, OPTIONAL_CODES, sameContent, setIsPlayed } from '../../matches/record';
 import type { Archive } from '../../storage/archive';
 import { useArchive } from '../archive-context';
 import { type MovableSkill, codeOf, orderedColumns, parseShirtNumber, skillColumns } from '../components/counts-columns';
@@ -51,7 +55,7 @@ import { lastUntracked, rememberUntracked } from '../untracked-setting';
 import { lastOrder, rememberOrder } from '../skill-order-setting';
 
 /** What "Undo" takes back: a touch, or a substitution of the keypad. */
-type Step = Touch | { readonly set: SetNumber; readonly sub: true };
+type Step = (Touch & { readonly serveBefore?: ServeState | null }) | { readonly set: SetNumber; readonly sub: true };
 const isTouch = (step: Step | undefined): step is Touch => !!step && 'code' in step;
 
 const LONG_PRESS = 500;
@@ -75,6 +79,25 @@ function initialMode(): Mode {
     // No stored choice: by screen size.
   }
   return typeof window !== 'undefined' && window.matchMedia?.('(max-width: 760px)').matches ? 'keypad' : 'grid';
+}
+
+/** The keypad follows the rotation, as last chosen on this device (off at first). */
+const ROTATE_SETTING = 'volleyreport.live.rotate';
+
+function initialRotate(): boolean {
+  try {
+    return localStorage.getItem(ROTATE_SETTING) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function rememberRotate(rotate: boolean) {
+  try {
+    localStorage.setItem(ROTATE_SETTING, rotate ? '1' : '0');
+  } catch {
+    // Not kept: off next time.
+  }
 }
 
 function rememberMode(mode: Mode) {
@@ -434,6 +457,7 @@ export function LiveSheetView({ id }: { id: string }) {
   const [editing, setEditing] = useState<'first' | 'edit' | null>(null);
   const [choosingColumns, setChoosingColumns] = useState(false);
   const [order, setOrder] = useState<MovableSkill[]>(lastOrder);
+  const [rotate, setRotate] = useState(initialRotate);
   const [mode, setMode] = useState<Mode>(initialMode);
   const [choosingLineup, setChoosingLineup] = useState(false);
   const switchMode = (next: Mode) => {
@@ -518,7 +542,12 @@ export function LiveSheetView({ id }: { id: string }) {
     setLast(`${done.touch.rowId}:${done.touch.code}`);
   };
   const keypadTouch = (number: number, kind: RowKind, code: ScoutCodeString) => {
-    if (!isLocked) applied(bumpShirt(record, view, number, kind, code, known));
+    if (isLocked) return;
+    const done = bumpShirt(record, view, number, kind, code, known);
+    if (!done) return;
+    // A reception or a serve moves the rotation on; the step remembers where it was, for "Undo".
+    const serve = serveAfter(set, number, kind, code, rotate);
+    applied(serve ? { record: setServe(done.record, view, serve), touch: { ...done.touch, serveBefore: set.serve ?? null } as Touch } : done);
   };
   // The keypad needs who is on court: asked when a set without a lineup is opened with the keypad.
   const needsLineup = mode === 'keypad' && !isLocked && !set.lineup;
@@ -545,7 +574,8 @@ export function LiveSheetView({ id }: { id: string }) {
       setLast(null);
       return;
     }
-    setRecord(undoTouch(record, lastStep));
+    const undone = undoTouch(record, lastStep);
+    setRecord(lastStep.serveBefore !== undefined ? setServe(undone, lastStep.set, lastStep.serveBefore) : undone);
     setLast(`${lastStep.rowId}:${lastStep.code}`);
   };
   const lastSub = lastSet?.subs?.at(-1);
@@ -734,6 +764,9 @@ export function LiveSheetView({ id }: { id: string }) {
           subsCount={set.subs?.length ?? 0}
           onSubstitute={(chosen) => setSubstituting(chosen)}
           nameOf={(n) => playerName(record, n)}
+          zones={set.lineup ? zonesNow(set) : proposedLineup(record, view).court}
+          rotate={rotate}
+          server={set.lineup ? expectedServer(set) : null}
           situation={{ set: teamIndicators([set]), match: teamIndicators(setsUpTo(record, view)), facts: setFacts(set) }}
         />
       )}
@@ -786,7 +819,10 @@ export function LiveSheetView({ id }: { id: string }) {
           proposed={proposedLineup(record, view)}
           nameOf={(n) => playerName(record, n)}
           onCancel={() => (choosingLineup ? setChoosingLineup(false) : switchMode('grid'))}
-          onConfirm={(lineup, names) => {
+          rotate={rotate}
+          onConfirm={(lineup, names, follow) => {
+            setRotate(follow);
+            rememberRotate(follow);
             // The numbers go on the rows of the sheet too, and the names typed here are those of the sheet.
             let next = setLineup(record, view, lineup);
             next = placeNumbers(next, view, lineup.court, 'player', known);

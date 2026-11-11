@@ -46,22 +46,41 @@ export interface KeypadProps {
   readonly nameOf: (number: number) => string;
   /** How the set and the match are going, shown on request. */
   readonly situation: Situation;
+  /** Who is in each zone now, zone 1 first: the keys are laid out as the court (4 3 2 at the net, 5 6 1 behind). */
+  readonly zones: readonly (number | null)[];
+  /** The keys follow the rotation: whoever serves goes to zone 1 and is chosen with "Serve". */
+  readonly rotate: boolean;
+  /** Who is expected to serve next (zone 1, or zone 2 after a reception). */
+  readonly server: number | null;
 }
 
-export function LiveKeypad({ set, lineup, untracked, order, locked, last, canUndo, undoText, onTouch, onUndo, onLineup, onGrid, subsCount, onSubstitute, nameOf, situation }: KeypadProps) {
+/** The zones as seen from behind the court, with a libero at the end of each row. */
+const ZONE_ROWS: readonly (readonly number[])[] = [
+  [4, 3, 2],
+  [5, 6, 1],
+];
+
+export function LiveKeypad({ set, lineup, untracked, order, locked, last, canUndo, undoText, onTouch, onUndo, onLineup, onGrid, subsCount, onSubstitute, nameOf, situation, zones, rotate, server }: KeypadProps) {
   const { m } = useI18n();
   const t = m.live;
   const [chosen, setChosen] = useState<Chosen | null>(null);
   const [skill, setSkill] = useState<Skill | null>(null);
   const [looking, setLooking] = useState(false);
 
-  const keys: (Chosen | null)[] = [
-    ...Array.from({ length: 6 }, (_, i) => (lineup.court[i] !== undefined ? { number: lineup.court[i]!, kind: 'player' as const } : null)),
-    ...Array.from({ length: 2 }, (_, i) => (lineup.liberos[i] !== undefined ? { number: lineup.liberos[i]!, kind: 'libero' as const } : null)),
-  ];
+  // While a serve is being entered, the keys already show its server in zone 1 (the rotation is kept with the touch).
+  const places = Array.from({ length: 6 }, (_, i) => zones[i] ?? null);
+  const serving = rotate && skill === 'B' && chosen?.kind === 'player' ? places.indexOf(chosen.number) : -1;
+  const shown = serving > 0 ? places.map((_, i) => places[(i + serving) % 6]!) : places;
+  const keys: { readonly key: Chosen | null; readonly zone: number | null }[] = ZONE_ROWS.flatMap((row, r) => [
+    ...row.map((zone) => {
+      const number = shown[zone - 1] ?? null;
+      return { key: number !== null ? { number, kind: 'player' as const } : null, zone };
+    }),
+    { key: lineup.liberos[r] !== undefined ? { number: lineup.liberos[r]!, kind: 'libero' as const } : null, zone: null },
+  ]);
   // A formation edit or undo can remove the selected number from the court.
   // Derive validity from the current keys, before accepting another touch.
-  const active = chosen && keys.some((key) => key?.number === chosen.number && key.kind === chosen.kind) ? chosen : null;
+  const active = chosen && keys.some(({ key }) => key?.number === chosen.number && key.kind === chosen.kind) ? chosen : null;
   // Skills of a kind of key (a libero has fewer), each with the evaluations shown in the sheet.
   const skillsOf = (kind: RowKind) =>
     orderedColumns(kind, order).map((c) => ({
@@ -87,8 +106,10 @@ export function LiveKeypad({ set, lineup, untracked, order, locked, last, canUnd
   // Number and skill in either order: the second one keeps the first, unless they do not go together.
   const chooseSkill = (s: Skill) => {
     const code = active && only(active.kind, s);
-    if (active && code) enter(active, code);
-    else setSkill(skill === s ? null : s);
+    if (active && code) return enter(active, code);
+    setSkill(skill === s ? null : s);
+    // Following the rotation, "Serve" alone already knows who serves.
+    if (rotate && s === 'B' && skill !== 'B' && !active && server !== null) setChosen({ number: server, kind: 'player' });
   };
   const chooseKey = (key: Chosen) => {
     const kept = skill && fits(key.kind, skill) ? skill : null;
@@ -132,18 +153,19 @@ export function LiveKeypad({ set, lineup, untracked, order, locked, last, canUnd
       <div className="vr-keypad-body">
       <div className="vr-keypad-main">
       <div className={`vr-keypad-numbers${awaiting === 'numbers' ? ' awaiting' : ''}`} role="group" aria-label={t.keypadNumbers}>
-        {keys.map((key, i) => (
+        {keys.map(({ key, zone }, i) => (
           <button
             key={i}
             type="button"
-            className={`vr-keypad-key${key?.kind === 'libero' ? ' libero' : ''}${key && chosen?.number === key.number && chosen.kind === key.kind ? ' chosen' : ''}`}
+            className={`vr-keypad-key${zone === null ? ' libero-slot' : ''}${key?.kind === 'libero' ? ' libero' : ''}${key && chosen?.number === key.number && chosen.kind === key.kind ? ' chosen' : ''}`}
             disabled={locked || !key || (!!skill && !active && !fits(key.kind, skill))}
             aria-pressed={!!key && chosen?.number === key.number && chosen.kind === key.kind}
             onClick={() => key && chooseKey(key)}
           >
+            {zone !== null && <small className="vr-keypad-zone" aria-label={t.zone(zone)}>{t.zoneShort(zone)}</small>}
             {key && nameOf(key.number) && <small className="vr-keypad-name">{nameOf(key.number)}</small>}
             {key ? key.number : ''}
-            {i >= 6 && <small>{t.libero}</small>}
+            {zone === null && <small>{t.libero}</small>}
           </button>
         ))}
       </div>
@@ -251,21 +273,25 @@ export function LineupDialog({
   set,
   proposed,
   nameOf,
+  rotate: initialRotate,
   onCancel,
   onConfirm,
 }: {
   set: number;
   proposed: Lineup;
   nameOf: (number: number) => string;
+  /** The keypad follows the rotation (choice of the device). */
+  rotate: boolean;
   onCancel: () => void;
   /** The lineup, and the names written next to its numbers (by number). */
-  onConfirm: (lineup: Lineup, names: ReadonlyMap<number, string>) => void;
+  onConfirm: (lineup: Lineup, names: ReadonlyMap<number, string>, rotate: boolean) => void;
 }) {
   const { m } = useI18n();
   const t = m.live;
   const [court, setCourt] = useState<string[]>(Array.from({ length: 6 }, (_, i) => (proposed.court[i] !== undefined ? String(proposed.court[i]) : '')));
   const [liberos, setLiberos] = useState<string[]>(Array.from({ length: 2 }, (_, i) => (proposed.liberos[i] !== undefined ? String(proposed.liberos[i]) : '')));
   const [names, setNames] = useState<ReadonlyMap<number, string>>(new Map());
+  const [rotate, setRotate] = useState(initialRotate);
   const nameFor = (value: string) => (value === '' ? '' : (names.get(Number(value)) ?? nameOf(Number(value))));
   const digits = (text: string) => text.replace(/\D/g, '').slice(0, 2);
   const numbers = (list: string[]) => list.filter((x) => x !== '').map(Number);
@@ -294,16 +320,22 @@ export function LineupDialog({
         aria-labelledby="vr-live-lineup-title"
         onSubmit={(e) => {
           e.preventDefault();
-          if (ok) onConfirm({ court: numbers(court), liberos: numbers(liberos) }, new Map([...names].filter(([n]) => all.includes(n))));
+          if (ok) onConfirm({ court: numbers(court), liberos: numbers(liberos) }, new Map([...names].filter(([n]) => all.includes(n))), rotate);
         }}
       >
         <h2 id="vr-live-lineup-title">{t.lineupTitle(set)}</h2>
         <p>{t.lineupText}</p>
-        <fieldset className="vr-lineup">
+        <fieldset className="vr-lineup zones">
           <legend>{t.onCourt}</legend>
-          {court.map((value, i) => (
-            <span key={i}>{field(value, t.courtPlace(i + 1), (v) => setCourt((c) => c.map((x, j) => (j === i ? v : x))))}</span>
-          ))}
+          {ZONE_ROWS.flat().map((zone) => {
+            const i = zone - 1;
+            return (
+              <span key={zone}>
+                <small aria-hidden="true">{t.zone(zone)}</small>
+                {field(court[i]!, t.courtPlace(zone), (v) => setCourt((c) => c.map((x, j) => (j === i ? v : x))))}
+              </span>
+            );
+          })}
         </fieldset>
         <fieldset className="vr-lineup">
           <legend>{t.liberos}</legend>
@@ -311,6 +343,12 @@ export function LineupDialog({
             <span key={i}>{field(value, t.liberoPlace(i + 1), (v) => setLiberos((c) => c.map((x, j) => (j === i ? v : x))))}</span>
           ))}
         </fieldset>
+        <label className="vr-check">
+          <input type="checkbox" checked={rotate} onChange={(e) => setRotate(e.target.checked)} />
+          <span>
+            <strong>{t.rotate}</strong> {t.rotateText}
+          </span>
+        </label>
         {repeated && (
           <p className="vr-live-warning" role="status">
             {t.lineupRepeated}

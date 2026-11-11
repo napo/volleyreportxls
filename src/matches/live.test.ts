@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { bump, checkScore, closeSet, currentSet, playerName, reachableSets, setMatchDetails, setPlayerName, setShirtNumber, undoTouch , bumpShirt, proposedLineup, setLineup, benchNumbers, courtNow, returnsDue, substitute, undoSubstitution, placeNumbers, canEnter, canLeave, substitutionState} from './live';
+import { bump, checkScore, closeSet, currentSet, playerName, reachableSets, setMatchDetails, setPlayerName, setShirtNumber, undoTouch , bumpShirt, proposedLineup, setLineup, benchNumbers, courtNow, returnsDue, substitute, undoSubstitution, placeNumbers, canEnter, canLeave, substitutionState, serveAfter, setServe, zonesNow, expectedServer} from './live';
 import { type MatchRecord, newMatchRecord } from './record';
 
 const firstRow = (record: MatchRecord, set = 1) => record.sets.find((s) => s.number === set)!.rows[0]!;
@@ -184,5 +184,57 @@ describe('keypad: substitution rules', () => {
     record = setLineup(record, 2, { court: [1, 2, 3, 4, 5, 6], liberos: [9] });
     expect(canLeave(record.sets[1]!)).toEqual([1, 2, 3, 4, 5, 6]);
     expect(canEnter(record, 2, 5).options).toContain(10);
+  });
+});
+
+describe('rotation followed by the keypad', () => {
+  const start = () => setLineup(newMatchRecord(), 1, { court: [1, 2, 3, 4, 5, 6], liberos: [9] });
+  const first = (record: MatchRecord) => record.sets.find((s) => s.number === 1)!;
+  /** A touch of the keypad with its effect on the rotation, as the live sheet applies it. */
+  const play = (record: MatchRecord, number: number, code: 'B+' | 'B#' | 'R+' | 'A#', rotate = true) => {
+    const next = serveAfter(first(record), number, 'player', code as never, rotate);
+    return next ? setServe(record, 1, next) : record;
+  };
+
+  test('zones start as the lineup: zone 1 serves', () => {
+    expect(zonesNow(first(start()))).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(expectedServer(first(start()))).toBe(1);
+  });
+
+  test('serving again after winning the rally (no reception) does not rotate', () => {
+    let record = play(start(), 1, 'B+');
+    record = play(record, 3, 'A#');
+    expect(expectedServer(first(record))).toBe(1);
+    record = play(record, 1, 'B+');
+    expect(zonesNow(first(record))).toEqual([1, 2, 3, 4, 5, 6]);
+  });
+
+  test('a reception since our serve: the next serve rotates, zone 2 goes to zone 1', () => {
+    let record = play(start(), 1, 'B+');
+    record = play(record, 5, 'R+');
+    expect(expectedServer(first(record))).toBe(2);
+    record = play(record, 2, 'B+');
+    expect(zonesNow(first(record))).toEqual([2, 3, 4, 5, 6, 1]);
+    expect(first(record).serve).toEqual({ rotation: 1, received: false });
+  });
+
+  test('the opponent serves first: our first serve is from who started in zone 2', () => {
+    const record = play(start(), 6, 'R+');
+    expect(expectedServer(first(record))).toBe(2);
+  });
+
+  test('no reception tells (the opponent missed the serve): the number chosen by hand goes to zone 1', () => {
+    let record = play(start(), 1, 'B+');
+    record = play(record, 4, 'B+');
+    expect(zonesNow(first(record))).toEqual([4, 5, 6, 1, 2, 3]);
+  });
+
+  test('a substitution keeps the zone; without the option nothing rotates; a new lineup starts again', () => {
+    let record = play(play(start(), 1, 'R+'), 2, 'B+');
+    record = substitute(record, 1, { out: 2, in: 12 });
+    expect(zonesNow(first(record))).toEqual([12, 3, 4, 5, 6, 1]);
+    const still = play(play(start(), 1, 'R+', false), 2, 'B+', false);
+    expect(zonesNow(first(still))).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(first(setLineup(record, 1, { court: [6, 5, 4, 3, 2, 1], liberos: [] })).serve).toBeUndefined();
   });
 });

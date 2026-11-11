@@ -30,6 +30,19 @@ export interface SetRecord {
   readonly lineup?: Lineup;
   /** The substitutions of the set, in order (keypad of the live sheet); liberos are not substitutions. */
   readonly subs?: readonly Substitution[];
+  /** Where the rotation is and whether the opponent served since our last serve (keypad of the live sheet). */
+  readonly serve?: ServeState;
+}
+
+/**
+ * The rotation of the six on court, as the keypad follows it: how many places
+ * the lineup has turned since the start of the set (0–5: the one who started
+ * in zone `rotation + 1` is now in zone 1), and whether a reception was
+ * recorded since our last serve (the opponent served: our next serve rotates).
+ */
+export interface ServeState {
+  readonly rotation: number;
+  readonly received: boolean;
 }
 
 /** A substitution: the shirt number leaving the court and the one entering in its place. */

@@ -13,7 +13,7 @@
 
 import type { ScoutCodeString } from '../domain/codes';
 import type { SetNumber, SetScore } from '../domain/model';
-import { type Lineup, type MatchRecord, type Substitution, type PlayerRecord, type RowKind, type SetRecord, emptyRow, matchWinner, setIsPlayed, setScoreIsFinal, withNumbersFromPreviousSet } from './record';
+import { type Lineup, type MatchRecord, type ServeState, type Substitution, type PlayerRecord, type RowKind, type SetRecord, emptyRow, matchWinner, setIsPlayed, setScoreIsFinal, withNumbersFromPreviousSet } from './record';
 
 /** One change of a count, kept to undo it. */
 export interface Touch {
@@ -131,7 +131,10 @@ export function checkScore(team: number | null, opponent: number | null, set: Se
 /** Writes who starts a set (keypad of the live sheet). */
 export function setLineup(record: MatchRecord, set: SetNumber, lineup: Lineup): MatchRecord {
   const target = record.sets.find((s) => s.number === set);
-  return target ? replaceSet(record, { ...target, lineup }) : record;
+  if (!target) return record;
+  // Another lineup: the rotation starts again from it.
+  const { serve: _, ...rest } = target;
+  return replaceSet(record, { ...rest, lineup });
 }
 
 /**
@@ -176,6 +179,52 @@ export function courtNow(set: SetRecord): number[] {
     if (place >= 0 && !court.includes(sub.in)) court[place] = sub.in;
   }
   return court;
+}
+
+const NO_SERVE: ServeState = { rotation: 0, received: false };
+
+/**
+ * Who is in each zone now, zone 1 first (null: nobody given for that place):
+ * the lineup, with its substitutions, turned by the rotation. Zones run
+ * 4 3 2 at the net and 5 6 1 behind; a rotation moves zone 2 to zone 1.
+ */
+export function zonesNow(set: SetRecord): (number | null)[] {
+  const court = courtNow(set);
+  const turned = set.serve?.rotation ?? 0;
+  return Array.from({ length: 6 }, (_, zone) => court[(zone + turned) % 6] ?? null);
+}
+
+/**
+ * Who is expected to serve next: whoever is in zone 1, or in zone 2 when the
+ * opponent served since our last serve (a reception was recorded): winning
+ * the serve back rotates.
+ */
+export function expectedServer(set: SetRecord): number | null {
+  return zonesNow(set)[set.serve?.received ? 1 : 0] ?? null;
+}
+
+/**
+ * The rotation after a touch of the keypad, or null when it does not change.
+ * A reception means the opponent served. A serve puts whoever serves in zone 1
+ * (when the keypad follows the rotation): one place on after a reception, any
+ * number chosen by hand otherwise (the opponent missed their serve: no
+ * reception tells), turning the lineup as far as needed.
+ */
+export function serveAfter(set: SetRecord, number: number, kind: RowKind, code: ScoutCodeString, rotate: boolean): ServeState | null {
+  const now = set.serve ?? NO_SERVE;
+  if (code.startsWith('R')) return now.received ? null : { ...now, received: true };
+  if (!code.startsWith('B') || kind !== 'player') return null;
+  const place = courtNow(set).indexOf(number);
+  const next: ServeState = { rotation: rotate && place >= 0 ? place : now.rotation, received: false };
+  return next.rotation === now.rotation && next.received === now.received ? null : next;
+}
+
+/** Sets (or, with null, clears) the rotation of a set. */
+export function setServe(record: MatchRecord, set: SetNumber, serve: ServeState | null): MatchRecord {
+  const target = record.sets.find((s) => s.number === set);
+  if (!target) return record;
+  const { serve: _, ...rest } = target;
+  return replaceSet(record, serve ? { ...rest, serve } : rest);
 }
 
 /** A substitution in a set: the entering number takes the place of the leaving one. */

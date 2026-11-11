@@ -127,12 +127,15 @@ function readSet(v: unknown): SetRecord | null {
     : null;
   const lineup = readLineup(v.lineup);
   const subs = readSubs(v.subs);
+  const turned = isObject(v.serve) ? count(v.serve.rotation) : null;
+  const serve = isObject(v.serve) && turned !== null && turned < 6 ? { rotation: turned, received: v.serve.received === true } : null;
   return {
     number: v.number as SetNumber,
     score,
     rows: v.rows.map(readRow).filter((r): r is TallyRowRecord => r !== null),
     ...(lineup && { lineup }),
     ...(subs.length && { subs }),
+    ...(serve && { serve }),
   };
 }
 
