@@ -4811,3 +4811,99 @@ output.vr-sub-name {
     order: 1;
   }
 }
+
+/* Lineup: "Rotate when the serve changes" with its explanation on request, over the dialog. */
+.vr-lineup-rotate {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.vr-info-button {
+  flex-shrink: 0;
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 2px solid var(--vr-navy);
+  border-radius: 50%;
+  background: var(--vr-surface);
+  color: var(--vr-navy);
+  font: inherit;
+  font-weight: 700;
+  font-style: italic;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.vr-info-popup {
+  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 0.4rem);
+  z-index: 2;
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.6rem;
+  background: var(--vr-navy);
+  color: #fff;
+  font-size: 0.85rem;
+  line-height: 1.35;
+  box-shadow: 0 8px 24px rgba(6, 40, 69, 0.3);
+}
+
+.vr-info-popup.open {
+  display: block;
+}
+
+@media (hover: hover) {
+  .vr-info-button:hover + .vr-info-popup,
+  .vr-info-button:focus-visible + .vr-info-popup {
+    display: block;
+  }
+}
+
+/* The lineup fits short screens: tighter fields, zones and liberos side by side when the screen is wide and low. */
+.vr-lineup input {
+  padding: 0.35rem;
+}
+
+@media (max-height: 700px) {
+  .vr-live-dialog:has(.vr-lineup) {
+    gap: 0.4rem;
+  }
+
+  .vr-live-dialog:has(.vr-lineup) h2 {
+    font-size: 1.1rem;
+  }
+
+  .vr-live-dialog:has(.vr-lineup) > p {
+    font-size: 0.8rem;
+    line-height: 1.25;
+  }
+
+  .vr-lineup {
+    gap: 0.3rem 0.5rem;
+    padding: 0.3rem 0.6rem 0.5rem;
+  }
+
+  .vr-lineup input {
+    padding: 0.2rem;
+    font-size: 1.05rem;
+  }
+
+  .vr-lineup input.vr-lineup-name {
+    padding: 0.15rem;
+  }
+
+  .vr-lineup > span {
+    gap: 0.15rem;
+  }
+}
+
+/* A phone on its side, very low: the introduction of the lineup gives its line to the fields. */
+@media (max-height: 400px) {
+  .vr-live-dialog:has(.vr-lineup) > p:not(.vr-live-warning):not(.vr-info-popup) {
+    display: none;
+  }
+}

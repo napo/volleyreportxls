@@ -546,7 +546,7 @@ export function LiveSheetView({ id }: { id: string }) {
     const done = bumpShirt(record, view, number, kind, code, known);
     if (!done) return;
     // A reception or a serve moves the rotation on; the step remembers where it was, for "Undo".
-    const serve = serveAfter(set, number, kind, code, rotate);
+    const serve = serveAfter(set, number, kind, code);
     applied(serve ? { record: setServe(done.record, view, serve), touch: { ...done.touch, serveBefore: set.serve ?? null } as Touch } : done);
   };
   // The keypad needs who is on court: asked when a set without a lineup is opened with the keypad.
@@ -764,7 +764,7 @@ export function LiveSheetView({ id }: { id: string }) {
           subsCount={set.subs?.length ?? 0}
           onSubstitute={(chosen) => setSubstituting(chosen)}
           nameOf={(n) => playerName(record, n)}
-          zones={set.lineup ? zonesNow(set) : proposedLineup(record, view).court}
+          zones={!set.lineup ? proposedLineup(record, view).court : rotate ? zonesNow(set) : courtNow(set)}
           rotate={rotate}
           server={set.lineup ? expectedServer(set) : null}
           situation={{ set: teamIndicators([set]), match: teamIndicators(setsUpTo(record, view)), facts: setFacts(set) }}

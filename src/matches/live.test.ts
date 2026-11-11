@@ -191,8 +191,8 @@ describe('rotation followed by the keypad', () => {
   const start = () => setLineup(newMatchRecord(), 1, { court: [1, 2, 3, 4, 5, 6], liberos: [9] });
   const first = (record: MatchRecord) => record.sets.find((s) => s.number === 1)!;
   /** A touch of the keypad with its effect on the rotation, as the live sheet applies it. */
-  const play = (record: MatchRecord, number: number, code: 'B+' | 'B#' | 'R+' | 'A#', rotate = true) => {
-    const next = serveAfter(first(record), number, 'player', code as never, rotate);
+  const play = (record: MatchRecord, number: number, code: 'B+' | 'B#' | 'R+' | 'A#') => {
+    const next = serveAfter(first(record), number, 'player', code as never);
     return next ? setServe(record, 1, next) : record;
   };
 
@@ -229,12 +229,10 @@ describe('rotation followed by the keypad', () => {
     expect(zonesNow(first(record))).toEqual([4, 5, 6, 1, 2, 3]);
   });
 
-  test('a substitution keeps the zone; without the option nothing rotates; a new lineup starts again', () => {
+  test('a substitution keeps the zone; a new lineup starts again', () => {
     let record = play(play(start(), 1, 'R+'), 2, 'B+');
     record = substitute(record, 1, { out: 2, in: 12 });
     expect(zonesNow(first(record))).toEqual([12, 3, 4, 5, 6, 1]);
-    const still = play(play(start(), 1, 'R+', false), 2, 'B+', false);
-    expect(zonesNow(first(still))).toEqual([1, 2, 3, 4, 5, 6]);
     expect(first(setLineup(record, 1, { court: [6, 5, 4, 3, 2, 1], liberos: [] })).serve).toBeUndefined();
   });
 });

@@ -48,9 +48,9 @@ export interface KeypadProps {
   readonly situation: Situation;
   /** Who is in each zone now, zone 1 first: the keys are laid out as the court (4 3 2 at the net, 5 6 1 behind). */
   readonly zones: readonly (number | null)[];
-  /** The keys follow the rotation: whoever serves goes to zone 1 and is chosen with "Serve". */
+  /** The keys move with the rotation (whoever serves goes to zone 1); otherwise they stay where the lineup put them. */
   readonly rotate: boolean;
-  /** Who is expected to serve next (zone 1, or zone 2 after a reception). */
+  /** Who is expected to serve next (zone 1, or zone 2 after a reception): chosen with "Serve", whether the keys move or not. */
   readonly server: number | null;
 }
 
@@ -108,8 +108,8 @@ export function LiveKeypad({ set, lineup, untracked, order, locked, last, canUnd
     const code = active && only(active.kind, s);
     if (active && code) return enter(active, code);
     setSkill(skill === s ? null : s);
-    // Following the rotation, "Serve" alone already knows who serves.
-    if (rotate && s === 'B' && skill !== 'B' && !active && server !== null) setChosen({ number: server, kind: 'player' });
+    // The rotation is always followed: "Serve" alone already knows who serves.
+    if (s === 'B' && skill !== 'B' && !active && server !== null) setChosen({ number: server, kind: 'player' });
   };
   const chooseKey = (key: Chosen) => {
     const kept = skill && fits(key.kind, skill) ? skill : null;
@@ -162,7 +162,7 @@ export function LiveKeypad({ set, lineup, untracked, order, locked, last, canUnd
             aria-pressed={!!key && chosen?.number === key.number && chosen.kind === key.kind}
             onClick={() => key && chooseKey(key)}
           >
-            {zone !== null && <small className="vr-keypad-zone" aria-label={t.zone(zone)}>{t.zoneShort(zone)}</small>}
+            {zone !== null && rotate && <small className="vr-keypad-zone" aria-label={t.zone(zone)}>{t.zoneShort(zone)}</small>}
             {key && nameOf(key.number) && <small className="vr-keypad-name">{nameOf(key.number)}</small>}
             {key ? key.number : ''}
             {zone === null && <small>{t.libero}</small>}
@@ -292,6 +292,7 @@ export function LineupDialog({
   const [liberos, setLiberos] = useState<string[]>(Array.from({ length: 2 }, (_, i) => (proposed.liberos[i] !== undefined ? String(proposed.liberos[i]) : '')));
   const [names, setNames] = useState<ReadonlyMap<number, string>>(new Map());
   const [rotate, setRotate] = useState(initialRotate);
+  const [explaining, setExplaining] = useState(false);
   const nameFor = (value: string) => (value === '' ? '' : (names.get(Number(value)) ?? nameOf(Number(value))));
   const digits = (text: string) => text.replace(/\D/g, '').slice(0, 2);
   const numbers = (list: string[]) => list.filter((x) => x !== '').map(Number);
@@ -343,12 +344,19 @@ export function LineupDialog({
             <span key={i}>{field(value, t.liberoPlace(i + 1), (v) => setLiberos((c) => c.map((x, j) => (j === i ? v : x))))}</span>
           ))}
         </fieldset>
-        <label className="vr-check">
-          <input type="checkbox" checked={rotate} onChange={(e) => setRotate(e.target.checked)} />
-          <span>
-            <strong>{t.rotate}</strong> {t.rotateText}
-          </span>
-        </label>
+        <div className="vr-lineup-rotate">
+          <label className="vr-check">
+            <input type="checkbox" checked={rotate} onChange={(e) => setRotate(e.target.checked)} />
+            <strong>{t.rotate}</strong>
+          </label>
+          {/* What it does, on request: a tap on touch screens, the pointer over it elsewhere. */}
+          <button type="button" className="vr-info-button" aria-expanded={explaining} aria-controls="vr-lineup-rotate-text" aria-label={t.rotateInfo} onClick={() => setExplaining((e) => !e)}>
+            i
+          </button>
+          <p id="vr-lineup-rotate-text" className={`vr-info-popup${explaining ? ' open' : ''}`} role="note">
+            {t.rotateText}
+          </p>
+        </div>
         {repeated && (
           <p className="vr-live-warning" role="status">
             {t.lineupRepeated}
