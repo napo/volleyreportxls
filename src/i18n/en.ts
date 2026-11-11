@@ -458,7 +458,7 @@ export const en: Messages = {
     zoneShort: (n: number) => `Z${n}`,
     rotate: 'Rotate when the serve changes',
     rotateInfo: 'What "Rotate when the serve changes" does',
-    rotateText: 'Tapping "Serve", whoever is due to serve is always already chosen: after a reception it is the next in the rotation; if another number serves, tap it. With this option the keys move too: whoever serves goes to zone 1 and the others rotate. Without it, the keys stay where you put them.',
+    rotateText: 'Tapping "Serve", whoever is due to serve is always already chosen: after a reception or a missed serve of ours it is the next in the rotation; if another number serves, tap it. With this option the keys move too: whoever serves goes to zone 1 and the others rotate. Without it, the keys stay where you put them.',
     onCourt: 'On court',
     liberos: 'Liberos',
     courtPlace: (n: number) => `On court, zone ${n}`,
@@ -790,7 +790,7 @@ export const en: Messages = {
             q: 'Does the keypad follow zones and rotation?',
             a: [
               'The six keys of the numbers on court are laid out as the zones: 4 3 2 at the net, 5 6 1 behind; the liberos keep their keys on the right. In "Lineup" you write the numbers zone by zone.',
-              'The keypad always follows the rotation: if you record a reception after our serve, the opponent served, and tapping "Serve" you find the next in the rotation already chosen. In "Lineup" you can turn on "Rotate when the serve changes" (off at first: the keys stay where you put them): when on the keys move too, and whoever serves is always in zone 1.',
+              'The keypad always follows the rotation: if you record a reception after our serve, or our serve is missed, the opponent served, and tapping "Serve" you find the next in the rotation already chosen. In "Lineup" you can turn on "Rotate when the serve changes" (off at first: the keys stay where you put them): when on the keys move too, and whoever serves is always in zone 1.',
               'If the serve changes without a reception of ours, for example because the opponent missed their serve, tap "Serve" and then the number of who serves: the rotation goes on from there. "Undo" takes the rotation back too.',
             ],
           },

@@ -196,8 +196,8 @@ export function zonesNow(set: SetRecord): (number | null)[] {
 
 /**
  * Who is expected to serve next: whoever is in zone 1, or in zone 2 when the
- * opponent served since our last serve (a reception was recorded): winning
- * the serve back rotates.
+ * opponent served since our last serve (a reception was recorded, or our
+ * serve was missed): winning the serve back rotates.
  */
 export function expectedServer(set: SetRecord): number | null {
   return zonesNow(set)[set.serve?.received ? 1 : 0] ?? null;
@@ -205,7 +205,7 @@ export function expectedServer(set: SetRecord): number | null {
 
 /**
  * The rotation after a touch of the keypad, or null when it does not change.
- * A reception means the opponent served. A serve puts whoever serves in zone 1:
+ * A reception, or a serve of ours missed, means the opponent serves. A serve puts whoever serves in zone 1:
  * one place on after a reception, any number chosen by hand otherwise (the
  * opponent missed their serve: no reception tells), turning the lineup as far
  * as needed. It is always followed, to know who serves next; whether the keys
@@ -216,7 +216,8 @@ export function serveAfter(set: SetRecord, number: number, kind: RowKind, code: 
   if (code.startsWith('R')) return now.received ? null : { ...now, received: true };
   if (!code.startsWith('B') || kind !== 'player') return null;
   const place = courtNow(set).indexOf(number);
-  const next: ServeState = { rotation: place >= 0 ? place : now.rotation, received: false };
+  // A missed serve gives the ball away as a reception does: our next serve comes after a rotation.
+  const next: ServeState = { rotation: place >= 0 ? place : now.rotation, received: code === 'B=' };
   return next.rotation === now.rotation && next.received === now.received ? null : next;
 }
 

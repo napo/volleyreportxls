@@ -37,8 +37,9 @@ export interface SetRecord {
 /**
  * The rotation of the six on court, as the keypad follows it: how many places
  * the lineup has turned since the start of the set (0–5: the one who started
- * in zone `rotation + 1` is now in zone 1), and whether a reception was
- * recorded since our last serve (the opponent served: our next serve rotates).
+ * in zone `rotation + 1` is now in zone 1), and whether the opponent served
+ * since our last serve (a reception was recorded, or our serve was missed:
+ * our next serve rotates).
  */
 export interface ServeState {
   readonly rotation: number;

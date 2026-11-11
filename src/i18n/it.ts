@@ -458,7 +458,7 @@ export const it = {
     zoneShort: (n: number) => `Z${n}`,
     rotate: 'Ruota al cambio di servizio',
     rotateInfo: 'Cosa fa "Ruota al cambio di servizio"',
-    rotateText: 'Toccando "Battuta" chi deve battere è sempre già selezionato: dopo una ricezione tocca a chi segue nella rotazione; se batte un altro numero, toccalo. Con questa opzione anche i tasti si spostano: chi batte va in zona 1 e gli altri ruotano. Senza, i tasti restano dove li hai messi.',
+    rotateText: 'Toccando "Battuta" chi deve battere è sempre già selezionato: dopo una ricezione o un nostro errore in battuta tocca a chi segue nella rotazione; se batte un altro numero, toccalo. Con questa opzione anche i tasti si spostano: chi batte va in zona 1 e gli altri ruotano. Senza, i tasti restano dove li hai messi.',
     onCourt: 'In campo',
     liberos: 'Liberi',
     courtPlace: (n: number) => `In campo, zona ${n}`,
@@ -755,7 +755,7 @@ export const it = {
             q: 'Il tastierino segue le zone e la rotazione?',
             a: [
               'I sei tasti dei numeri in campo sono disposti come le zone: 4 3 2 a rete, 5 6 1 dietro; i liberi restano nei loro tasti a destra. In "Formazione" scrivi i numeri zona per zona.',
-              'Il tastierino segue sempre la rotazione: se dopo una nostra battuta registri una ricezione, vuol dire che ha battuto la squadra avversaria, e toccando "Battuta" trovi già selezionato chi segue nella rotazione. In "Formazione" puoi attivare "Ruota al cambio di servizio" (all’inizio è spento: i tasti restano dove li hai messi): da attivo anche i tasti si spostano, e chi batte è sempre in zona 1.',
+              'Il tastierino segue sempre la rotazione: se dopo una nostra battuta registri una ricezione, o se la nostra battuta è un errore, vuol dire che ha battuto la squadra avversaria, e toccando "Battuta" trovi già selezionato chi segue nella rotazione. In "Formazione" puoi attivare "Ruota al cambio di servizio" (all’inizio è spento: i tasti restano dove li hai messi): da attivo anche i tasti si spostano, e chi batte è sempre in zona 1.',
               'Se la battuta cambia senza una nostra ricezione, per esempio perché la squadra avversaria ha sbagliato il servizio, tocca "Battuta" e poi il numero di chi batte: la rotazione riparte da lì. "Annulla" riporta indietro anche la rotazione.',
             ],
           },

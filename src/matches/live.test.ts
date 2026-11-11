@@ -191,7 +191,7 @@ describe('rotation followed by the keypad', () => {
   const start = () => setLineup(newMatchRecord(), 1, { court: [1, 2, 3, 4, 5, 6], liberos: [9] });
   const first = (record: MatchRecord) => record.sets.find((s) => s.number === 1)!;
   /** A touch of the keypad with its effect on the rotation, as the live sheet applies it. */
-  const play = (record: MatchRecord, number: number, code: 'B+' | 'B#' | 'R+' | 'A#') => {
+  const play = (record: MatchRecord, number: number, code: 'B+' | 'B#' | 'B=' | 'R+' | 'A#') => {
     const next = serveAfter(first(record), number, 'player', code as never);
     return next ? setServe(record, 1, next) : record;
   };
@@ -216,6 +216,15 @@ describe('rotation followed by the keypad', () => {
     record = play(record, 2, 'B+');
     expect(zonesNow(first(record))).toEqual([2, 3, 4, 5, 6, 1]);
     expect(first(record).serve).toEqual({ rotation: 1, received: false });
+  });
+
+  test('an ace keeps the server; a missed serve gives the ball away: the next serve rotates, reception or not', () => {
+    expect(expectedServer(first(play(start(), 1, 'B#')))).toBe(1);
+    let record = play(start(), 1, 'B=');
+    expect(expectedServer(first(record))).toBe(2);
+    record = play(record, 2, 'B+');
+    expect(zonesNow(first(record))).toEqual([2, 3, 4, 5, 6, 1]);
+    expect(expectedServer(first(record))).toBe(2);
   });
 
   test('the opponent serves first: our first serve is from who started in zone 2', () => {
