@@ -33,8 +33,17 @@ const replaceSet = (record: MatchRecord, set: SetRecord): MatchRecord => ({
 /**
  * Adds `delta` to a count (never below zero). Returns the record and the touch
  * as applied, or null when nothing changes (removing from an empty cell).
+ * The set keeps the touches in order with their time (`at`): one added is
+ * written at the end, one taken away removes the latest one of that cell.
  */
-export function bump(record: MatchRecord, set: SetNumber, rowId: string, code: ScoutCodeString, delta: number): { record: MatchRecord; touch: Touch } | null {
+export function bump(
+  record: MatchRecord,
+  set: SetNumber,
+  rowId: string,
+  code: ScoutCodeString,
+  delta: number,
+  at: number = Date.now(),
+): { record: MatchRecord; touch: Touch } | null {
   const target = record.sets.find((s) => s.number === set);
   const row = target?.rows.find((r) => r.id === rowId);
   if (!target || !row) return null;
@@ -45,7 +54,14 @@ export function bump(record: MatchRecord, set: SetNumber, rowId: string, code: S
   if (next === 0) delete counts[code];
   else counts[code] = next;
   const rows = target.rows.map((r) => (r.id === rowId ? { ...r, counts } : r));
-  return { record: replaceSet(record, { ...target, rows }), touch: { set, rowId, code, delta: next - current } };
+  let log = [...(target.log ?? [])];
+  for (let n = current; n < next; n++) log.push({ at, row: rowId, code });
+  for (let n = current; n > next; n--) {
+    const latest = log.map((entry) => entry.row === rowId && entry.code === code).lastIndexOf(true);
+    if (latest >= 0) log = log.filter((_, i) => i !== latest);
+  }
+  const { log: _, ...rest } = target;
+  return { record: replaceSet(record, { ...rest, rows, ...(log.length && { log }) }), touch: { set, rowId, code, delta: next - current } };
 }
 
 /** Takes back a touch. */

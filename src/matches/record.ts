@@ -35,6 +35,15 @@ export interface SetRecord {
   readonly serve?: ServeState;
   /** Attack on reception, counter-attack, side-outs and break points of the touches entered with the keypad. */
   readonly phases?: PhaseStats;
+  /** The touches entered on the screen (keypad or grid), in order, each with its time: what a video can be matched to. */
+  readonly log?: readonly LoggedTouch[];
+}
+
+/** A touch entered on the screen: when (milliseconds since the epoch), on which row, with which code. */
+export interface LoggedTouch {
+  readonly at: number;
+  readonly row: string;
+  readonly code: ScoutCodeString;
 }
 
 /**

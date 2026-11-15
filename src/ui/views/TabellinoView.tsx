@@ -17,6 +17,7 @@ import { type ShareSection, forSharing } from '../../share/payload';
 import type { Archive } from '../../storage/archive';
 import { useArchive } from '../archive-context';
 import { ShareBox, ShareButton } from '../components/ShareDialog';
+import { DvwButton } from '../components/DvwButton';
 
 /** The match as a link carries it: names only if the user wants them. */
 export async function sharedMatch(archive: Archive | null, recordId: string, names: boolean, numbers: readonly number[] = []) {
@@ -158,6 +159,8 @@ export function TabellinoView({ report, shared }: Props) {
           <TabellinoPhases phases={tabellino.phases} />
         </section>
       )}
+
+      {report.recordId && !shared && <DvwButton recordId={report.recordId} />}
 
       {report.recordId && !shared && (
         <ShareBox>

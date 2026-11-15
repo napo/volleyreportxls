@@ -557,6 +557,17 @@ export const it = {
   evaluationNames: { '#': 'doppio più', '+': 'più', '!': 'esclamativo', '-': 'meno', '/': 'barra', '=': 'doppio meno' } as Record<Evaluation, string>,
 
   /** Column headers and labels of the scoresheet, on screen and in the PDF (DataVolley abbreviations). */
+  /** The match as a DataVolley file for OpenVolleyScout (video analysis). */
+  dvw: {
+    title: 'Analisi video con OpenVolleyScout',
+    text: 'I tocchi inseriti sullo schermo hanno un ordine e un orario: scarica la partita come file DataVolley (.dvw), importala in OpenVolleyScout, associa il video e indica il primo tocco. Potrai rivedere, per esempio, tutte le battute sbagliate di un numero. Il punteggio scambio per scambio è ricostruito dall’ordine dei tocchi; nel file c’è solo la tua squadra.',
+    download: 'Scarica il file .dvw',
+    failed: 'Non è stato possibile preparare il file.',
+    set: (set: number, touches: number, team: number, opponent: number) => `Set ${set}: ${plural(touches, 'tocco', 'tocchi')}, punteggio ricostruito ${team}-${opponent}.`,
+    scoreDiffers: (team: number, opponent: number) => `Il punteggio scritto è ${team}-${opponent}: qualche battuta o ricezione non è stata inserita, o non in ordine.`,
+    missing: (n: number) => `${plural(n, 'tocco è solo nei conteggi e non è nel file', 'tocchi sono solo nei conteggi e non sono nel file')}.`,
+  },
+
   scoresheet: {
     title: 'Tabellino',
     titleSet: (set: number) => `Tabellino · Set ${set}`,
@@ -799,6 +810,15 @@ export const it = {
               'Sì, per le partite rilevate con il tastierino, che segue l’ordine dei tocchi nello scambio. In fondo al tabellino e nel PDF compare "Cambio palla e break point", come nel tabellino DataVolley: l’attacco su ricezione positiva (#, +) e negativa (!, -), cioè il primo attacco dopo la ricezione; il contrattacco, cioè tutti gli altri attacchi; i punti CP, gli scambi vinti in ricezione; i punti BP, quelli vinti in battuta.',
               'Uno scambio vinto per errore della squadra avversaria si riconosce da quello che segue: dopo una ricezione tocca a noi battere, oppure ribatte la stessa persona. Dopo R= e R/ non c’è attacco su ricezione. Per avere numeri affidabili inserisci i tocchi nell’ordine in cui avvengono.',
               'I fogli di carta e i tocchi fatti sulla griglia non hanno un ordine: restano nei conteggi, ma non entrano in questa sezione.',
+            ],
+          },
+          {
+            id: 'video',
+            q: 'Posso rivedere al video le azioni rilevate?',
+            a: [
+              'Sì, con OpenVolleyScout. Quando i tocchi sono inseriti sullo schermo (tastierino o griglia), l’app ne conserva l’ordine e l’orario. Nel tabellino trovi "Analisi video con OpenVolleyScout": scarica il file DataVolley (.dvw), importalo in OpenVolleyScout, associa il video e indica dove si trova il primo tocco. Da lì filtri le azioni, per esempio tutte le battute sbagliate di un numero, e le rivedi una dopo l’altra.',
+              'Nel file c’è solo la tua squadra. Il punteggio scambio per scambio è ricostruito dall’ordine dei tocchi: perché torni con quello vero servono tutte le battute e tutte le ricezioni, inserite nell’ordine in cui avvengono. Dopo il download l’app dice, set per set, il punteggio ricostruito e se è diverso da quello scritto.',
+              'L’orario è quello del tocco sullo schermo, qualche secondo dopo l’azione: in OpenVolleyScout si compensa con il ritardo per fondamentale e con il margine prima della clip. I fogli di carta e le partite rilevate prima di questa versione non hanno un ordine dei tocchi e non si possono esportare.',
             ],
           },
           {

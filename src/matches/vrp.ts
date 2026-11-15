@@ -20,7 +20,7 @@ import { SET_NUMBERS, type SetNumber } from '../domain/model';
 import type { AttackTally, PhaseStats } from '../domain/phases';
 import type { Athlete } from '../athletes/matching';
 import { type Squad, normalizeTeam } from '../athletes/squads';
-import { type Lineup, type MatchRecord, type Rally, type Substitution, OPTIONAL_CODES, type PlayerRecord, type SetRecord, type TallyRowRecord } from './record';
+import { type LoggedTouch, type Lineup, type MatchRecord, type Rally, type Substitution, OPTIONAL_CODES, type PlayerRecord, type SetRecord, type TallyRowRecord } from './record';
 
 export const VRP_EXTENSION = 'vrp';
 export const VRP_MEDIA_TYPE = 'application/zip';
@@ -147,6 +147,17 @@ function readPhases(v: unknown): PhaseStats | null {
   return { onPositive, onNegative, counter, receptions, sideOuts, serves, breakPoints };
 }
 
+/** The touches entered on the screen, in order: time, row and code, at most 5,000 in a set. */
+function readLog(v: unknown): LoggedTouch[] {
+  if (!Array.isArray(v)) return [];
+  return v
+    .flatMap((entry) => {
+      if (!isObject(entry) || typeof entry.at !== 'number' || !Number.isFinite(entry.at) || typeof entry.row !== 'string' || typeof entry.code !== 'string') return [];
+      return KNOWN_CODES.has(entry.code) ? [{ at: entry.at, row: text(entry.row, 40), code: entry.code as ScoutCodeString }] : [];
+    })
+    .slice(0, 5000);
+}
+
 function readSet(v: unknown): SetRecord | null {
   if (!isObject(v) || !SET_NUMBERS.includes(v.number as SetNumber) || !Array.isArray(v.rows)) return null;
   const score = isObject(v.score) && count(v.score.team) !== null && count(v.score.opponent) !== null
@@ -158,6 +169,8 @@ function readSet(v: unknown): SetRecord | null {
   const rally = isObject(v.serve) ? readRally(v.serve.rally) : null;
   const serve = isObject(v.serve) && turned !== null && turned < 6 ? { rotation: turned, received: v.serve.received === true, ...(rally && { rally }) } : null;
   const phases = readPhases(v.phases);
+  const rowIds = new Set(v.rows.map((r: unknown) => (isObject(r) ? r.id : null)));
+  const log = readLog(v.log).filter((entry) => rowIds.has(entry.row));
   return {
     number: v.number as SetNumber,
     score,
@@ -166,6 +179,7 @@ function readSet(v: unknown): SetRecord | null {
     ...(subs.length && { subs }),
     ...(serve && { serve }),
     ...(phases && { phases }),
+    ...(log.length && { log }),
   };
 }
 
