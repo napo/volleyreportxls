@@ -8,6 +8,7 @@
 import { useEffect, useState } from 'react';
 import type { ScoutCodeString } from '../../domain/codes';
 import { type RowKind, type SetRecord, type TallyRowRecord, emptyRow } from '../../matches/record';
+import { setManualCount } from '../../matches/live';
 import { useI18n } from '../../i18n';
 import { CountsByPlayer } from './CountsByPlayer';
 import { CountsTable } from './CountsTable';
@@ -44,7 +45,7 @@ export function CountsEditor({ set, onChange }: { set: SetRecord; onChange: (set
     onChange({ ...set, rows: set.rows.map((row) => (row.id === id ? change(row) : row)) });
   const props: CountsViewProps = {
     set,
-    onCount: (id, code, count) => update(id, (row) => ({ ...row, counts: { ...row.counts, [code]: Math.max(0, count) } })),
+    onCount: (id, code, count) => onChange(setManualCount(set, id, code, count)),
     onNumber: (id, playerNumber) => update(id, (row) => ({ ...row, playerNumber })),
     onRemove: (id) => onChange({ ...set, rows: set.rows.filter((row) => row.id !== id) }),
     onAdd: (kind) => {

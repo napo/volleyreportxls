@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { buildDvw, hasDvwData, likelySetter } from './dvw';
-import { bump, bumpShirt, closeSet, setLineup, substitute } from './live';
+import { bump, bumpShirt, closeSet, setLineup, setManualCount, substitute } from './live';
 import { type MatchRecord, newMatchRecord } from './record';
 
 /** Touches as "number code", seven seconds apart, as the keypad enters them (number 9 is the libero). */
@@ -103,4 +103,26 @@ test('the setter chosen by the user wins over the one worked out, when among the
   // A number that does not start the set is not taken: back to the one worked out.
   const wrong = { ...base, sets: base.sets.map((s) => (s.number === 1 ? { ...s, setter: 77 } : s)) };
   expect(scout(wrong)[0]![0]).toBe('*P02>LUp');
+});
+
+test('a substitute of the previous server keeps the serve; a substitution in another place does not', () => {
+  const samePlace = scouted('1 B+', 'sub 1:12', '12 B#');
+  expect(buildDvw(samePlace, 0).sets[0]!.rebuilt).toEqual({ team: 2, opponent: 0 });
+  expect(codes(samePlace)).toContain('*c01:12');
+  expect(codes(samePlace)).not.toContain('*$$&H#');
+
+  const otherPlace = scouted('1 B+', 'sub 2:12', '12 B#');
+  expect(buildDvw(otherPlace, 0).sets[0]!.rebuilt).toEqual({ team: 2, opponent: 1 });
+  // An explicit loss still wins over the inference from the next server.
+  const lost = scouted('1 B=', 'sub 1:12', '12 B#');
+  expect(buildDvw(lost, 0).sets[0]!.rebuilt).toEqual({ team: 2, opponent: 1 });
+});
+
+test('manual corrections remove exported touches; manual increases are reported as missing', () => {
+  const base = scouted('1 B#');
+  const set = base.sets[0]!;
+  const row = set.rows.find((r) => r.playerNumber === 1)!;
+  const corrected = (count: number) => ({ ...base, sets: base.sets.map((s) => s.number === 1 ? setManualCount(s, row.id, 'B#', count) : s) });
+  expect(hasDvwData(corrected(0))).toBe(false);
+  expect(buildDvw(corrected(3), 0).sets[0]).toMatchObject({ touches: 1, missing: 2, rebuilt: { team: 1, opponent: 0 } });
 });

@@ -3,8 +3,34 @@
 
 import { bump, checkScore, closeSet, currentSet, playerName, reachableSets, setMatchDetails, setPlayerName, setShirtNumber, undoTouch , bumpShirt, proposedLineup, setLineup, benchNumbers, courtNow, returnsDue, substitute, undoSubstitution, placeNumbers, canEnter, canLeave, substitutionState, serveAfter, setServe, zonesNow, expectedServer, followAfter, setFollowed, addPlayerRow, removePlayerRow} from './live';
 import { type MatchRecord, newMatchRecord } from './record';
+import { setManualCount } from './live';
 
 const firstRow = (record: MatchRecord, set = 1) => record.sets.find((s) => s.number === set)!.rows[0]!;
+
+test('manual corrections remove the latest matching touches and preserve other touches and their times', () => {
+  let record = newMatchRecord();
+  const row = firstRow(record).id;
+  const other = record.sets[0]!.rows[1]!.id;
+  record = bump(record, 1, row, 'B#', 1, 1000)!.record;
+  record = bump(record, 1, row, 'A#', 1, 2000)!.record;
+  record = bump(record, 1, other, 'B#', 1, 3000)!.record;
+  record = bump(record, 1, row, 'B#', 1, 4000)!.record;
+  const set = setManualCount(record.sets[0]!, row, 'B#', 1);
+  expect(set.rows[0]!.counts).toEqual({ 'B#': 1, 'A#': 1 });
+  expect(set.log).toEqual([
+    { at: 1000, row, code: 'B#' },
+    { at: 2000, row, code: 'A#' },
+    { at: 3000, row: other, code: 'B#' },
+  ]);
+  const increased = setManualCount(set, row, 'B#', 5);
+  expect(increased.rows[0]!.counts['B#']).toBe(5);
+  expect(increased.log).toEqual(set.log);
+  expect(setManualCount(set, row, 'B#', 0).rows[0]!.counts).toEqual({ 'A#': 1 });
+  const blank = newMatchRecord().sets[0]!;
+  const paper = setManualCount(blank, blank.rows[0]!.id, 'B#', 1);
+  expect(paper.rows[0]!.counts).toEqual({ 'B#': 1 });
+  expect(paper.log).toBeUndefined();
+});
 
 test('a touch adds one to the cell, a long press takes one away, never below zero', () => {
   const record = newMatchRecord();

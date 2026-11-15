@@ -164,7 +164,11 @@ function scoutSet(record: MatchRecord, set: SetRecord, start: number, lines: str
     const open: Rally = rally;
     let winner = open.winner;
     if (!winner && next) {
-      if (open.phase === 'serve') winner = next.skill === 'B' && next.number === open.server ? 'team' : 'opponent';
+      if (open.phase === 'serve') {
+        // A substitute serving in the previous server's place also means we kept the serve.
+        const replacesServer = !court.includes(next.number) && pending.some((s) => s.out === open.server && s.in === next.number && court.includes(s.out));
+        winner = next.skill === 'B' && (next.number === open.server || replacesServer) ? 'team' : 'opponent';
+      }
       else winner = next.skill === 'B' ? 'team' : 'opponent';
     }
     if (!winner) {

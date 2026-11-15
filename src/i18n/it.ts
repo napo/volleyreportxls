@@ -561,7 +561,7 @@ export const it = {
   /** Column headers and labels of the scoresheet, on screen and in the PDF (DataVolley abbreviations). */
   /** The match as a DataVolley file for OpenVolleyScout (video analysis). */
   dvw: {
-    title: 'Analisi video con OpenVolleyScout',
+    title: 'Scarica dati in DVW',
     text: 'I tocchi inseriti sullo schermo hanno un ordine e un orario: scarica la partita come file DataVolley (.dvw), importala in OpenVolleyScout, associa il video e indica il primo tocco. Potrai rivedere, per esempio, tutte le battute sbagliate di un numero. Il punteggio scambio per scambio è ricostruito dall’ordine dei tocchi e chi alza è dedotto (chi non riceve e attacca meno); nel file c’è solo la tua squadra.',
     download: 'Scarica il file .dvw',
     failed: 'Non è stato possibile preparare il file.',
@@ -822,7 +822,7 @@ export const it = {
             id: 'video',
             q: 'Posso rivedere al video le azioni rilevate?',
             a: [
-              'Sì, con OpenVolleyScout. Quando i tocchi sono inseriti sullo schermo (tastierino o griglia), l’app ne conserva l’ordine e l’orario. Nel tabellino trovi "Analisi video con OpenVolleyScout": scarica il file DataVolley (.dvw), importalo in OpenVolleyScout, associa il video e indica dove si trova il primo tocco. Da lì filtri le azioni, per esempio tutte le battute sbagliate di un numero, e le rivedi una dopo l’altra.',
+              'Sì, con OpenVolleyScout. Quando i tocchi sono inseriti sullo schermo (tastierino o griglia), l’app ne conserva l’ordine e l’orario. Nel tabellino trovi "Scarica dati in DVW": scarica il file DataVolley (.dvw). Importa il file in OpenVolleyScout per elaborarlo, poi associa il video e indica dove si trova il primo tocco. Da lì filtri le azioni, per esempio tutte le battute sbagliate di un numero, e le rivedi una dopo l’altra.',
               'Nel file c’è solo la tua squadra. Il punteggio scambio per scambio è ricostruito dall’ordine dei tocchi: perché torni con quello vero servono tutte le battute e tutte le ricezioni, inserite nell’ordine in cui avvengono. Dopo il download l’app dice, set per set, il punteggio ricostruito e se è diverso da quello scritto.',
               'L’orario è quello del tocco sullo schermo, qualche secondo dopo l’azione: in OpenVolleyScout si compensa con il ritardo per fondamentale e con il margine prima della clip. I fogli di carta e le partite rilevate prima di questa versione non hanno un ordine dei tocchi e non si possono esportare.',
             ],

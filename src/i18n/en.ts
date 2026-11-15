@@ -596,7 +596,7 @@ export const en: Messages = {
   evaluationNames: { '#': 'double plus', '+': 'plus', '!': 'exclamation', '-': 'minus', '/': 'slash', '=': 'double minus' },
 
   dvw: {
-    title: 'Video analysis with OpenVolleyScout',
+    title: 'Download data in DVW',
     text: 'The touches entered on the screen have an order and a time: download the match as a DataVolley file (.dvw), import it into OpenVolleyScout, link the video and mark the first touch. You can then review, for example, every missed serve of a number. The score rally by rally is rebuilt from the order of the touches and the setter is worked out (who does not receive and attacks the least); only your team is in the file.',
     download: 'Download the .dvw file',
     failed: 'The file could not be prepared.',
@@ -856,7 +856,7 @@ export const en: Messages = {
             id: 'video',
             q: 'Can I review the scouted actions on video?',
             a: [
-              'Yes, with OpenVolleyScout. When the touches are entered on the screen (keypad or grid), the app keeps their order and time. On the scoresheet you find "Video analysis with OpenVolleyScout": download the DataVolley file (.dvw), import it into OpenVolleyScout, link the video and mark where the first touch is. From there you filter the actions, for example every missed serve of a number, and review them one after the other.',
+              'Yes, with OpenVolleyScout. When the touches are entered on the screen (keypad or grid), the app keeps their order and time. On the scoresheet you find "Download data in DVW": download the DataVolley file (.dvw). Import the file into OpenVolleyScout to process it, then link the video and mark where the first touch is. From there you filter the actions, for example every missed serve of a number, and review them one after the other.',
               'Only your team is in the file. The score rally by rally is rebuilt from the order of the touches: for it to match the real one, every serve and every reception must be entered, in the order they happen. After the download the app tells, set by set, the rebuilt score and whether it differs from the one written.',
               'The time is that of the touch on the screen, a few seconds after the action: in OpenVolleyScout you make up for it with the delay per skill and the padding before the clip. Paper sheets and matches scouted before this version have no order of the touches and cannot be exported.',
             ],

@@ -30,6 +30,28 @@ const replaceSet = (record: MatchRecord, set: SetRecord): MatchRecord => ({
   sets: record.sets.map((s) => (s.number === set.number ? set : s)),
 });
 
+/** Manual corrections have no time: decreases remove the latest touches of the cell, increases stay in the counts only. */
+export function setManualCount(set: SetRecord, rowId: string, code: ScoutCodeString, value: number): SetRecord {
+  const row = set.rows.find((r) => r.id === rowId);
+  if (!row) return set;
+  const next = Math.max(0, value);
+  const current = row.counts[code] ?? 0;
+  if (next === current) return set;
+  const counts = { ...row.counts };
+  if (next === 0) delete counts[code];
+  else counts[code] = next;
+  let remove = Math.max(0, current - next);
+  const log = [...(set.log ?? [])].reverse().filter((entry) => {
+    if (remove > 0 && entry.row === rowId && entry.code === code) {
+      remove -= 1;
+      return false;
+    }
+    return true;
+  }).reverse();
+  const { log: _, ...rest } = set;
+  return { ...rest, rows: set.rows.map((r) => r.id === rowId ? { ...r, counts } : r), ...(log.length && { log }) };
+}
+
 /**
  * Adds `delta` to a count (never below zero). Returns the record and the touch
  * as applied, or null when nothing changes (removing from an empty cell).
