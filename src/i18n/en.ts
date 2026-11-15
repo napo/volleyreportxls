@@ -595,10 +595,11 @@ export const en: Messages = {
 
   dvw: {
     title: 'Video analysis with OpenVolleyScout',
-    text: 'The touches entered on the screen have an order and a time: download the match as a DataVolley file (.dvw), import it into OpenVolleyScout, link the video and mark the first touch. You can then review, for example, every missed serve of a number. The score rally by rally is rebuilt from the order of the touches; only your team is in the file.',
+    text: 'The touches entered on the screen have an order and a time: download the match as a DataVolley file (.dvw), import it into OpenVolleyScout, link the video and mark the first touch. You can then review, for example, every missed serve of a number. The score rally by rally is rebuilt from the order of the touches and the setter is worked out (who does not receive and attacks the least); only your team is in the file.',
     download: 'Download the .dvw file',
     failed: 'The file could not be prepared.',
     set: (set: number, touches: number, team: number, opponent: number) => `Set ${set}: ${plural(touches, 'touch', 'touches')}, rebuilt score ${team}-${opponent}.`,
+    setter: (n: number) => `Setting, worked out from the touches: no. ${n}.`,
     scoreDiffers: (team: number, opponent: number) => `The score written is ${team}-${opponent}: some serve or reception was not entered, or not in order.`,
     missing: (n: number) => `${plural(n, 'touch is in the counts only and not in the file', 'touches are in the counts only and not in the file')}.`,
   },

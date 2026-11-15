@@ -79,6 +79,7 @@ export function DvwButton({ recordId }: { recordId: string }) {
           {sets.map((s) => (
             <li key={s.set}>
               {t.set(s.set, s.touches, s.rebuilt.team, s.rebuilt.opponent)}
+              {s.setter !== null && ` ${t.setter(s.setter)}`}
               {s.written && <strong> {t.scoreDiffers(s.written.team, s.written.opponent)}</strong>}
               {s.missing > 0 && <strong> {t.missing(s.missing)}</strong>}
             </li>

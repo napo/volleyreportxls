@@ -560,10 +560,11 @@ export const it = {
   /** The match as a DataVolley file for OpenVolleyScout (video analysis). */
   dvw: {
     title: 'Analisi video con OpenVolleyScout',
-    text: 'I tocchi inseriti sullo schermo hanno un ordine e un orario: scarica la partita come file DataVolley (.dvw), importala in OpenVolleyScout, associa il video e indica il primo tocco. Potrai rivedere, per esempio, tutte le battute sbagliate di un numero. Il punteggio scambio per scambio è ricostruito dall’ordine dei tocchi; nel file c’è solo la tua squadra.',
+    text: 'I tocchi inseriti sullo schermo hanno un ordine e un orario: scarica la partita come file DataVolley (.dvw), importala in OpenVolleyScout, associa il video e indica il primo tocco. Potrai rivedere, per esempio, tutte le battute sbagliate di un numero. Il punteggio scambio per scambio è ricostruito dall’ordine dei tocchi e chi alza è dedotto (chi non riceve e attacca meno); nel file c’è solo la tua squadra.',
     download: 'Scarica il file .dvw',
     failed: 'Non è stato possibile preparare il file.',
     set: (set: number, touches: number, team: number, opponent: number) => `Set ${set}: ${plural(touches, 'tocco', 'tocchi')}, punteggio ricostruito ${team}-${opponent}.`,
+    setter: (n: number) => `In alzata, dedotto dai tocchi: n. ${n}.`,
     scoreDiffers: (team: number, opponent: number) => `Il punteggio scritto è ${team}-${opponent}: qualche battuta o ricezione non è stata inserita, o non in ordine.`,
     missing: (n: number) => `${plural(n, 'tocco è solo nei conteggi e non è nel file', 'tocchi sono solo nei conteggi e non sono nel file')}.`,
   },

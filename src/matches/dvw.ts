@@ -40,6 +40,8 @@ export interface DvwSetReport {
   readonly rebuilt: { readonly team: number; readonly opponent: number };
   /** The score written when the set was closed, when it differs from the rebuilt one. */
   readonly written: { readonly team: number; readonly opponent: number } | null;
+  /** Who was taken as the setter at the start of the set (worked out from the touches); null when nobody is on court. */
+  readonly setter: number | null;
 }
 
 export interface DvwExport {
@@ -69,6 +71,33 @@ function touchesOf(set: SetRecord) {
 /** A match can be exported when some touches were entered on the screen with a shirt number. */
 export const hasDvwData = (record: MatchRecord) => record.sets.some((set) => touchesOf(set).length > 0);
 
+/**
+ * Who sets, worked out from the touches of the whole match: among the numbers
+ * given, whoever does not receive (fewer than a tenth of the team's
+ * receptions) and attacks the least; with a tie, the fewest points. Middles
+ * and the opposite do not receive either, but they attack.
+ */
+export function likelySetter(record: MatchRecord, among: readonly number[]): number | null {
+  const totals = new Map<number, { receptions: number; attacks: number; points: number }>();
+  for (const set of record.sets) {
+    for (const r of set.rows) {
+      if (r.playerNumber === null) continue;
+      const t = totals.get(r.playerNumber) ?? { receptions: 0, attacks: 0, points: 0 };
+      for (const [code, n] of Object.entries(r.counts)) {
+        if (code.startsWith('R')) t.receptions += n ?? 0;
+        if (code.startsWith('A')) t.attacks += n ?? 0;
+        if (code === 'A#' || code === 'B#' || code === 'M#') t.points += n ?? 0;
+      }
+      totals.set(r.playerNumber, t);
+    }
+  }
+  const of = (n: number) => totals.get(n) ?? { receptions: 0, attacks: 0, points: 0 };
+  const team = [...totals.values()].reduce((sum, t) => sum + t.receptions, 0);
+  const apart = among.filter((n) => of(n).receptions <= team / 10);
+  const pool = apart.length ? apart : among;
+  return [...pool].sort((a, b) => of(a).attacks - of(b).attacks || of(a).points - of(b).points || of(a).receptions - of(b).receptions)[0] ?? null;
+}
+
 interface Rally {
   readonly phase: 'serve' | 'reception';
   readonly server: number | null;
@@ -76,7 +105,7 @@ interface Rally {
   winner: 'team' | 'opponent' | null;
 }
 
-function scoutSet(set: SetRecord, start: number, lines: string[]): DvwSetReport {
+function scoutSet(record: MatchRecord, set: SetRecord, start: number, lines: string[]): DvwSetReport {
   const touches = touchesOf(set);
   // The six on court by zone (zone 1 first), turned at each side-out; liberos are not in the lineup.
   let court: (number | null)[] = Array.from({ length: 6 }, (_, i) => set.lineup?.court[i] ?? null);
@@ -86,8 +115,10 @@ function scoutSet(set: SetRecord, start: number, lines: string[]): DvwSetReport 
     court = Array.from({ length: 6 }, (_, i) => first[i] ?? null);
   }
   const pending = [...(set.subs ?? [])];
-  // DataVolley wants a setter: unknown here, so whoever starts in zone 1 stands for it.
-  const setter = court[0] ?? null;
+  // DataVolley wants a setter: not recorded here, worked out from the touches (see likelySetter).
+  const onCourt = () => court.filter((n): n is number => n !== null);
+  let setter = likelySetter(record, onCourt());
+  const startingSetter = setter;
   let at = touches[0]?.at ?? start;
   const score = { team: 0, opponent: 0 };
   let ourServe: boolean | null = null;
@@ -95,7 +126,7 @@ function scoutSet(set: SetRecord, start: number, lines: string[]): DvwSetReport 
   let written = 0;
 
   const line = (code: string, video = true) => {
-    const setterZone = Math.max(1, court.indexOf(setter) + 1);
+    const setterZone = Math.max(1, (setter === null ? -1 : court.indexOf(setter)) + 1);
     lines.push(
       row(code, '', '', '', '', '', '', clock(at), set.number, setterZone, 1, video ? 1 : '', video ? Math.max(0, Math.round((at - start) / 1000)) : '', '', ...court.map((n) => n ?? ''), '', '', '', '', '', ''),
     );
@@ -136,7 +167,7 @@ function scoutSet(set: SetRecord, start: number, lines: string[]): DvwSetReport 
   };
 
   line(`*P${two(setter ?? 0)}>LUp`, false);
-  line(`*z1>LUp`, false);
+  line(`*z${Math.max(1, (setter === null ? -1 : court.indexOf(setter)) + 1)}>LUp`, false);
 
   /** The substitutions made before a rally: whoever plays it without being on court came in for someone. */
   const substitutions = (from: number) => {
@@ -149,6 +180,11 @@ function scoutSet(set: SetRecord, start: number, lines: string[]): DvwSetReport 
       const [made] = pending.splice(sub, 1);
       line(`*c${two(made!.out)}:${two(made!.in)}`);
       court = court.map((n) => (n === made!.out ? made!.in : n));
+      // The setter went out: whoever sets now, among the six on court.
+      if (made!.out === setter) {
+        setter = likelySetter(record, onCourt());
+        if (setter !== null) line(`*P${two(setter)}`);
+      }
     }
   };
 
@@ -188,7 +224,7 @@ function scoutSet(set: SetRecord, start: number, lines: string[]): DvwSetReport 
 
   const counted = set.rows.reduce((n, r) => n + Object.values(r.counts).reduce((k: number, v) => k + (v ?? 0), 0), 0);
   const differs = set.score !== null && (set.score.team !== score.team || set.score.opponent !== score.opponent);
-  return { set: set.number, touches: written, missing: Math.max(0, counted - written), rebuilt: { ...score }, written: differs ? set.score : null };
+  return { set: set.number, touches: written, missing: Math.max(0, counted - written), rebuilt: { ...score }, written: differs ? set.score : null, setter: startingSetter };
 }
 
 /** The DataVolley scout file of a match, with what to know about each set written in it. */
@@ -196,7 +232,7 @@ export function buildDvw(record: MatchRecord, now = Date.now()): DvwExport {
   const sets = record.sets.filter((set) => touchesOf(set).length > 0);
   const start = Math.min(...sets.map((set) => touchesOf(set)[0]!.at));
   const scout: string[] = [];
-  const reports = sets.map((set) => scoutSet(set, start, scout));
+  const reports = sets.map((set) => scoutSet(record, set, start, scout));
 
   const won = (side: 'team' | 'opponent') => reports.filter((r) => (side === 'team' ? r.rebuilt.team > r.rebuilt.opponent : r.rebuilt.opponent > r.rebuilt.team)).length;
   const liberos = liberoNumbers(record);
