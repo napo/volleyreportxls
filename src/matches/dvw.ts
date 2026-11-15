@@ -40,7 +40,7 @@ export interface DvwSetReport {
   readonly rebuilt: { readonly team: number; readonly opponent: number };
   /** The score written when the set was closed, when it differs from the rebuilt one. */
   readonly written: { readonly team: number; readonly opponent: number } | null;
-  /** Who was taken as the setter at the start of the set (worked out from the touches); null when nobody is on court. */
+  /** Who was taken as the setter at the start of the set (chosen by the user, or worked out from the touches); null when nobody is on court. */
   readonly setter: number | null;
 }
 
@@ -105,20 +105,31 @@ interface Rally {
   winner: 'team' | 'opponent' | null;
 }
 
+/** The six who start a set, by zone (zone 1 first): the lineup, or without one the first six shirt numbers that touch the ball. */
+export function startingSix(set: SetRecord): (number | null)[] {
+  if (set.lineup) return Array.from({ length: 6 }, (_, i) => set.lineup!.court[i] ?? null);
+  const first = [...new Set(touchesOf(set).filter((t) => t.kind === 'player').map((t) => t.number))].slice(0, 6);
+  return Array.from({ length: 6 }, (_, i) => first[i] ?? null);
+}
+
+/** Who sets at the start of a set: the one the user chose, if among the six who start; otherwise worked out from the touches. */
+export function startingSetter(record: MatchRecord, set: SetRecord): number | null {
+  const six = startingSix(set).filter((n): n is number => n !== null);
+  return set.setter !== undefined && six.includes(set.setter) ? set.setter : likelySetter(record, six);
+}
+
+/** The sets of a match that go into the file. */
+export const dvwSets = (record: MatchRecord) => record.sets.filter((set) => touchesOf(set).length > 0);
+
 function scoutSet(record: MatchRecord, set: SetRecord, start: number, lines: string[]): DvwSetReport {
   const touches = touchesOf(set);
   // The six on court by zone (zone 1 first), turned at each side-out; liberos are not in the lineup.
-  let court: (number | null)[] = Array.from({ length: 6 }, (_, i) => set.lineup?.court[i] ?? null);
-  // Without a lineup: the first six shirt numbers that touch the ball, in that order.
-  if (!set.lineup) {
-    const first = [...new Set(touches.filter((t) => t.kind === 'player').map((t) => t.number))].slice(0, 6);
-    court = Array.from({ length: 6 }, (_, i) => first[i] ?? null);
-  }
+  let court = startingSix(set);
   const pending = [...(set.subs ?? [])];
-  // DataVolley wants a setter: not recorded here, worked out from the touches (see likelySetter).
+  // DataVolley wants a setter: the one chosen by the user, or worked out from the touches (see likelySetter).
   const onCourt = () => court.filter((n): n is number => n !== null);
-  let setter = likelySetter(record, onCourt());
-  const startingSetter = setter;
+  let setter = startingSetter(record, set);
+  const atStart = setter;
   let at = touches[0]?.at ?? start;
   const score = { team: 0, opponent: 0 };
   let ourServe: boolean | null = null;
@@ -224,12 +235,12 @@ function scoutSet(record: MatchRecord, set: SetRecord, start: number, lines: str
 
   const counted = set.rows.reduce((n, r) => n + Object.values(r.counts).reduce((k: number, v) => k + (v ?? 0), 0), 0);
   const differs = set.score !== null && (set.score.team !== score.team || set.score.opponent !== score.opponent);
-  return { set: set.number, touches: written, missing: Math.max(0, counted - written), rebuilt: { ...score }, written: differs ? set.score : null, setter: startingSetter };
+  return { set: set.number, touches: written, missing: Math.max(0, counted - written), rebuilt: { ...score }, written: differs ? set.score : null, setter: atStart };
 }
 
 /** The DataVolley scout file of a match, with what to know about each set written in it. */
 export function buildDvw(record: MatchRecord, now = Date.now()): DvwExport {
-  const sets = record.sets.filter((set) => touchesOf(set).length > 0);
+  const sets = dvwSets(record);
   const start = Math.min(...sets.map((set) => touchesOf(set)[0]!.at));
   const scout: string[] = [];
   const reports = sets.map((set) => scoutSet(record, set, start, scout));

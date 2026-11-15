@@ -55,6 +55,7 @@ import { evaluationTint } from '../../report/evaluation-colors';
 import { href } from '../routes';
 import { LineupDialog, LiveKeypad, SubstitutionDialog } from './LiveKeypad';
 import { setFacts, setsUpTo, teamIndicators } from '../../matches/live-situation';
+import { startingSetter, startingSix } from '../../matches/dvw';
 import { ColumnsChoice } from '../components/ColumnsChoice';
 import { OrderChoice } from '../components/OrderChoice';
 import { lastUntracked, rememberUntracked } from '../untracked-setting';
@@ -346,11 +347,25 @@ function Cell({ count, label, locked, last, first, alt, onTap, onRemove }: CellP
   );
 }
 
-function CloseSetDialog({ set, onCancel, onConfirm }: { set: SetRecord; onCancel: () => void; onConfirm: (team: number, opponent: number) => void }) {
+function CloseSetDialog({
+  set,
+  setters,
+  nameOf,
+  onCancel,
+  onConfirm,
+}: {
+  set: SetRecord;
+  /** Who can have set in this set (the six who started) and who the app thinks it was; null when the touches have no order (nothing to ask). */
+  setters: { readonly six: readonly number[]; readonly thought: number | null; readonly chosen: boolean } | null;
+  nameOf: (number: number) => string;
+  onCancel: () => void;
+  onConfirm: (team: number, opponent: number, setter: number | null) => void;
+}) {
   const { m } = useI18n();
   const t = m.live;
   const [team, setTeam] = useState(set.score ? String(set.score.team) : '');
   const [opponent, setOpponent] = useState(set.score ? String(set.score.opponent) : '');
+  const [setter, setSetter] = useState<number | null>(setters?.thought ?? null);
   const num = (text: string) => (text === '' ? null : Number(text));
   const check = checkScore(num(team), num(opponent), set.number);
   const ok = check === 'ok' || check === 'unusual';
@@ -364,7 +379,7 @@ function CloseSetDialog({ set, onCancel, onConfirm }: { set: SetRecord; onCancel
         aria-labelledby="vr-live-dialog-title"
         onSubmit={(e) => {
           e.preventDefault();
-          if (ok) onConfirm(Number(team), Number(opponent));
+          if (ok) onConfirm(Number(team), Number(opponent), setters ? setter : null);
         }}
       >
         <h2 id="vr-live-dialog-title">{t.dialogTitle(set.number)}</h2>
@@ -384,6 +399,18 @@ function CloseSetDialog({ set, onCancel, onConfirm }: { set: SetRecord; onCancel
           <p className="vr-live-warning" role="status">
             {check === 'tied' ? t.tied : t.unusual(set.number === 5 ? 15 : 25)}
           </p>
+        )}
+        {setters && setters.six.length > 0 && (
+          <label className="vr-field vr-live-setter">
+            <span>{setters.chosen || setters.thought === null ? t.setterAsk : t.setterThought(setters.thought)}</span>
+            <select value={setter ?? ''} onChange={(e) => setSetter(Number(e.target.value))}>
+              {setters.six.map((n) => (
+                <option key={n} value={n}>
+                  {nameOf(n) ? `${n} · ${nameOf(n)}` : n}
+                </option>
+              ))}
+            </select>
+          </label>
         )}
         <div className="vr-live-dialog-actions">
           <button type="button" className="vr-btn vr-btn-secondary" onClick={onCancel}>
@@ -593,9 +620,10 @@ export function LiveSheetView({ id }: { id: string }) {
           ? t.undoSubstitution(lastSub.out, lastSub.in)
           : t.undoNothing;
 
-  const confirmClose = (team: number, opponent: number) => {
+  const confirmClose = (team: number, opponent: number, setter: number | null) => {
     const closed = closeSet(record, view, { team, opponent });
-    setRecord(closed.record);
+    // Who set in this set, as confirmed here: for the file that goes to the video analysis.
+    setRecord(setter === null ? closed.record : { ...closed.record, sets: closed.record.sets.map((s) => (s.number === view ? { ...s, setter } : s)) });
     setReopened((r) => new Set([...r].filter((n) => n !== view)));
     setClosing(false);
     setCorrecting(false);
@@ -885,7 +913,19 @@ export function LiveSheetView({ id }: { id: string }) {
           }}
         />
       )}
-      {closing && <CloseSetDialog set={set} onCancel={() => setClosing(false)} onConfirm={confirmClose} />}
+      {closing && (
+        <CloseSetDialog
+          set={set}
+          setters={
+            set.log?.length
+              ? { six: startingSix(set).filter((n): n is number => n !== null), thought: startingSetter(record, set), chosen: set.setter !== undefined }
+              : null
+          }
+          nameOf={(n) => playerName(record, n)}
+          onCancel={() => setClosing(false)}
+          onConfirm={confirmClose}
+        />
+      )}
     </div>
   );
 }

@@ -94,3 +94,13 @@ test('the setter is worked out from the touches: who does not receive and attack
   const changed = scouted('5 R+', '3 A#', '6 R+', '4 A#', 'sub 1:12', '5 R+', '12 A-', '3 A#');
   expect(codes(changed)).toContain('*P02');
 });
+
+test('the setter chosen by the user wins over the one worked out, when among the six who start', () => {
+  const base = scouted('1 B#', '1 B-', '5 R+', '3 A#', '6 R+', '4 A-');
+  const chosen = { ...base, sets: base.sets.map((s) => (s.number === 1 ? { ...s, setter: 4 } : s)) };
+  expect(scout(chosen)[0]![0]).toBe('*P04>LUp');
+  expect(scout(chosen)[1]![0]).toBe('*z4>LUp');
+  // A number that does not start the set is not taken: back to the one worked out.
+  const wrong = { ...base, sets: base.sets.map((s) => (s.number === 1 ? { ...s, setter: 77 } : s)) };
+  expect(scout(wrong)[0]![0]).toBe('*P02>LUp');
+});

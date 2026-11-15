@@ -169,6 +169,7 @@ function readSet(v: unknown): SetRecord | null {
   const rally = isObject(v.serve) ? readRally(v.serve.rally) : null;
   const serve = isObject(v.serve) && turned !== null && turned < 6 ? { rotation: turned, received: v.serve.received === true, ...(rally && { rally }) } : null;
   const phases = readPhases(v.phases);
+  const setter = shirt(v.setter);
   const rowIds = new Set(v.rows.map((r: unknown) => (isObject(r) ? r.id : null)));
   const log = readLog(v.log).filter((entry) => rowIds.has(entry.row));
   return {
@@ -180,6 +181,7 @@ function readSet(v: unknown): SetRecord | null {
     ...(serve && { serve }),
     ...(phases && { phases }),
     ...(log.length && { log }),
+    ...(setter !== null && { setter }),
   };
 }
 

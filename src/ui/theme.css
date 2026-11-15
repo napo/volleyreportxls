@@ -4977,3 +4977,46 @@ output.vr-sub-name {
   padding-left: 1.1rem;
   font-size: 0.9rem;
 }
+
+/* .dvw export: who sets at the start of each set, to confirm or change. */
+.vr-dvw-setters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin: 0.75rem 0 0;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--vr-border);
+  border-radius: 0.6rem;
+}
+
+.vr-dvw-setters legend {
+  padding: 0 0.3rem;
+  font-weight: 700;
+}
+
+.vr-dvw-setters .vr-note {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+/* Closing a set: who set, as the app thinks, to confirm or change. */
+.vr-live-setter {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.vr-live-setter select {
+  padding: 0.5rem;
+  border: 2px solid var(--vr-live-line, #d5dde4);
+  border-radius: 0.5rem;
+  font: inherit;
+}
+
+.vr-live-setter span,
+.vr-dvw-setters .vr-field span {
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--vr-text);
+}

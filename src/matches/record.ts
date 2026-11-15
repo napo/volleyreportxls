@@ -37,6 +37,8 @@ export interface SetRecord {
   readonly phases?: PhaseStats;
   /** The touches entered on the screen (keypad or grid), in order, each with its time: what a video can be matched to. */
   readonly log?: readonly LoggedTouch[];
+  /** Who sets at the start of the set, when the user said so (for the file that goes to the video analysis); otherwise it is worked out. */
+  readonly setter?: number;
 }
 
 /** A touch entered on the screen: when (milliseconds since the epoch), on which row, with which code. */

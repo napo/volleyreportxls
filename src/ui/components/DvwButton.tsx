@@ -9,7 +9,7 @@
  */
 import { useEffect, useState } from 'react';
 import { useI18n } from '../../i18n';
-import { type DvwSetReport, buildDvw, hasDvwData } from '../../matches/dvw';
+import { type DvwSetReport, buildDvw, dvwSets, hasDvwData, startingSetter, startingSix } from '../../matches/dvw';
 import type { MatchRecord } from '../../matches/record';
 import { type FileKind, type SavedFile, saveFile } from '../../platform/save-file';
 import { isTauriApp } from '../../platform/updates';
@@ -43,6 +43,15 @@ export function DvwButton({ recordId }: { recordId: string }) {
 
   if (!record || !hasDvwData(record)) return null;
 
+  /** The user says who sets at the start of a set: kept in the match. */
+  const chooseSetter = async (set: number, setter: number) => {
+    const next = { ...record, sets: record.sets.map((s) => (s.number === set ? { ...s, setter } : s)) };
+    setRecord(next);
+    setSets(null);
+    await archive?.saveMatch(next);
+  };
+  const name = (n: number) => record.players.find((p) => p.number === n)?.name.trim() ?? '';
+
   const download = async () => {
     setBusy(true);
     setFailed(false);
@@ -72,6 +81,28 @@ export function DvwButton({ recordId }: { recordId: string }) {
           </button>
         </div>
       </div>
+      <fieldset className="vr-dvw-setters">
+        <legend>{t.setterTitle}</legend>
+        <p className="vr-note">{t.setterText}</p>
+        {dvwSets(record).map((set) => {
+          const chosen = startingSetter(record, set);
+          return (
+            <label key={set.number} className="vr-field">
+              <span>{t.setterOf(set.number)}</span>
+              <select value={chosen ?? ''} onChange={(e) => chooseSetter(set.number, Number(e.target.value))}>
+                {startingSix(set)
+                  .filter((n): n is number => n !== null)
+                  .map((n) => (
+                    <option key={n} value={n}>
+                      {name(n) ? `${n} · ${name(n)}` : n}
+                      {set.setter === undefined && n === chosen ? ` ${t.deduced}` : ''}
+                    </option>
+                  ))}
+              </select>
+            </label>
+          );
+        })}
+      </fieldset>
       {failed && <p className="vr-message warning">{t.failed}</p>}
       <SavedFileLink file={saved} />
       {sets && (
@@ -79,7 +110,6 @@ export function DvwButton({ recordId }: { recordId: string }) {
           {sets.map((s) => (
             <li key={s.set}>
               {t.set(s.set, s.touches, s.rebuilt.team, s.rebuilt.opponent)}
-              {s.setter !== null && ` ${t.setter(s.setter)}`}
               {s.written && <strong> {t.scoreDiffers(s.written.team, s.written.opponent)}</strong>}
               {s.missing > 0 && <strong> {t.missing(s.missing)}</strong>}
             </li>
