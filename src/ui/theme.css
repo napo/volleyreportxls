@@ -4917,3 +4917,54 @@ output.vr-sub-name {
   padding: 0;
   list-style: none;
 }
+
+/* Live sheet: one row more or less, at the end of the band over the liberos. */
+.vr-live-rows {
+  display: inline-flex;
+  gap: 0.4rem;
+  margin-left: auto;
+  padding-right: 0.5rem;
+}
+
+.vr-live-rows button {
+  padding: 0 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 0.4rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.75em;
+  line-height: 1.5;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.vr-live-rows button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Form to print: how many player rows, one more or one fewer. */
+.vr-form-rows {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.vr-form-rows output {
+  min-width: 6rem;
+  font-size: 1.3rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.vr-form-rows .vr-sub-arrow {
+  width: 3.2rem;
+  border: 2px solid var(--vr-live-line, #d5dde4);
+  border-radius: 0.6rem;
+  background: var(--vr-surface);
+  color: var(--vr-navy);
+  font-size: 1.3rem;
+  cursor: pointer;
+}

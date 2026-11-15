@@ -26,6 +26,10 @@ import {
   placeNumbers,
   expectedServer,
   type Followed,
+  addPlayerRow,
+  canAddRow,
+  canRemoveRow,
+  removePlayerRow,
   followAfter,
   followedOf,
   setFollowed,
@@ -790,7 +794,18 @@ export function LiveSheetView({ id }: { id: string }) {
             </span>
           ))}
           {players.map(renderRow)}
-          <span className="vr-live-head libero">{t.libero}</span>
+          <span className="vr-live-head libero">
+            {t.libero}
+            {/* A squad of thirteen needs one more row; a short one reads better with fewer. */}
+            <span className="vr-live-rows">
+              <button type="button" onClick={() => setRecord(removePlayerRow(record, view))} disabled={isLocked || !canRemoveRow(set)} aria-label={t.removeRowLabel} title={t.removeRowLabel}>
+                {t.removeRow}
+              </button>
+              <button type="button" onClick={() => setRecord(addPlayerRow(record, view))} disabled={isLocked || !canAddRow(set)} aria-label={t.addRowLabel} title={t.addRowLabel}>
+                {t.addRow}
+              </button>
+            </span>
+          </span>
           {liberos.map(renderRow)}
         </div>
       </div>

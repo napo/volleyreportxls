@@ -147,6 +147,50 @@ describe('reading v9 forms', () => {
     expect(result.orderAsked).toBe(false);
   });
 
+  const rowCounts: [number, ScoutCodeString[]][] = [
+    [13, []],
+    [13, ['B!', 'M!', 'A!', 'R!']],
+    [10, ['A/']],
+    [6, []],
+  ];
+
+  test.each(rowCounts.map(([n, h]) => [n, h.join(' ') || 'none', h] as const))('with the QR: %i player rows, columns %s left out, every mark in its cell', (rows, _, hidden) => {
+    const layout = v9Layout(hidden, undefined, rows);
+    expect(layout.rows.filter((r) => r.kind === 'player')).toHaveLength(rows);
+    expect(layout.rows.filter((r) => r.kind === 'libero')).toHaveLength(2);
+    // Marks on the first rows, on the last player row and on a libero row.
+    const marks = new Map([...marksFor(layout)].filter(([key]) => !key.startsWith('12:')));
+    marks.set(`${rows - 1}:A#`, 2);
+    marks.set(`${rows}:R#`, 1);
+    const result = readSheetImage(photo(layout, formQrPayload({ layoutVersion: 9, setNumber: null, page: 1, hidden, rows }), marks));
+    if (!result.ok) throw new Error(result.reason);
+    expect(result.page?.rows).toBe(rows);
+    expect(result.playerRows).toBe(rows);
+    expect(result.rows).toHaveLength(rows + 2);
+    expect(counts(result)).toEqual(marks);
+  });
+
+  test.each(rowCounts.map(([n, h]) => [n, h.join(' ') || 'none', h] as const))('without the QR: %i player rows (columns %s left out) are recognised from the grid', (rows, _, hidden) => {
+    const layout = v9Layout(hidden, undefined, rows);
+    const marks = new Map([...marksFor(layout)].filter(([key]) => !key.startsWith('12:')));
+    marks.set(`${rows - 1}:A#`, 2);
+    const result = readSheetImage(photo(layout, 'no QR here', marks));
+    if (!result.ok) throw new Error(result.reason);
+    expect(result.playerRows).toBe(rows);
+    expect(result.untracked).toEqual(layout.hidden);
+    expect(counts(result)).toEqual(marks);
+  });
+
+  test('twelve rows are not written in the QR; thirteen rows have smaller bubbles, fewer rows bigger ones', () => {
+    expect(formQrPayload({ layoutVersion: 9, setNumber: null, page: 1, rows: 12 })).toBe('VR|9|P1');
+    expect(formQrPayload({ layoutVersion: 9, setNumber: null, page: 1, hidden: ['A/'], rows: 13 })).toBe('VR|9|P1|H20|N13');
+    expect(printableLayout([], undefined, 13).version).toBe(9);
+    const height = (rows: number) => v9Layout([], undefined, rows).rows[0]!.cells[0]!.bubbles[0]!.height;
+    expect(height(13)).toBeLessThan(height(12));
+    expect(height(13)).toBeGreaterThan(2.7);
+    expect(height(8)).toBeGreaterThan(height(12));
+  });
+
   test('the default order is not written in the QR, and v9 with all columns and another order is printed', () => {
     expect(formQrPayload({ layoutVersion: 9, setNumber: null, page: 1, hidden: ['A/'], order: ['B', 'M', 'A', 'R'] })).toBe('VR|9|P1|H20');
     expect(formQrPayload({ layoutVersion: 9, setNumber: null, page: 1, order: ['R', 'B', 'M', 'A'] })).toBe('VR|9|P1|ORBMA');

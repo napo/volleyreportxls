@@ -14,7 +14,7 @@
 import type { ScoutCodeString } from '../domain/codes';
 import type { SetNumber, SetScore } from '../domain/model';
 import { NO_PHASES, type PhaseStats, withAttack } from '../domain/phases';
-import { type Lineup, type MatchRecord, type Rally, type ServeState, type Substitution, type PlayerRecord, type RowKind, type SetRecord, emptyRow, matchWinner, setIsPlayed, setScoreIsFinal, withNumbersFromPreviousSet } from './record';
+import { type Lineup, type MatchRecord, type Rally, type ServeState, type Substitution, type PlayerRecord, type RowKind, type SetRecord, MAX_PLAYER_ROWS, MIN_PLAYER_ROWS, emptyRow, matchWinner, setIsPlayed, setScoreIsFinal, withNumbersFromPreviousSet } from './record';
 
 /** One change of a count, kept to undo it. */
 export interface Touch {
@@ -220,6 +220,34 @@ export function serveAfter(set: SetRecord, number: number, kind: RowKind, code: 
   // A missed serve gives the ball away as a reception does: our next serve comes after a rotation.
   const next: ServeState = { rotation: place >= 0 ? place : now.rotation, received: code === 'B=' };
   return next.rotation === now.rotation && next.received === now.received ? null : next;
+}
+
+const playerRows = (set: SetRecord) => set.rows.filter((r) => r.kind === 'player');
+const rowIsEmpty = (row: SetRecord['rows'][number]) => row.playerNumber === null && Object.values(row.counts).every((n) => !n);
+
+/** A player row can be added (up to thirteen: a squad of thirteen and the liberos). */
+export const canAddRow = (set: SetRecord) => playerRows(set).length < MAX_PLAYER_ROWS;
+
+/** The last player row can go: it is empty, and six rows stay. */
+export const canRemoveRow = (set: SetRecord) => {
+  const rows = playerRows(set);
+  return rows.length > MIN_PLAYER_ROWS && rowIsEmpty(rows.at(-1)!);
+};
+
+/** One more player row in a set, after the last one (the following sets take their rows from it). */
+export function addPlayerRow(record: MatchRecord, set: SetNumber): MatchRecord {
+  const target = record.sets.find((s) => s.number === set);
+  if (!target || !canAddRow(target)) return record;
+  const players = playerRows(target);
+  return replaceSet(record, { ...target, rows: [...players, emptyRow('player'), ...target.rows.filter((r) => r.kind !== 'player')] });
+}
+
+/** Takes the last player row away, only when it is empty: nothing written is ever lost. */
+export function removePlayerRow(record: MatchRecord, set: SetNumber): MatchRecord {
+  const target = record.sets.find((s) => s.number === set);
+  if (!target || !canRemoveRow(target)) return record;
+  const last = playerRows(target).at(-1)!;
+  return replaceSet(record, { ...target, rows: target.rows.filter((r) => r !== last) });
 }
 
 /** What the keypad follows from touch to touch: the rotation with the rally, and the statistics by phase. */

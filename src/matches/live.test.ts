@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { bump, checkScore, closeSet, currentSet, playerName, reachableSets, setMatchDetails, setPlayerName, setShirtNumber, undoTouch , bumpShirt, proposedLineup, setLineup, benchNumbers, courtNow, returnsDue, substitute, undoSubstitution, placeNumbers, canEnter, canLeave, substitutionState, serveAfter, setServe, zonesNow, expectedServer, followAfter, setFollowed} from './live';
+import { bump, checkScore, closeSet, currentSet, playerName, reachableSets, setMatchDetails, setPlayerName, setShirtNumber, undoTouch , bumpShirt, proposedLineup, setLineup, benchNumbers, courtNow, returnsDue, substitute, undoSubstitution, placeNumbers, canEnter, canLeave, substitutionState, serveAfter, setServe, zonesNow, expectedServer, followAfter, setFollowed, addPlayerRow, removePlayerRow} from './live';
 import { type MatchRecord, newMatchRecord } from './record';
 
 const firstRow = (record: MatchRecord, set = 1) => record.sets.find((s) => s.number === set)!.rows[0]!;
@@ -294,4 +294,18 @@ describe('phases followed by the keypad (DataVolley: attack on reception, counte
   test('touches before any serve or reception are in the counts only', () => {
     expect(first(play('3 A#')).phases).toBeUndefined();
   });
+});
+
+test('rows of the live sheet: one more up to thirteen, the last one away only when empty, never fewer than six', () => {
+  const players = (record: MatchRecord) => record.sets[0]!.rows.filter((r) => r.kind === 'player');
+  let record = addPlayerRow(newMatchRecord(), 1);
+  expect(players(record)).toHaveLength(13);
+  expect(record.sets[0]!.rows.at(-1)!.kind).toBe('libero');
+  expect(addPlayerRow(record, 1)).toBe(record);
+  // A number on the last row keeps it.
+  const kept = setShirtNumber(record, 1, players(record).at(-1)!.id, 7);
+  expect(removePlayerRow(kept, 1)).toBe(kept);
+  for (let i = 0; i < 10; i++) record = removePlayerRow(record, 1);
+  expect(players(record)).toHaveLength(6);
+  expect(record.sets[0]!.rows.filter((r) => r.kind === 'libero')).toHaveLength(2);
 });

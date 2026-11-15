@@ -120,6 +120,9 @@ export const OPTIONAL_CODES: readonly ScoutCodeString[] = SHEET_SKILLS.flatMap((
 /** Rows of a new set: as on the paper form. */
 export const PLAYER_ROWS = 12;
 export const LIBERO_ROWS = 2;
+/** Fewest and most player rows a sheet can have (the paper form and the live sheet); the libero rows are always two. */
+export const MIN_PLAYER_ROWS = 6;
+export const MAX_PLAYER_ROWS = 13;
 
 const ALPHABET = 'abcdefghijkmnpqrstuvwxyz23456789';
 

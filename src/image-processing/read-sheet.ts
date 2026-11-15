@@ -10,7 +10,7 @@
 
 import type { ScoutCodeString } from '../domain/codes';
 import type { SetNumber } from '../domain/model';
-import { type FormLayout, type FormSkill, type Rect, type RowKind, CURRENT_FORM_LAYOUT, FORM_LAYOUTS, DEFAULT_FORM_ORDER, type FormOrder, OPTIONAL_FORM_CODES, allV9Layouts, cellCode, formLayout, maskHidden, v9Layout } from '../pdf/layout';
+import { type FormLayout, type FormSkill, type Rect, type RowKind, CURRENT_FORM_LAYOUT, FORM_LAYOUTS, DEFAULT_FORM_ORDER, DEFAULT_FORM_ROWS, type FormOrder, MAX_FORM_ROWS, MIN_FORM_ROWS, OPTIONAL_FORM_CODES, allV9Layouts, cellCode, formLayout, maskHidden, v9Layout } from '../pdf/layout';
 import type { FormPageId } from '../pdf/scouting-form';
 import { BUBBLE_MARKED, readCell } from './cells';
 import { type GrayImage, sample } from './gray';
@@ -64,6 +64,8 @@ export interface SheetResult {
   readonly untracked: readonly ScoutCodeString[];
   /** v9: the order of serve, block, attack and reception on the printed form. */
   readonly order: FormOrder;
+  /** Player rows on the printed form (twelve but on some v9 forms). */
+  readonly playerRows: number;
   /**
    * v9 without the QR, one of the two block columns "!" and "/" left out: the
    * grid is the same either way, so the user is asked which (blockColumn).
@@ -157,6 +159,27 @@ export function guessLayout(gray: GrayImage, homography: Homography, order: Form
   // The oldest on a tie, as before: v4 and v5 share the grid, and the set marks are not read without the QR.
   const pool = fitting.length > 0 ? fitting : scored;
   const best = pool.reduce((a, b) => (b.score > a.score ? b : a));
+  // A v9 form with more or fewer player rows: told from the grey bands of every other row, which
+  // are where they are whatever the columns. With the right number of rows every band row is darker
+  // than the rows around it; with a wrong one the rows drift across the bands. Then, with those
+  // rows, the columns as below.
+  {
+    const banding = (rows: number) => {
+      const paper = v9Layout([], order, rows)
+        .rows.filter((row) => row.kind === 'player')
+        .map((row) => rowPaper(gray, homography, row));
+      // The weakest step between a white row and the band next to it.
+      return Math.min(...paper.slice(1).map((level, k) => (k % 2 === 0 ? paper[k]! - level : level - paper[k]!)));
+    };
+    const counts = Array.from({ length: MAX_FORM_ROWS - MIN_FORM_ROWS + 1 }, (_, k) => MIN_FORM_ROWS + k).map((rows) => ({ rows, step: banding(rows) }));
+    const twelve = counts.find((c) => c.rows === DEFAULT_FORM_ROWS)!.step;
+    const other = counts.filter((c) => c.rows !== DEFAULT_FORM_ROWS).reduce((a, b) => (b.step > a.step ? b : a));
+    if (other.step > 3 && other.step > twelve + 3) {
+      const withRows = Array.from({ length: 1 << OPTIONAL_FORM_CODES.length }, (_, mask) => score(v9Layout(maskHidden(mask), order, other.rows)));
+      const top = withRows.reduce((a, b) => (b.score > a.score ? b : a));
+      return withRows.filter((s) => s.score >= top.score * 0.8).reduce((a, b) => (b.mean > a.mean ? b : a)).layout;
+    }
+  }
   if (best.layout.version !== 9) return best.layout;
   // v9 forms differ only where their columns were left out: the median hides that, the mean over
   // every bubble does not. Among the v9 forms nearly as good as the best, the one whose outlines
@@ -197,7 +220,7 @@ export function readSheetImage(image: RgbaImage, forcing: SheetForcing = {}): Sh
   if (!isLocated(located)) return { ok: false, reason: located.reason, markersFound: located.found };
   const { gray, homography } = located;
   const page = located.page;
-  const known = page && (page.layoutVersion === 9 ? formLayout(9, page.hidden ?? [], page.order) : FORM_LAYOUTS[page.layoutVersion]);
+  const known = page && (page.layoutVersion === 9 ? formLayout(9, page.hidden ?? [], page.order, page.rows) : FORM_LAYOUTS[page.layoutVersion]);
   const layout = known ?? guessLayout(gray, homography, forcing.order);
   const crop = (r: Rect) => warpRect(gray, homography, r, CROP_PX_PER_MM);
   // The set marks are read only on a layout known from the QR: v4 and v5 share the grid.
@@ -239,6 +262,7 @@ export function readSheetImage(image: RgbaImage, forcing: SheetForcing = {}): Sh
     fitError: located.fitError,
     untracked: layout.hidden,
     order: layout.order,
+    playerRows: layout.playerRows,
     blockColumnAsked: !page && layout.version === 9 && layout.hidden.includes('M!') !== layout.hidden.includes('M/'),
     orderAsked: !known && layout.rowBands,
     rows,
@@ -255,7 +279,7 @@ export function withBlockColumnLeftOut(result: SheetResult, hidden: 'M!' | 'M/')
   const current = result.untracked.includes('M!') ? 'M!' : 'M/';
   if (current === hidden || !result.blockColumnAsked) return result;
   const untracked = [...result.untracked.filter((c) => c !== current), hidden];
-  const layout = formLayout(9, untracked, result.order);
+  const layout = formLayout(9, untracked, result.order, result.playerRows);
   const rows = result.rows.map((row) => {
     const printed = layout.rows[row.index]!.cells;
     return { ...row, cells: row.cells.map((cell, i) => (cell.skill === 'M' ? { ...cell, code: cellCode(printed[i]!), evaluation: printed[i]!.evaluation } : cell)) };
