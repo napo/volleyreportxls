@@ -9,7 +9,9 @@ dalla carta al report della gara della propria squadra di volley
 
 Evoluzione web di VolleyReportXLS: si rileva la partita a penna su un modulo A4 stampato dall'app, si fotografa il foglio e si ottengono tabellino e statistiche. Tutto viene elaborato sul dispositivo (local first).
 
-Stato: business logic in TypeScript con le definizioni di DataVolley 4 (efficienze, V-P, votazione, tabellino), verificata contro il workbook di riferimento; tabellino esportabile in PDF A4.
+In alternativa alla carta si rileva sullo schermo: griglia sul tablet o tastierino sullo smartphone, con zone, rotazione e statistiche live. I tocchi inseriti così conservano ordine e orario: il tabellino aggiunge cambio palla e break point e la partita si scarica come file DataVolley (`.dvw`) da importare in [OpenVolleyScout](https://github.com/napo/openvolleyscout) per l'analisi video.
+
+Stato: business logic in TypeScript con le definizioni di DataVolley 4 (efficienze, V-P, votazione, tabellino), verificata contro il workbook di riferimento; tabellino esportabile in PDF A4; modulo da stampare personalizzabile (colonne, ordine dei fondamentali, da 6 a 13 righe).
 
 - Analisi del workbook, architettura, modulo cartaceo e roadmap: [docs/volleyreportxls-analysis.md](docs/volleyreportxls-analysis.md)
 - Logica di dominio: [src/domain](src/domain), tabellino: [src/report](src/report), PDF: [src/pdf](src/pdf)

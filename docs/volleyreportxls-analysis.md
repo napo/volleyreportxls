@@ -116,7 +116,8 @@ Un codice è **lettera del fondamentale + simbolo di valutazione**. Le lettere s
 - **Evento** = un tocco (set, giocatore, posizione nella riga, codice). Le statistiche dipendono solo dai conteggi; l'ordine dei tocchi resta nel modello per il modulo cartaceo e per i controlli.
 - **Squadra vs giocatori**: la squadra conta tutti gli eventi, anche quelli di righe senza numero o fuori roster; il giocatore solo i propri, su tutte le sue righe.
 - **Set giocati da un giocatore**: i set in cui ha almeno una riga. Servono per la colonna "Set" e per il voto a muro.
-- **Ciò che il foglio cartaceo non registra**: l'ordine dei rally, la squadra al servizio, le rotazioni. Per questo non si possono calcolare i break point (BP), i punti per rotazione, i cambi palla e i contrattacchi del tabellino DataVolley, né il voto aggiuntivo del palleggiatore (§8).
+- **Ciò che il foglio cartaceo non registra**: l'ordine dei rally, la squadra al servizio, le rotazioni. Dal foglio non si possono calcolare i break point (BP), i punti per rotazione, i cambi palla e i contrattacchi del tabellino DataVolley, né il voto aggiuntivo del palleggiatore (§8).
+- **Ciò che registra la rilevazione sullo schermo** (tastierino e griglia, §17): ogni tocco con il suo orario e nel suo ordine (`SetRecord.log`), la formazione per zone, i cambi, la rotazione e lo scambio in corso. Da qui vengono le tabelle di cambio palla e break point (§8) e il file DataVolley per l'analisi video (§18). Le partite lette da foto restano senza sequenza.
 
 ## 6. Modello dati TypeScript
 
@@ -243,7 +244,8 @@ Il **voto aggiuntivo del palleggiatore** (attacchi della squadra dopo ricezione 
 - **Statistiche per set**: punti vinti (Bat, Att, Mur, Er.Av) e gli stessi gruppi battuta, ricezione, attacco, muro.
 - **Errori avversari totali** e **legenda**.
 - **Convenzioni di visualizzazione** DataVolley: zero e "non applicabile" come `.`, percentuali intere, Prf% tra parentesi, V-P con segno.
-- **Non riprodotti** (servono dati di rally): BP, punti per rotazione, cambio palla diretto, attacco dopo ricezione positiva o negativa, contrattacco.
+- **Cambio palla e break point** (solo per i tocchi inseriti sullo schermo, `domain/phases.ts`): attacco su ricezione positiva (`#`, `+`) e negativa (`!`, `-`), cioè il primo attacco dopo la ricezione; contrattacco, cioè ogni altro attacco; punti CP (scambi vinti in ricezione) e punti BP (scambi vinti in battuta), compresi quelli per errore avversario, riconosciuti dalla battuta che segue. Dopo `R=` e `R/` non c'è attacco su ricezione. La sezione compare nel tabellino e nel PDF solo se ci sono tocchi in sequenza.
+- **Non riprodotti**: punti per rotazione e percentuali di cambio palla e break point sugli scambi giocati (servirebbero tutti gli scambi, anche quelli senza nostri tocchi).
 - Rispetto al tabellino di VolleyReportXLS spariscono le colonne Eff% (non presenti in DataVolley) e il piede "Errori totali / Invasioni / Doppie"; si aggiungono Set e Voto.
 
 ### Esportazione PDF A4
@@ -465,6 +467,17 @@ foto → copia ridotta (~1400 px) → marker ArUco + QR → omografia (≥ 4 mar
 - `js-aruco2` funziona in Node (test) ma **non nel bundle per il browser**: assegna l'export a `this.AR`, in stile CommonJS. Per il rilevamento nell'app va adattato in modulo ES (licenza MIT) oppure sostituito.
 - `image-processing/synthetic.ts` genera "scansioni" sintetiche del modulo dal layout, per testare la pipeline senza stampanti né fotocamere.
 
+### Layout v8 e v9 (ordine dei fondamentali, colonne e righe a scelta)
+
+- **v8** è il modulo standard: fondamentali nell'ordine dello scambio (battuta, muro, attacco, ricezione, alzata in fondo), valutazioni dalla più alla meno favorevole, fasce grigie alternate sulle righe.
+- **v9** è la v8 personalizzata al momento del download, in tre passi:
+  1. **colonne** `!` e `/` da togliere, fondamentale per fondamentale; le altre si allargano e i pallini diventano ovali;
+  2. **ordine** di battuta, muro, attacco e ricezione (l'alzata resta in fondo);
+  3. **righe** giocatore da 6 a 13 (12 è lo standard), sempre con i due liberi. Con 13 righe i pallini scendono a circa 2,8 mm; con meno righe crescono fino a circa 3,45 mm, poi lo spazio in più resta tra le righe.
+- Il QR porta tutto ciò che si allontana dallo standard: `VR|9|P1|H<colonne>|O<ordine>|N<righe>` (per esempio `VR|9|P1|H20|ORBMA|N13`). Con tutto standard si scarica il modulo v8 pubblicato con il sito.
+- **Senza QR leggibile**: le colonne tolte si riconoscono dalla posizione delle bolle; le righe dalle fasce grigie alternate. L'**ordine non si riconosce dalla foto** (le bolle stanno sulla stessa griglia di colonne qualunque sia l'ordine): l'acquisizione chiede l'ordine dei fondamentali e rilegge la foto. Resta un'ambiguità tra fondamentali vicini con colonne tolte diverse ma nello stesso numero.
+- L'ordine scelto vale anche per la griglia e il tastierino del dispositivo, ed è proposto al download successivo.
+
 ## 13. Strategia di riconoscimento
 
 Con il modulo a crocette il riconoscimento è soprattutto **lettura di segni**, senza scrittura a mano da interpretare:
@@ -491,7 +504,9 @@ Con il modulo a crocette il riconoscimento è soprattutto **lettura di segni**, 
 | Peso di OpenCV.js e ONNX su telefoni economici | pipeline leggera, worker, modelli piccoli |
 | Storage cancellato (iOS) | `storage.persist()`, PWA installata, esportazione JSON |
 | Pochi dati reali | trascrizione assistita come generatore di dati, k-NN locale, dati sintetici |
-| Indicatori DataVolley non calcolabili dal modulo (BP, rotazioni, voto palleggiatore) | esclusi per scelta (D12) e dichiarati nel report |
+| Indicatori DataVolley non calcolabili dal modulo (BP, rotazioni, voto palleggiatore) | dal foglio esclusi e dichiarati nel report; dalla rilevazione sullo schermo cambio palla e break point (D18) |
+| Pallini più piccoli con 13 righe (circa 2,8 mm) | provati su foto sintetiche; da verificare con stampa e foto reali prima di consigliarlo |
+| Punteggio ricostruito nel file DVW diverso da quello reale | si ricostruisce bene solo con tutte le battute e le ricezioni in ordine; l'app segnala, set per set, le differenze con il punteggio scritto |
 | Stampa scalata | scala ricavata dai marker |
 
 ## 15. Roadmap
@@ -509,6 +524,8 @@ Ordine rivisto sulle priorità indicate: prima il tabellino, poi il riconoscimen
 | **6 — Grafici** | ECharts: squadra, poi per atleta con selettore (✅ sulla partita d'esempio); sezione "Approfondita" da fare | in parte |
 | **7 — Riconoscimento** | lettura dei pallini (conteggi e confidenza), cifre dei numeri di maglia e dei punteggi | ✅ pallini: tratti e pallini contati e confrontati, caselle incerte segnalate. Cifre: per ora ritaglio mostrato e numero scritto dall'utente |
 | **7b — Rilevazione su tablet** | seconda modalità accanto alla foto: il modulo v4 sullo schermo come foglio di contatori (stesse righe e colonne, numeri al posto dei pallini); tocco = +1, pressione prolungata o clic destro = −1, «Annulla» l'ultimo tocco, «Modalità −1»; «Chiudi set» chiede il punteggio (avviso se insolito, blocco solo sulla parità), il set successivo riprende i numeri di divisa, i set chiusi restano in sola lettura finché non si riaprono; salvataggio a ogni tocco, schermo sempre acceso. Stesso `MatchRecord` dei fogli fotografati (`matches/live.ts`, `ui/views/LiveSheetView.tsx`, pagina `#rileva/<id>` a schermo intero) | ✅ |
+| **7c — Tastierino** | per smartphone: numero e fondamentale in ordine libero, poi la valutazione; legenda contestuale delle valutazioni; tasti disposti per zone; rotazione al cambio di servizio (opzionale per i tasti, sempre seguita per proporre chi batte); statistiche live; "+ riga" e "− riga" sulla griglia | ✅ (§17) |
+| **7d — Analisi video** | sequenza dei tocchi con orario; file DataVolley `.dvw` per OpenVolleyScout, con scambi e punteggio ricostruiti; palleggiatore dedotto e confermato | ✅ (§18); da provare con un video vero in OpenVolleyScout |
 | **8 — Packaging** | versione `0.1.0`, tag e release su GitHub, build Tauri (Windows, macOS, Linux, Android), versione web, aggiornamenti automatici | ✅ pronto, primo rilascio da confermare |
 
 Le schermate minime necessarie a ciascuna fase (per esempio il caricamento della foto) si realizzano dentro quella fase.
@@ -528,9 +545,36 @@ Le schermate minime necessarie a ciascuna fase (per esempio il caricamento della
 | D9 | Più righe dello stesso giocatore in un set | tutte contano |
 | D10 | Articolo Medium | letto (PDF): conferma simboli DataVolley e pesi personalizzabili |
 | D11 | Free ball | **deciso**: aggiunta (`F`, valutazioni DataVolley) |
-| D12 | BP, rotazioni, cambio palla, voto del palleggiatore | **deciso**: fuori ambito. Il modulo registra la sequenza dei tocchi di ogni giocatore, non la sequenza dei rally; non si aggiungono campi per ricostruirla |
+| D12 | BP, rotazioni, cambio palla, voto del palleggiatore | **superata da D18** per la rilevazione sullo schermo; resta valida per il foglio cartaceo, a cui non si aggiungono campi |
 | D13 | Quota con tentativi ma zero riusciti | mostrata come `0%` (il manuale non chiarisce se DataVolley mostri `.`) |
 | D14 | Difesa | **deciso**: eliminata (né sul modulo, né nell'inserimento manuale, né nel vocabolario), per non togliere spazio al foglio |
 | D15 | Alzata | **deciso**: solo `P=`, fallo fischiato sul secondo tocco, su ogni riga del modulo (vale per tutti i ruoli) |
 | D17 | Lingua | **deciso**: italiano e inglese; al primo avvio la lingua di sistema (italiano se è italiano, altrimenti inglese); la scelta dal menu in alto a destra resta come predefinita; anche i PDF (tabellino, grafici, modulo) seguono la lingua |
 | D16 | Esportazione delle partite | **deciso**: file `.vrp` (VolleyReport Paper), uno zip con `manifest.json` e `matches/<id>.json`; l'importazione non sovrascrive mai (dati diversi → copia con nuovo id) |
+| D18 | Cambio palla e break point | **deciso**: calcolati dai tocchi inseriti sullo schermo, come le tabelle in fondo al tabellino DataVolley (attacco su ricezione, contrattacco, punti CP e BP, inclusi quelli per errore avversario) |
+| D19 | Ordine dei fondamentali | **deciso**: a scelta per griglia, tastierino e modulo v9; l'alzata resta in fondo; nel QR, perché dalla foto non si riconosce |
+| D20 | Numero di righe | **deciso**: da 6 a 13, sempre con due liberi; sul modulo nel QR, sulla griglia con "+ riga" e "− riga" (si toglie solo l'ultima riga vuota) |
+| D21 | Analisi video | **deciso**: non in VolleyReport ma in OpenVolleyScout, tramite un file `.dvw` che OVS già importa; nessun secondo lettore video da mantenere |
+
+## 17. Rilevazione sullo schermo: griglia e tastierino
+
+La griglia (§15, fase 7b) riproduce il foglio come contatori; il tastierino, pensato per lo smartphone in verticale, inserisce un tocco alla volta.
+
+- **Inserimento**: numero di divisa e fondamentale nell'ordine preferito, poi la valutazione; la fila che manca ha il bordo arancione. Con un fondamentale non da libero i tasti dei liberi si spengono; l'errore di alzata (una sola valutazione) si segna al secondo tocco.
+- **Legenda**: toccando un fondamentale compare il significato di ogni valutazione, a destra sugli schermi larghi, sotto i pulsanti quando c'è altezza; non compare sugli schermi piccoli o in orizzontale.
+- **Zone**: i sei tasti in campo sono disposti 4 3 2 a rete e 5 6 1 dietro, i liberi a destra; la formazione si scrive zona per zona.
+- **Rotazione** (`matches/live.ts`): dopo una nostra battuta, una ricezione o un nostro errore in battuta (`B=`) significano che batte la squadra avversaria; alla battuta successiva tocca a chi segue nella rotazione, già selezionato toccando "Battuta". Dopo un ace resta chi ha battuto. Se la battuta cambia senza indizi (errore in battuta avversario dopo uno scambio perso), si tocca il numero di chi batte e la rotazione riparte da lì. L'opzione "Ruota al cambio di servizio" decide solo se i tasti si spostano. La rotazione è salvata con il set e "Annulla" la riporta indietro.
+- **Statistiche live**: pannello aperto dal tastierino con le valutazioni di battuta, ricezione e attacco del set e della partita e frasi sul set per numero di divisa (per esempio "Maria (#4) ha sbagliato 3 battute"); colori per daltonismo rispettati.
+- **Righe**: "+ riga" fino a 13 e "− riga" fino a 6, nella fascia dei liberi della griglia.
+- **Sequenza**: ogni tocco è salvato con orario e ordine; toglierlo lo toglie dalla sequenza; le correzioni a mano nell'editor diminuiscono la sequenza ma non la aumentano.
+
+## 18. File DataVolley per l'analisi video (OpenVolleyScout)
+
+`matches/dvw.ts` produce un file `.dvw` dai tocchi inseriti sullo schermo, scaricabile dal tabellino ("Scarica dati in DVW"). OpenVolleyScout lo importa: lì si associa il video, si indica il primo tocco e si filtrano le azioni.
+
+- **Contenuto**: solo la squadra rilevata (l'avversaria per nome), rosa, formazioni per zona, cambi, tocchi con orario e secondi dal primo tocco (tempo video).
+- **Scambi e punteggio ricostruiti**: uno scambio inizia con una nostra battuta o ricezione; lo chiude un tocco decisivo (`B#`, `A#`, `M#` per noi; `B=`, `R=`, `A=`, `A/`, `M=`, `M/`, `P=` per l'avversaria) oppure lo rivela l'inizio dello scambio successivo. Una nostra battuta dopo uno scambio perso indica un errore in battuta avversario: punto nostro senza tocchi. Un cambio si scrive prima dello scambio in cui chi entra tocca il primo pallone.
+- **Palleggiatore**: dedotto tra i sei in campo (chi non riceve e attacca meno, sui conteggi della partita), proposto alla chiusura del set e prima del download, dove si conferma o si cambia; la scelta resta nella partita.
+- **Verifica**: il file passa importatore e controlli di OpenVolleyScout senza errori (restano gli avvisi attesi sulla squadra avversaria senza atleti). Dopo il download l'app dice, set per set, tocchi esportati, punteggio ricostruito e differenze con quello scritto.
+- **Limiti**: l'orario è quello del tocco sullo schermo, qualche secondo dopo l'azione (in OVS si compensa con il ritardo per fondamentale); zone d'attacco e direzioni non ci sono; con il doppio palleggiatore se ne indica uno solo per set.
+
