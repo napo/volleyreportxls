@@ -128,7 +128,7 @@ export function LiveKeypad({ set, lineup, untracked, order, locked, last, canUnd
     <section ref={room.ref} className={`vr-keypad legend-${room.place}`} aria-label={t.keypad}>
       <div className="vr-keypad-head">
         <strong>{t.set(set)}</strong>
-        <button type="button" className="vr-btn vr-btn-primary vr-btn-small" onClick={() => {
+        <button type="button" className="vr-btn vr-btn-secondary vr-btn-small" onClick={() => {
             onSubstitute(chosen?.kind === 'player' ? chosen.number : null);
             setChosen(null);
             setSkill(null);
@@ -205,7 +205,13 @@ export function LiveKeypad({ set, lineup, untracked, order, locked, last, canUnd
       </div>
 
       </div>
-      {room.place !== 'none' && (
+      {room.place === 'stats' && (
+        <aside className="vr-keypad-legend vr-keypad-stats" aria-label={t.situationButton}>
+          <LiveStats situation={situation} set={set} withMatch={false} compact />
+          <LiveForm situation={situation} nameOf={nameOf} />
+        </aside>
+      )}
+      {room.place !== 'none' && room.place !== 'stats' && (
         <aside className="vr-keypad-legend" aria-label={t.legend} aria-live="polite">
           {legendSkill ? (
             <>
@@ -241,12 +247,13 @@ export function LiveKeypad({ set, lineup, untracked, order, locked, last, canUnd
   );
 }
 
-type LegendPlace = 'side' | 'below' | 'none';
+type LegendPlace = 'side' | 'below' | 'stats' | 'none';
 
 /**
  * Where the legend fits: on the right when the keypad is much wider than tall
  * (a desktop), below when it is tall enough to spare a band under the
- * evaluations (a tablet, a phone upright), nowhere otherwise (a phone sideways).
+ * evaluations (a tablet, a phone upright). A phone sideways has no room for the
+ * legend, but with enough width and height it still gets the live statistics on the right.
  */
 function useLegendRoom() {
   const ref = useRef<HTMLElement>(null);
@@ -258,10 +265,13 @@ function useLegendRoom() {
       const { width, height } = el.getBoundingClientRect();
       const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
       setPlace((current) => {
-        if (width >= 56 * rem && width >= 1.4 * height) return 'side';
+        // The side column holds the legend and the whole statistics: it needs the height for them, else the compact one below.
+        if (width >= 56 * rem && width >= 1.4 * height && height >= 28 * rem) return 'side';
         // Keep the band below while it fits, so the legend does not flicker as it takes its room.
         if (height >= (current === 'below' ? 26 : 30) * rem) return 'below';
-        return width >= 56 * rem && current === 'side' && width >= 1.25 * height ? 'side' : 'none';
+        if (width >= 56 * rem && current === 'side' && width >= 1.25 * height && height >= 27 * rem) return 'side';
+        // A phone sideways: the keys keep most of the width; the statistics take a column if it is tall enough to hold them.
+        return width >= 40 * rem && width >= 1.6 * height && height >= (current === 'stats' ? 16 : 17) * rem ? 'stats' : 'none';
       });
     };
     measure();

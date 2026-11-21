@@ -7,71 +7,71 @@
  * colour of how it is going) and the balls played, and short facts about
  * single shirt numbers in the set.
  */
+import { useEffect, useState } from 'react';
 import { useI18n } from '../../i18n';
-import { useA11y } from '../a11y';
-import { type Fact, type Indicator, type PlayerForm, type Shares, levelOf } from '../../matches/live-situation';
-import { scalePlace } from '../../report/evaluation-colors';
-import { scaleColors, scaleLabels } from '../charts/tokens';
+import type { Evaluation } from '../../domain/codes';
+import { type Fact, type PlayerForm, type Shares, type Tally } from '../../matches/live-situation';
+import type { EvaluationShareRow } from '../../report/chart-data';
+import { EvaluationChart } from '../charts/EvaluationChart';
 
 export interface Situation {
-  readonly set: readonly Indicator[];
-  readonly match: readonly Indicator[];
   /** The evaluations behind the bars, for the set and for the match so far. */
   readonly setShares: readonly Shares[];
   readonly matchShares: readonly Shares[];
+  /** Points scored and errors made in the set, with where they came from. */
+  readonly tally: Tally;
   readonly facts: readonly Fact[];
   /** Who goes well and who goes badly in the set. */
   readonly form: { readonly good: readonly PlayerForm[]; readonly bad: readonly PlayerForm[] };
 }
 
-const percent = (v: number) => `${Math.round(v * 100)}%`;
+function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(() => globalThis.matchMedia?.(query).matches ?? false);
+  useEffect(() => {
+    const list = globalThis.matchMedia?.(query);
+    if (!list) return;
+    const onChange = () => setMatches(list.matches);
+    onChange();
+    list.addEventListener('change', onChange);
+    return () => list.removeEventListener('change', onChange);
+  }, [query]);
+  return matches;
+}
 
-/** A segment shows its symbol when it is wide enough to hold it. */
-const LABEL_MIN_SHARE = 0.1;
-
-/** One line: label, a stacked bar of the evaluations (symbols on their colours), the indicator and the balls. */
-function Line({ label, indicator, shares, strong }: { label: string; indicator: Indicator; shares: Shares; strong: boolean }) {
-  const { m } = useI18n();
-  const t = m.live.situation;
-  const v = indicator.value;
-  const level = levelOf(indicator);
-  const colors = scaleColors();
-  const inks = scaleLabels();
-  return (
-    <div className={`vr-stats-line${strong ? ' set' : ' match'}`}>
-      <span className="vr-stats-label">{label}</span>
-      <span className="vr-stats-track stacked" aria-hidden="true">
-        {shares.parts.map((part) => {
-          if (part.count === 0) return null;
-          const share = part.count / shares.total;
-          const place = scalePlace(shares.skill, part.evaluation);
-          return (
-            <span key={part.evaluation} className="vr-stats-segment" style={{ width: `${share * 100}%`, background: colors[place]!, color: inks[place]! }}>
-              {share >= LABEL_MIN_SHARE ? `${part.evaluation} ${part.count}` : ''}
-            </span>
-          );
-        })}
-      </span>
-      <span className={`vr-stats-value ${level}`}>{v === null ? '–' : percent(v)}</span>
-      <span className="vr-stats-balls">{v === null ? t.none : t.balls(indicator.total)}</span>
-    </div>
-  );
+/** The evaluations of a skill as a row of the stacked bar chart; null while the skill was never played. */
+function shareRow(shares: Shares, label: string): EvaluationShareRow | null {
+  if (shares.total === 0) return null;
+  const counts = { '#': 0, '+': 0, '!': 0, '-': 0, '/': 0, '=': 0 } as Record<Evaluation, number>;
+  const ratios = { ...counts };
+  for (const part of shares.parts) {
+    counts[part.evaluation] = part.count;
+    ratios[part.evaluation] = part.count / shares.total;
+  }
+  return { skill: shares.skill, label, total: shares.total, counts, shares: ratios };
 }
 
 /** The serve, reception and attack of the set and of the match so far, with their bars. */
-export function LiveStats({ situation, set, withMatch = true }: { situation: Situation; set: number; withMatch?: boolean }) {
+export function LiveStats({ situation, set, withMatch: wantsMatch = true, compact }: { situation: Situation; set: number; withMatch?: boolean; compact?: boolean }) {
   const { m } = useI18n();
   const t = m.live.situation;
+  // On a short phone the bars of the match (the set alone, and the rest fits without scrolling) are dropped.
+  const short = useMediaQuery('(max-width: 899px) and (max-height: 700px)');
+  const withMatch = wantsMatch && !short;
+  const rows = situation.setShares.flatMap((shares, i) => {
+    const name = m.skills[shares.skill];
+    const own = shareRow(shares, withMatch ? `${name} · ${m.live.set(set)}` : name);
+    const all = withMatch ? shareRow(situation.matchShares[i]!, `${name} · ${t.match}`) : null;
+    return [own, all].filter((r): r is EvaluationShareRow => r !== null);
+  });
   return (
-    <ul className="vr-stats">
-      {situation.set.map((s, i) => (
-        <li key={s.skill}>
-          <h3>{t.indicator[s.skill]}</h3>
-          <Line label={m.live.set(set)} indicator={s} shares={situation.setShares[i]!} strong />
-          {withMatch && <Line label={t.match} indicator={situation.match[i]!} shares={situation.matchShares[i]!} strong={false} />}
-        </li>
-      ))}
-    </ul>
+    <>
+      <EvaluationChart rows={rows} title={t.chartTitle} floating compact={compact ?? wantsMatch} />
+      <p className="vr-stats-tally">
+        <span className="points">{t.tallyPoints(situation.tally.points, situation.tally.pointsBy.map((x) => t.pointBy(x.skill, x.count)))}</span>
+        {' · '}
+        <span className="errors">{t.tallyErrors(situation.tally.errors, situation.tally.errorsBy.map((x) => t.errorBy(x.skill, x.count)))}</span>
+      </p>
+    </>
   );
 }
 
@@ -79,21 +79,28 @@ export function LiveStats({ situation, set, withMatch = true }: { situation: Sit
 export function LiveForm({ situation, nameOf }: { situation: Situation; nameOf: (n: number) => string }) {
   const { m } = useI18n();
   const t = m.live.situation;
-  const chip = (p: PlayerForm, kind: 'good' | 'bad') => (
-    <li key={p.number} className={`vr-form-chip ${kind}`}>
-      <strong>{p.number}</strong>
-      {nameOf(p.number).trim() && <small>{nameOf(p.number).trim()}</small>}
-      <span>{p.balance > 0 ? `+${p.balance}` : `−${Math.abs(p.balance)}`}</span>
-    </li>
-  );
+  const signed = (v: number) => (v > 0 ? `+${v}` : v < 0 ? `−${Math.abs(v)}` : '0');
+  // The name shows on hover (and is read by screen readers); the number is what fits on the chip.
+  const chip = (p: PlayerForm, kind: 'good' | 'bad') => {
+    const name = nameOf(p.number).trim();
+    return (
+      <li key={p.number} className={`vr-form-chip ${kind}`} title={name || undefined} aria-label={t.formChip(p.number, name, p.points, p.errors, signed(p.balance))}>
+        <strong>{p.number}</strong>
+        <span>{`${p.points}/${p.errors}/${signed(p.balance)}`}</span>
+      </li>
+    );
+  };
   return (
     <div className="vr-form">
+      <h3 className="vr-form-title">
+        {t.formTitle} <small>{t.formKey}</small>
+      </h3>
       <div>
-        <h3>{t.formGood}</h3>
+        <h4>{t.formGood}</h4>
         {situation.form.good.length === 0 ? <p>{t.formNone}</p> : <ul>{situation.form.good.map((p) => chip(p, 'good'))}</ul>}
       </div>
       <div>
-        <h3>{t.formBad}</h3>
+        <h4>{t.formBad}</h4>
         {situation.form.bad.length === 0 ? <p>{t.formNone}</p> : <ul>{situation.form.bad.map((p) => chip(p, 'bad'))}</ul>}
       </div>
     </div>
@@ -103,13 +110,11 @@ export function LiveForm({ situation, nameOf }: { situation: Situation; nameOf: 
 export function LiveSituation({ situation, set, nameOf, onClose }: { situation: Situation; set: number; nameOf: (n: number) => string; onClose: () => void }) {
   const { m } = useI18n();
   const t = m.live.situation;
-  const { colorblind } = useA11y();
   const label = (n: number) => t.who(n, nameOf(n).trim());
   return (
     <div className="vr-situation">
       <LiveStats situation={situation} set={set} />
       <LiveForm situation={situation} nameOf={nameOf} />
-      <p className="vr-situation-scale">{colorblind ? t.scaleColorblind : t.scale}</p>
       <h3 className="vr-situation-facts-title">{t.factsTitle}</h3>
       {situation.facts.length === 0 ? (
         <p className="vr-situation-empty">{t.noFacts}</p>

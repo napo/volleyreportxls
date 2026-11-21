@@ -25,6 +25,8 @@ const LABEL_PX = 50;
 /** Room taken by the skill names on the left of the bars. */
 const AXIS_LABELS_PX = 110;
 const ROW_HEIGHT = 40;
+/** The compact chart (live stats on a phone) trades room around the bars for room on screen; no legend, no table. */
+const COMPACT_ROW_HEIGHT = 30;
 
 /** Chart height in pixels for the given rows. */
 export const evaluationChartHeight = (rows: readonly EvaluationShareRow[]) => 20 + rows.length * ROW_HEIGHT;
@@ -36,7 +38,7 @@ export const minLabelledShareFor = (width: number) => (width > 0 ? LABEL_PX / Ma
 const PLACES = [0, 1, 2, 3, 4, 5];
 const evaluationAt = (row: EvaluationShareRow, place: number): Evaluation => EVALUATION_SCALES[row.skill][place]!;
 
-export function evaluationChartOption(rows: readonly EvaluationShareRow[], minLabelledShare: number, m: Messages) {
+export function evaluationChartOption(rows: readonly EvaluationShareRow[], minLabelledShare: number, m: Messages, floating = false, compact = false) {
   const lastFilled = rows.map((row) => Math.max(...PLACES.map((i) => (row.counts[evaluationAt(row, i)] > 0 ? i : -1))));
   return {
     ...BASE_OPTION,
@@ -44,7 +46,7 @@ export function evaluationChartOption(rows: readonly EvaluationShareRow[], minLa
     xAxis: {
       type: 'value',
       max: 1,
-      axisLabel: { formatter: (v: number) => percent(v) },
+      axisLabel: { show: !compact, formatter: (v: number) => percent(v) },
       splitLine: { lineStyle: { color: GRID } },
     },
     yAxis: {
@@ -59,6 +61,8 @@ export function evaluationChartOption(rows: readonly EvaluationShareRow[], minLa
     tooltip: {
       ...BASE_OPTION.tooltip,
       trigger: 'item',
+      // In a scrolling side panel the tooltip would be cut off: draw it on the page instead.
+      ...(floating && { appendToBody: true, confine: true, extraCssText: `${BASE_OPTION.tooltip.extraCssText} z-index: 3000; max-width: min(320px, 90vw); white-space: normal;` }),
       formatter: (p: { seriesIndex: number; dataIndex: number }) => {
         const row = rows[p.dataIndex]!;
         const evaluation = evaluationAt(row, p.seriesIndex);
@@ -98,21 +102,21 @@ export function evaluationChartOption(rows: readonly EvaluationShareRow[], minLa
  * segments from the most favourable evaluation of that skill (green) to the
  * least favourable (red), each labelled with its symbol.
  */
-export function EvaluationChart({ rows, title }: { rows: readonly EvaluationShareRow[]; title: string }) {
+export function EvaluationChart({ rows, title, floating = false, compact = false }: { rows: readonly EvaluationShareRow[]; title: string; floating?: boolean; compact?: boolean }) {
   const { m } = useI18n();
   const box = useRef<HTMLDivElement>(null);
   const width = useWidth(box);
   // Label a segment only when the label fits inside it; otherwise tooltip and table carry the value.
   const minLabelledShare = minLabelledShareFor(width);
   const access = useA11y();
-  const option = useMemo(() => evaluationChartOption(rows, minLabelledShare, m), [rows, minLabelledShare, m, access]);
+  const option = useMemo(() => evaluationChartOption(rows, minLabelledShare, m, floating, compact), [rows, minLabelledShare, m, floating, compact, access]);
 
   if (rows.length === 0) return <p className="vr-note">{m.charts.noTouches}</p>;
   return (
     <div ref={box}>
-      <ScaleLegend m={m} />
-      <EChart option={option} height={evaluationChartHeight(rows)} label={title} />
-      <DataTable
+      {!compact && <ScaleLegend m={m} />}
+      <EChart option={option} height={compact ? 12 + rows.length * COMPACT_ROW_HEIGHT : evaluationChartHeight(rows)} label={title} />
+      {!compact && <DataTable
         head={[m.charts.skill, m.charts.tot, ...PLACES.map((i) => m.charts.scalePlace(i + 1))]}
         rows={rows.map((r) => [
           r.label,
@@ -122,7 +126,7 @@ export function EvaluationChart({ rows, title }: { rows: readonly EvaluationShar
             return r.counts[e] ? `${e} ${r.counts[e]} (${percent(r.shares[e])})` : '.';
           }),
         ])}
-      />
+      />}
     </div>
   );
 }

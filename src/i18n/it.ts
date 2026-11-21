@@ -116,6 +116,13 @@ export const it = {
       alt: 'Il tastierino sullo smartphone durante un tocco di attacco, e la finestra del cambio che propone il rientro del n. 13 al posto del n. 15',
       start: 'Inizia una nuova partita',
     },
+    /** After the keypad: the touches entered on the screen, downloaded as a DVW file for the video analysis. */
+    dvw: {
+      eyebrow: 'Se vuoi',
+      title: 'Analisi video: scarica i dati in DVW',
+      text: 'Con il tastierino o la griglia ogni tocco ha un ordine e un orario. Nel tabellino, "Scarica dati in DVW" crea un file DataVolley (.dvw) da importare in OpenVolleyScout: lì associ il video, indichi il primo tocco e rivedi le azioni filtrate, per esempio tutte le battute sbagliate di un numero. Prima del download controlla chi alza: l’app lo deduce, tu confermi.',
+      alt: 'Il riquadro "Scarica dati in DVW" del tabellino, con la scelta di chi alza, e l’inizio del file DataVolley che ne risulta',
+    },
     upload: 'Vai al caricamento',
     example: 'Guarda un tabellino d’esempio',
     stepOf: (step: number, steps: number) => `Passo ${step} di ${steps}`,
@@ -125,7 +132,7 @@ export const it = {
     close: 'Chiudi la guida',
     dontShow: 'Non mostrare più all’avvio',
     infoTitle: 'Guida rapida',
-    infoText: 'I cinque passi dal modulo di carta al tabellino, e come rilevare sul tablet, in una finestra che si apre all’avvio dell’app.',
+    infoText: 'I cinque passi dal modulo di carta al tabellino, come rilevare sul tablet o con il tastierino e come scaricare i dati in DVW per l’analisi video, in una finestra che si apre all’avvio dell’app.',
     infoShowAtStart: 'Mostra la guida all’avvio',
     infoOpen: 'Apri la guida',
     infoMode: 'Rilevazione da dispositivo',
@@ -518,14 +525,19 @@ export const it = {
     situationButton: 'Statistiche live',
     situation: {
       match: 'Partita',
-      scale: 'Verde: bene · arancio: attenzione · rosso: in difficoltà · grigio: meno di 3 palloni, ancora presto per dirlo',
-      scaleColorblind: 'Blu: bene · azzurro: attenzione · arancio: in difficoltà · grigio: meno di 3 palloni, ancora presto per dirlo',
-      indicator: { B: 'Battuta · efficienza', R: 'Ricezione · positività', A: 'Attacco · efficienza' },
+      chartTitle: 'Valutazioni di battuta, ricezione e attacco',
       balls: (n: number) => plural(n, 'pallone', 'palloni'),
       none: 'nessun pallone',
-      formGood: 'Vanno bene',
-      formBad: 'Vanno male',
+      tallyPoints: (n: number, parts: readonly string[]) => `Punti: ${n}${parts.length ? ` (${parts.join(', ')})` : ''}`,
+      tallyErrors: (n: number, parts: readonly string[]) => `Errori: ${n}${parts.length ? ` (${parts.join(', ')})` : ''}`,
+      pointBy: (skill: string, n: number) => `${n} ${({ B: 'ace', A: n === 1 ? 'attacco' : 'attacchi', M: n === 1 ? 'muro' : 'muri' } as Record<string, string>)[skill] ?? skill}`,
+      errorBy: (skill: string, n: number) => `${n} ${({ B: n === 1 ? 'battuta' : 'battute', R: n === 1 ? 'ricezione' : 'ricezioni', A: n === 1 ? 'attacco' : 'attacchi', M: n === 1 ? 'muro' : 'muri', P: n === 1 ? 'alzata' : 'alzate', F: 'free ball' } as Record<string, string>)[skill] ?? skill}`,
+      formTitle: 'Rendimenti',
+      formKey: 'punti/errori/p−e',
+      formGood: 'Positivo',
+      formBad: 'Negativo',
       formNone: 'nessuno',
+      formChip: (n: number, name: string, p: number, e: number, d: string) => `${name ? `${n} ${name}` : `numero ${n}`}: ${p} punti, ${e} errori, differenza ${d}`,
       factsTitle: 'Nel set',
       noFacts: 'Ancora niente da segnalare: le frasi compaiono da 2 episodi in su.',
       fact: {
@@ -838,7 +850,7 @@ export const it = {
           },
           {
             id: 'video',
-            q: 'Posso rivedere al video le azioni rilevate?',
+            q: 'Posso rivedere al video le azioni rilevate? (file DVW)',
             a: [
               'Sì, con OpenVolleyScout. Quando i tocchi sono inseriti sullo schermo (tastierino o griglia), l’app ne conserva l’ordine e l’orario. Nel tabellino trovi "Scarica dati in DVW": scarica il file DataVolley (.dvw). Importa il file in OpenVolleyScout per elaborarlo, poi associa il video e indica dove si trova il primo tocco. Da lì filtri le azioni, per esempio tutte le battute sbagliate di un numero, e le rivedi una dopo l’altra.',
               'Nel file c’è solo la tua squadra. Il punteggio scambio per scambio è ricostruito dall’ordine dei tocchi: perché torni con quello vero servono tutte le battute e tutte le ricezioni, inserite nell’ordine in cui avvengono. Dopo il download l’app dice, set per set, il punteggio ricostruito e se è diverso da quello scritto.',
@@ -930,6 +942,15 @@ export const it = {
       {
         title: 'Tabellino e grafici',
         items: [
+          {
+            id: 'dvw',
+            q: 'Cos’è "Scarica dati in DVW" e quando compare?',
+            a: [
+              'È il file DataVolley (.dvw) della partita, con i tocchi nell’ordine in cui li hai inseriti e il loro orario. Lo importi in OpenVolleyScout, programma libero dello stesso autore, per associare il video e rivedere le azioni filtrate per fondamentale, numero e valutazione.',
+              'Compare in fondo al tabellino solo per le partite rilevate sullo schermo, con il tastierino o con la griglia, da questa versione in poi: i fogli di carta e le partite precedenti non hanno l’ordine dei tocchi. Non compare nei tabellini aperti da un link di condivisione.',
+              'Nel file c’è solo la tua squadra. Il punteggio scambio per scambio è ricostruito dall’ordine dei tocchi e chi alza è dedotto: prima del download puoi confermarlo o cambiarlo per ogni set. Dopo il download l’app dice, set per set, i tocchi esportati, il punteggio ricostruito e se è diverso da quello scritto.',
+            ],
+          },
           {
             id: 'charts',
             q: 'Quali grafici ci sono e come li leggo?',
@@ -1039,6 +1060,7 @@ export const it = {
       'A fine set tocca "Chiudi set" e inserisci il punteggio finale: il set successivo riparte con gli stessi numeri di divisa e gli stessi nomi. Un set chiuso resta in sola lettura; per correggerlo tocca "Riapri set".',
       'Con "Colonne" togli le valutazioni "!" e "/" che non rilevi: il foglio si semplifica e la partita ricorda che quei dati non sono stati raccolti. Nel secondo passo scegli l’ordine dei fondamentali, da sinistra a destra; l’alzata resta in fondo.',
       'Ogni tocco è salvato subito sul dispositivo e lo schermo resta acceso durante la rilevazione. Va meglio un tablet in orizzontale.',
+      'Con "+ riga" e "− riga", nella fascia "Libero", aggiungi una riga fino a 13 o togli l’ultima vuota fino a 6. I tocchi inseriti qui hanno ordine e orario come quelli del tastierino: nel tabellino puoi usare "Scarica dati in DVW".',
     ],
     keypadTitle: 'Rilevare con il tastierino',
     keypadText: 'Tre tocchi per ogni pallone: il foglio si compila da solo. Su smartphone e tablet tastierino e griglia hanno ciascuno una schermata completa, senza scorrimento.',
@@ -1048,6 +1070,10 @@ export const it = {
       'Per ogni pallone toccato: tocca il numero e il fondamentale, nell’ordine che preferisci, poi la valutazione. La fila che manca ha il bordo arancione; per il libero solo ricezione e alzata. Il segno va nella casella giusta del foglio. Su smartphone e tablet tastierino e griglia occupano lo schermo senza scorrimento: passi dall’uno all’altra con i pulsanti "Griglia" e "Tastierino". Quando c’è spazio, a destra o sotto il tastierino compare la legenda del fondamentale scelto, con il significato di ogni valutazione.',
       'In fondo al tastierino vedi l’ultimo tocco; "Annulla" lo toglie, e toglie anche l’ultimo cambio.',
       'Per un cambio tocca il numero di chi esce e poi "Cambio": a destra scegli chi entra con le frecce, o scrivi un numero nuovo con il suo nome. Chi è entrato con un cambio può uscire solo per far rientrare chi ha sostituito: l’app propone già quella coppia. Dopo il rientro la coppia è chiusa per il set; i numeri che hanno già fatto un cambio sono in grigio. Ogni set riparte da zero.',
+      'I sei tasti in campo sono disposti come le zone, 4 3 2 a rete e 5 6 1 dietro; i liberi sono a destra. Toccando "Battuta" chi deve battere è già selezionato: dopo una ricezione o un nostro errore in battuta tocca a chi segue nella rotazione. In "Formazione", "Ruota al cambio di servizio" fa ruotare anche i tasti.',
+      '"Statistiche live" apre un riepilogo di set e partita, con le frasi su chi va bene o male; "Torna al tastierino" lo chiude.',
+      'Chiudendo il set l’app chiede chi ha alzato, dicendo chi pensa sia stato: conferma o cambia. Serve per il file DVW.',
+      'I tocchi inseriti con il tastierino o la griglia hanno ordine e orario: nel tabellino trovi cambio palla e break point e "Scarica dati in DVW", il file DataVolley da importare in OpenVolleyScout per l’analisi video.',
     ],
     codesTitle: 'Codici',
     codesText: 'Valutazioni dello standard DataVolley. Per l’alzata si segna solo il fallo (=).',

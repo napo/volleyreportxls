@@ -135,30 +135,64 @@ export const teamShares = (sets: readonly SetRecord[]): Shares[] => {
 /** A shirt number and its balance in the set: points won by its touches minus points lost. */
 export interface PlayerForm {
   readonly number: number;
+  /** Points scored by the touches of the shirt number in the set (aces, attacks, blocks). */
+  readonly points: number;
+  /** Errors made (serve, reception, attack, block, set, free ball). */
+  readonly errors: number;
+  /** Points minus errors, as shown. */
   readonly balance: number;
+  /** Points minus ERROR_WEIGHT times the errors: what decides who is positive and who negative. */
+  readonly score: number;
 }
 
-/** The skills whose points count for the balance of a player (as V-P). */
-const BALANCE_SKILLS: readonly Skill[] = ['B', 'R', 'A', 'M'];
+/**
+ * An error costs this many points in the score that ranks the players. The libero hardly
+ * ever scores, so for the libero the score is mostly "how few errors"; one error is clearly negative.
+ */
+export const ERROR_WEIGHT = 3;
 
 /**
- * Who goes well and who goes badly in the set: the two shirt numbers with the best
- * balance of points won and lost (above zero), the two with the worst (below zero).
+ * The performance of the shirt numbers in the set: the two with the best score
+ * (points - 3 errors, above zero) and the two with the worst (below zero); who has
+ * no points and no errors, or is exactly even, is not listed.
  */
 export function setForm(set: SetRecord, limit = 2): { readonly good: PlayerForm[]; readonly bad: PlayerForm[] } {
-  const balances = new Map<number, number>();
+  const skills = Object.keys(DATAVOLLEY_TABLES.pointEffects) as Skill[];
+  const totals = new Map<number, { points: number; errors: number }>();
   for (const row of set.rows) {
     if (row.playerNumber === null) continue;
-    let balance = balances.get(row.playerNumber) ?? 0;
-    for (const skill of BALANCE_SKILLS) {
+    const t = totals.get(row.playerNumber) ?? { points: 0, errors: 0 };
+    for (const skill of skills) {
       const { won, lost } = DATAVOLLEY_TABLES.pointEffects[skill];
-      balance += count([row], skill, won) - count([row], skill, lost);
+      t.points += count([row], skill, won);
+      t.errors += count([row], skill, lost);
     }
-    balances.set(row.playerNumber, balance);
+    totals.set(row.playerNumber, t);
   }
-  const all = [...balances].map(([number, balance]) => ({ number, balance }));
+  const all: PlayerForm[] = [...totals].map(([number, t]) => ({ number, ...t, balance: t.points - t.errors, score: t.points - ERROR_WEIGHT * t.errors }));
   return {
-    good: all.filter((p) => p.balance > 0).sort((a, b) => b.balance - a.balance || a.number - b.number).slice(0, limit),
-    bad: all.filter((p) => p.balance < 0).sort((a, b) => a.balance - b.balance || a.number - b.number).slice(0, limit),
+    good: all.filter((p) => p.score > 0).sort((a, b) => b.score - a.score || b.balance - a.balance || a.number - b.number).slice(0, limit),
+    bad: all.filter((p) => p.score < 0).sort((a, b) => a.score - b.score || a.balance - b.balance || a.number - b.number).slice(0, limit),
   };
+}
+
+/** Points won and points lost by our own touches, each with the skills they came from (most frequent first). */
+export interface Tally {
+  readonly points: number;
+  readonly errors: number;
+  readonly pointsBy: readonly { readonly skill: Skill; readonly count: number }[];
+  readonly errorsBy: readonly { readonly skill: Skill; readonly count: number }[];
+}
+
+/** Points scored (ace, attack, block) and errors (serve, reception, attack, block, set, free ball) of the set. */
+export function setTally(set: SetRecord): Tally {
+  const by = (kind: 'won' | 'lost') =>
+    (Object.keys(DATAVOLLEY_TABLES.pointEffects) as Skill[])
+      .map((skill) => ({ skill, count: count(set.rows, skill, DATAVOLLEY_TABLES.pointEffects[skill][kind]) }))
+      .filter((x) => x.count > 0)
+      .sort((a, b) => b.count - a.count);
+  const pointsBy = by('won');
+  const errorsBy = by('lost');
+  const sum = (xs: readonly { count: number }[]) => xs.reduce((n, x) => n + x.count, 0);
+  return { points: sum(pointsBy), errors: sum(errorsBy), pointsBy, errorsBy };
 }

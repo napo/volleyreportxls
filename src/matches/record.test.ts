@@ -120,3 +120,13 @@ test('the match is over when a side wins three sets', () => {
   // The third set is still being typed: 25-2 is not a final score.
   expect(matchWinner(scored([25, 20], [25, 18], [2, 0]))).toBeNull();
 });
+
+test('with a lineup, the rows of starters, liberos and substitutes are kept even without counts; the others are not', () => {
+  const record = newMatchRecord();
+  const base = emptySet(1);
+  const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  const rows = base.rows.map((row, i) => ({ ...row, playerNumber: numbers[i] ?? null }));
+  const set = { ...base, score: { us: 25, them: 20 }, rows, lineup: { court: [1, 2, 3, 4, 5, 6], liberos: [7] }, subs: [{ out: 6, in: 8 }] } as unknown as typeof base;
+  const kept = toMatch({ ...record, sets: [set, ...record.sets.slice(1)] }).sets[0]!.lines.map((l) => l.playerNumber);
+  expect(kept).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+});

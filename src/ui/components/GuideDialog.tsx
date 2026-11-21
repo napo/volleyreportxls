@@ -27,6 +27,8 @@ import sharingen from '../../assets/howto/5b-condivisione-en.webp';
 import customen from '../../assets/howto/1b-modulo-colonne-en.webp';
 import phone from '../../assets/howto/7-smartphone.webp';
 import phoneen from '../../assets/howto/7-smartphone-en.webp';
+import dvw from '../../assets/howto/7b-dvw.webp';
+import dvwen from '../../assets/howto/7b-dvw-en.webp';
 import { type Lang, useI18n } from '../../i18n';
 import { newMatchRecord } from '../../matches/record';
 import { useArchive } from '../archive-context';
@@ -44,13 +46,14 @@ const STEP_IMAGES: Readonly<Record<Lang, readonly string[]>> = {
 };
 const TABLET_IMAGE: Readonly<Record<Lang, string>> = { it: tablet, en: tableten };
 const PHONE_IMAGE: Readonly<Record<Lang, string>> = { it: phone, en: phoneen };
+const DVW_IMAGE: Readonly<Record<Lang, string>> = { it: dvw, en: dvwen };
 const CUSTOM_IMAGE: Readonly<Record<Lang, string>> = { it: custom, en: customen };
 const SHARE_IMAGE: Readonly<Record<Lang, string>> = { it: sharing, en: sharingen };
 
 /** A page of the guide: one of the numbered steps, or an optional page with its own label. */
 type Page = { readonly title: string; readonly text: string; readonly alt: string; readonly image: string } & (
   | { readonly kind: 'step'; readonly step: number }
-  | { readonly kind: 'custom' | 'share' | 'tablet' | 'phone'; readonly eyebrow: string }
+  | { readonly kind: 'custom' | 'share' | 'tablet' | 'phone' | 'dvw'; readonly eyebrow: string }
 );
 
 export function GuideDialog() {
@@ -80,6 +83,7 @@ export function GuideDialog() {
     { ...t.share, kind: 'share', image: SHARE_IMAGE[lang] },
     { ...t.tablet, kind: 'tablet', image: TABLET_IMAGE[lang] },
     { ...t.phone, kind: 'phone', image: PHONE_IMAGE[lang] },
+    { ...t.dvw, kind: 'dvw', image: DVW_IMAGE[lang] },
   ];
   const page = pages[index]!;
   const step = page.kind === 'step' ? page.step : null;

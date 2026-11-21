@@ -593,6 +593,19 @@ a {
   border-color: var(--vr-accent);
 }
 
+/* A toggle that is on: filled and pressed in. The filled look is only for what is in use, so the other buttons of a bar stay outlined. */
+.vr-btn-secondary[aria-pressed='true'] {
+  border-color: var(--vr-accent);
+  background: var(--vr-accent);
+  color: #fff;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+  font-weight: 600;
+}
+
+.vr-btn-secondary[aria-pressed='true']::before {
+  content: '✓ ';
+}
+
 .vr-btn-small {
   padding: 0.35rem 0.75rem;
   font-size: 0.8rem;
@@ -3978,6 +3991,34 @@ button.vr-score-teams.selected {
   height: 10rem;
 }
 
+.vr-keypad.legend-stats .vr-keypad-body {
+  flex-direction: row;
+}
+
+/* A phone sideways: the statistics in a column, set only, with no scrolling. */
+.vr-keypad.legend-stats .vr-keypad-legend {
+  flex: 0 0 clamp(13rem, 32%, 19rem);
+  padding: 0.3rem 0.5rem;
+  font-size: 0.8rem;
+  line-height: 1.2;
+  overflow: hidden;
+}
+
+.vr-keypad-stats .vr-stats-tally { margin: 0.2rem 0; font-size: 0.8rem; line-height: 1.2; }
+.vr-keypad-stats .vr-form { margin-top: 0.1rem; gap: 0.15rem 0.3rem; }
+.vr-keypad-stats .vr-form-title small { font-size: 0.7rem; }
+.vr-keypad-stats .vr-form-chip span { font-size: 0.75rem; }
+.vr-keypad-stats .vr-form h3,
+.vr-keypad-stats .vr-form h4 { margin: 0 0 0.1rem; font-size: 0.75rem; }
+.vr-keypad-stats .vr-form ul { flex-direction: row; flex-wrap: wrap; gap: 0.2rem; }
+.vr-keypad-stats .vr-form-chip { flex: 1 1 4.5rem; padding: 0.1rem 0.3rem; }
+.vr-keypad-stats .vr-form-chip strong { font-size: 1rem; }
+
+/* The shortest phones sideways: the bars and the points first, who goes well and badly does not fit. */
+@media (max-height: 380px) {
+  .vr-keypad-stats .vr-form { display: none; }
+}
+
 .vr-keypad-legend h3 {
   margin: 0 0 0.4rem;
   font-size: 0.95rem;
@@ -4665,6 +4706,27 @@ output.vr-sub-name {
   .vr-situation-facts { gap: 0.2rem; }
   .vr-situation-facts li { padding-block: 0.2rem; }
   .vr-situation-close { min-height: 2.6rem; flex-shrink: 0; }
+  /* The two best and the two worst side by side, and only the two main facts: no scrolling on a phone. */
+  .vr-situation .vr-form { margin-top: 0; gap: 0.4rem; }
+  .vr-situation .vr-form ul { flex-direction: row; flex-wrap: wrap; gap: 0.25rem; }
+  .vr-situation .vr-form-chip { flex: 1 1 4.6rem; padding: 0.15rem 0.35rem; }
+  .vr-situation .vr-form-chip strong { font-size: 1.1rem; }
+  .vr-situation-facts li:nth-child(n + 3) { display: none; }
+}
+
+/* A shorter phone: the facts give way, then (in the component) the match bars. */
+@media (max-width: 899px) and (max-height: 800px) {
+  .vr-situation-facts,
+  .vr-situation-facts-title,
+  .vr-situation-empty { display: none; }
+}
+
+/* A very short phone: the "Live stats" button of the bar already goes back to the keys. */
+@media (max-width: 899px) and (max-height: 700px) {
+  .vr-situation-close { display: none; }
+  .vr-situation .vr-stats-tally { margin: 0; font-size: 0.85rem; line-height: 1.25; }
+  .vr-situation .vr-form h3,
+  .vr-situation .vr-form h4 { margin-bottom: 0.1rem; font-size: 0.8rem; }
 }
 
 /* Nothing in the situation shrinks onto the next line: with larger text the panel scrolls. */
@@ -4692,6 +4754,9 @@ output.vr-sub-name {
   font-size: 0.9rem;
 }
 
+.vr-stats-tally { margin: 0.5rem 0 0; font-weight: 600; }
+.vr-stats-tally .points { color: var(--vr-level-good, #2e7d32); }
+.vr-stats-tally .errors { color: var(--vr-level-poor, #a85a00); }
 .vr-stats-line {
   display: grid;
   grid-template-columns: 4.2rem 1fr 3rem minmax(4.8rem, auto);
@@ -4723,7 +4788,7 @@ output.vr-sub-name {
 
 .vr-stats-bar.good { background: var(--vr-level-good, #2e7d32); }
 .vr-stats-bar.fair { background: var(--vr-level-fair, #e8710a); }
-.vr-stats-bar.poor { background: var(--vr-level-poor, #c62828); }
+.vr-stats-bar.poor { background: var(--vr-level-poor, #a85a00); }
 .vr-stats-bar.unknown { background: #9aa9b7; }
 
 .vr-stats-value {
@@ -5223,9 +5288,22 @@ output.vr-sub-name {
   margin-top: 0.6rem;
 }
 
-.vr-form h3 {
+.vr-form h3,
+.vr-form h4 {
   margin: 0 0 0.25rem;
   font-size: 0.85rem;
+}
+
+.vr-form .vr-form-title {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.vr-form .vr-form-title small {
+  margin-left: 0.3rem;
+  color: var(--vr-text-secondary, #5b6670);
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 .vr-form p {
@@ -5268,6 +5346,8 @@ output.vr-sub-name {
 
 .vr-form-chip span {
   margin-left: auto;
+  white-space: nowrap;
+  font-size: 0.85rem;
 }
 
 .vr-form-chip.good {

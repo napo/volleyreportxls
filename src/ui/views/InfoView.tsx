@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { VOLLEYREPORTXLS_URL } from '../../config';
 import { ExternalLink } from '../../platform/ExternalLink';
 import { CodeLegend } from '../components/CodeLegend';
@@ -23,6 +23,22 @@ export function InfoView() {
   const { m } = useI18n();
   const t = m.info;
   const [tab, setTab] = useState<InfoTab>(initialTab);
+  // A link to a section (#modulo, #download) while already on this page: open its card and scroll to it.
+  useEffect(() => {
+    const onHash = () => {
+      const name = parseRoute(window.location.hash).name;
+      if (name !== 'modulo' && name !== 'download') return;
+      setTab(initialTab());
+      requestAnimationFrame(() => document.getElementById(name)?.scrollIntoView({ block: 'start' }));
+    };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+  // On first load the view arrives after the route effect: scroll to the linked section once it exists.
+  useEffect(() => {
+    const name = parseRoute(window.location.hash).name;
+    if (name === 'modulo' || name === 'download') document.getElementById(name)?.scrollIntoView({ block: 'start' });
+  }, []);
   return (
     <>
       <header className="vr-hero">
