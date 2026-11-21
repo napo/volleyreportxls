@@ -29,7 +29,7 @@ import { isTauriApp, setUpdateChecksEnabled, updateChecksEnabled } from '../../p
 import { formatDate } from '../../report/format';
 import { APP_VERSION } from '../../version';
 import { useI18n } from '../../i18n';
-import { openGuide, setShowGuideAtStart, useGuide } from '../guide';
+import { forceScoutModeNote, openGuide, setShowGuideAtStart, setShowScoutModeNote, useGuide, useScoutModeNote } from '../guide';
 
 function CardHead({ title, subtitle }: { title: string; subtitle?: string | undefined }) {
   return (
@@ -71,17 +71,29 @@ export function SupportSection() {
 export function GuideSection() {
   const t = useI18n().m.guide;
   const { showAtStart } = useGuide();
+  const modeNote = useScoutModeNote();
   return (
     <section className="vr-card" id="guida">
       <CardHead title={t.infoTitle} subtitle={t.infoText} />
-      <div className="vr-actions start">
-        <button type="button" className="vr-btn vr-btn-secondary" onClick={openGuide}>
-          {t.infoOpen}
-        </button>
-        <label className="vr-check">
-          <input type="checkbox" checked={showAtStart} onChange={(e) => setShowGuideAtStart(e.target.checked)} />
-          {t.infoShowAtStart}
-        </label>
+      <div className="vr-guide-rows">
+        <div className="vr-guide-row">
+          <button type="button" className="vr-btn vr-btn-secondary" onClick={openGuide}>
+            {t.infoOpen}
+          </button>
+          <label className="vr-check">
+            <input type="checkbox" checked={showAtStart} onChange={(e) => setShowGuideAtStart(e.target.checked)} />
+            {t.infoShowAtStart}
+          </label>
+        </div>
+        <div className="vr-guide-row">
+          <button type="button" className="vr-btn vr-btn-secondary" onClick={forceScoutModeNote}>
+            {t.infoMode}
+          </button>
+          <label className="vr-check">
+            <input type="checkbox" checked={modeNote.show} onChange={(e) => setShowScoutModeNote(e.target.checked)} />
+            {t.infoModeShowAtStart}
+          </label>
+        </div>
       </div>
     </section>
   );

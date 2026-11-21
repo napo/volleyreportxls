@@ -129,6 +129,18 @@ export const en: Messages = {
     infoText: 'The five steps from the paper form to the scoresheet, and how to scout on a tablet, in a window that opens when the app starts.',
     infoShowAtStart: 'Show the guide at start',
     infoOpen: 'Open the guide',
+    infoMode: 'Scouting on a device',
+    infoModeShowAtStart: 'Show at the start of scouting',
+    mode: {
+      title: 'You can scout with the grid or with the keypad',
+      gridText: 'The grid is simply a replica of the sheet: tap the right cell to add a mark.',
+      keypadText: 'The keypad fills in the sheet without moving over the grid. It needs the lineup and shows live statistics.',
+      gridAlt: 'The grid: a replica of the scouting sheet, one row per athlete',
+      keypadAlt: 'The keypad on a smartphone: the numbers on court, the skills and the evaluations',
+      dontShow: 'Do not show this message again',
+      done: 'Got it',
+      close: 'Close',
+    },
   },
 
   matches: {
@@ -511,6 +523,9 @@ export const en: Messages = {
       indicator: { B: 'Serve · efficiency', R: 'Reception · positivity', A: 'Attack · efficiency' },
       balls: (n: number) => plural(n, 'ball', 'balls'),
       none: 'no balls',
+      formGood: 'Going well',
+      formBad: 'Going badly',
+      formNone: 'nobody yet',
       factsTitle: 'In the set',
       noFacts: 'Nothing to report yet: facts appear from 2 occurrences on.',
       fact: {
@@ -693,6 +708,9 @@ export const en: Messages = {
     wonLostText: 'By skill; opponent errors are points won without a winning touch of ours.',
     wonLostBySkill: 'Points won and lost by skill',
     skill: 'Skill',
+    finalPercentTitle: 'Final percentages',
+    finalPercentText: 'Final positivity and efficiency of serve, reception and attack, over all touches.',
+    finalPercentLabel: 'Final percentages of serve, reception and attack',
     trendTitle: 'Set by set',
     trendText: 'Serve positivity, reception and attack positivity and efficiency. Solid line: positivity; dashed: efficiency.',
     trendLabel: 'Trend set by set of serve, reception and attack',
@@ -1007,6 +1025,21 @@ export const en: Messages = {
 
   info: {
     eyebrow: 'About',
+    tabs: {
+      support: 'Support',
+      guide: 'Quick guide',
+      download: 'Download',
+      form: 'Form',
+      how: 'How to fill in',
+      live: 'On a tablet',
+      keypad: 'Keypad',
+      codes: 'Codes',
+      stats: 'Statistics',
+      project: 'Project',
+      updates: 'Updates',
+      privacy: 'Privacy',
+      label: 'Information sections',
+    },
     leadBefore: 'It comes from',
     leadAfter:
       ', the spreadsheet for coaches who scout the match with pen and paper. Here you find the form to print, how to scout on a tablet, the codes, the definitions of the statistics and the versions to install.',

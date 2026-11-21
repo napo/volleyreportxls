@@ -62,7 +62,7 @@ export function ColumnsChoice({
                     <input type="checkbox" checked={!hidden.has(code)} onChange={(e) => set([code], e.target.checked)} />
                     <span>
                       <strong>
-                        <em>{evaluation}</em>
+                        <span>{evaluation}</span>
                       </strong>{' '}
                       {m.codes[skill][evaluation]}
                       {note?.(code)}

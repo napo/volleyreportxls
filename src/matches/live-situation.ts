@@ -8,7 +8,7 @@
  * short facts about single shirt numbers in the set ("#15 conceded 3 aces").
  * Only counts are used: the sheet keeps no order of the touches.
  */
-import type { Evaluation, ScoutCodeString, Skill } from '../domain/codes';
+import { EVALUATION_SCALES, type Evaluation, type ScoutCodeString, type Skill } from '../domain/codes';
 import { DATAVOLLEY_TABLES } from '../domain/tables';
 import type { MatchRecord, SetRecord } from './record';
 
@@ -114,4 +114,51 @@ export function setFacts(set: SetRecord, limit = 4): Fact[] {
     }
   }
   return facts.sort((a, b) => Number(b.negative) - Number(a.negative) || b.count - a.count || a.number - b.number).slice(0, limit);
+}
+
+/** How the balls of a skill were evaluated: the counts by evaluation, from the most to the least favourable. */
+export interface Shares {
+  readonly skill: IndicatorSkill;
+  readonly total: number;
+  readonly parts: readonly { readonly evaluation: Evaluation; readonly count: number }[];
+}
+
+/** The evaluations of serve, reception and attack over these sets, for the stacked bars. */
+export const teamShares = (sets: readonly SetRecord[]): Shares[] => {
+  const rows = sets.flatMap((s) => s.rows);
+  return INDICATOR_SKILLS.map((skill) => {
+    const parts = EVALUATION_SCALES[skill].map((evaluation) => ({ evaluation, count: count(rows, skill, [evaluation]) }));
+    return { skill, total: parts.reduce((n, p) => n + p.count, 0), parts };
+  });
+};
+
+/** A shirt number and its balance in the set: points won by its touches minus points lost. */
+export interface PlayerForm {
+  readonly number: number;
+  readonly balance: number;
+}
+
+/** The skills whose points count for the balance of a player (as V-P). */
+const BALANCE_SKILLS: readonly Skill[] = ['B', 'R', 'A', 'M'];
+
+/**
+ * Who goes well and who goes badly in the set: the two shirt numbers with the best
+ * balance of points won and lost (above zero), the two with the worst (below zero).
+ */
+export function setForm(set: SetRecord, limit = 2): { readonly good: PlayerForm[]; readonly bad: PlayerForm[] } {
+  const balances = new Map<number, number>();
+  for (const row of set.rows) {
+    if (row.playerNumber === null) continue;
+    let balance = balances.get(row.playerNumber) ?? 0;
+    for (const skill of BALANCE_SKILLS) {
+      const { won, lost } = DATAVOLLEY_TABLES.pointEffects[skill];
+      balance += count([row], skill, won) - count([row], skill, lost);
+    }
+    balances.set(row.playerNumber, balance);
+  }
+  const all = [...balances].map(([number, balance]) => ({ number, balance }));
+  return {
+    good: all.filter((p) => p.balance > 0).sort((a, b) => b.balance - a.balance || a.number - b.number).slice(0, limit),
+    bad: all.filter((p) => p.balance < 0).sort((a, b) => a.balance - b.balance || a.number - b.number).slice(0, limit),
+  };
 }

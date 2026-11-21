@@ -10,22 +10,23 @@ import { ExternalLink } from '../platform/ExternalLink';
 import { APP_VERSION } from '../version';
 import { ArchiveProvider, useSync } from './archive-context';
 import { GuideDialog } from './components/GuideDialog';
+import { ScoutModeDialog } from './components/ScoutModeDialog';
 import { UpdateNotice } from './components/UpdateNotice';
 import { useMatchReport } from './match-report';
 import { type Route, SAMPLE_ID, TABS, type Tab, href, isSectionPage, parseRoute, tabOf } from './routes';
-import { AthletesView } from './views/AthletesView';
-import { FaqView } from './views/FaqView';
 import { HomeView } from './views/HomeView';
-import { InfoView } from './views/InfoView';
-import { LiveSheetView } from './views/LiveSheetView';
-import { MatchEditorView } from './views/MatchEditorView';
-import { AcquisitionView } from './acquisition/AcquisitionView';
 import { LANGUAGES, setLang, useI18n } from '../i18n';
 import { LanguageFlag } from './components/LanguageFlag';
 import { AccessibilityMenu } from './components/AccessibilityMenu';
 import { TabellinoView } from './views/TabellinoView';
 
-// Charts (ECharts) are loaded only when the tab is opened.
+// Charts (ECharts) and the heavy views are loaded only when their page is opened.
+const AthletesView = lazy(() => import('./views/AthletesView').then((x) => ({ default: x.AthletesView })));
+const FaqView = lazy(() => import('./views/FaqView').then((x) => ({ default: x.FaqView })));
+const InfoView = lazy(() => import('./views/InfoView').then((x) => ({ default: x.InfoView })));
+const LiveSheetView = lazy(() => import('./views/LiveSheetView').then((x) => ({ default: x.LiveSheetView })));
+const MatchEditorView = lazy(() => import('./views/MatchEditorView').then((x) => ({ default: x.MatchEditorView })));
+const AcquisitionView = lazy(() => import('./acquisition/AcquisitionView').then((x) => ({ default: x.AcquisitionView })));
 const GraficiView = lazy(() => import('./views/GraficiView'));
 const AthleteView = lazy(() => import('./views/AthleteView'));
 const SharedView = lazy(() => import('./views/SharedView'));
@@ -82,6 +83,15 @@ function AthleteRoute({ id }: { id: string }) {
 }
 
 function Page({ route }: { route: Route }) {
+  const { m } = useI18n();
+  return (
+    <Suspense fallback={<p className="vr-note">{m.common.loading}</p>}>
+      <PageContent route={route} />
+    </Suspense>
+  );
+}
+
+function PageContent({ route }: { route: Route }) {
   switch (route.name) {
     case 'foto':
       return <AcquisitionView key={route.param ?? 'nuova'} matchId={route.param} />;
@@ -260,7 +270,10 @@ export function App() {
   if (route.name === 'rileva' && route.param) {
     return (
       <ArchiveProvider>
-        <LiveSheetView key={route.param} id={route.param} />
+        <Suspense fallback={<p className="vr-note">{m.common.loading}</p>}>
+          <LiveSheetView key={route.param} id={route.param} />
+        </Suspense>
+        <ScoutModeDialog />
       </ArchiveProvider>
     );
   }
@@ -291,6 +304,7 @@ export function App() {
 
       <UpdateNotice />
       <GuideDialog />
+      <ScoutModeDialog />
 
       <main className="vr-shell">
         <Page route={route} />

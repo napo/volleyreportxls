@@ -4,8 +4,9 @@
 /** The charts of the team, for one match (Grafici) or for the matches put together (history). */
 import type { StatLine } from '../../domain/stats/aggregate';
 import { useI18n } from '../../i18n';
-import { type SetTrendRow, evaluationShares, pointsBySkill } from '../../report/chart-data';
+import { type SetTrendRow, evaluationShares, pointsBySkill, trendRow } from '../../report/chart-data';
 import { EvaluationChart } from '../charts/EvaluationChart';
+import { FinalPercentChart } from '../charts/FinalPercentChart';
 import { TrendChart } from '../charts/TrendChart';
 import { WonLostChart } from '../charts/WonLostChart';
 
@@ -25,6 +26,15 @@ export function TeamCharts({ team, opponentErrors, trend, trendTexts }: Props) {
   const names = { skills: m.skills, opponentErrors: t.opponentErrors };
   return (
     <>
+      <section className="vr-card">
+        <div className="vr-card-head">
+          <div>
+            <h2>{t.finalPercentTitle}</h2>
+            <p>{t.finalPercentText}</p>
+          </div>
+        </div>
+        <FinalPercentChart final={trendRow('', team)} title={t.finalPercentLabel} />
+      </section>
 
       <section className="vr-card">
         <div className="vr-card-head">

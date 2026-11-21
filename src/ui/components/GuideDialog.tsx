@@ -100,6 +100,10 @@ export function GuideDialog() {
           <p className="vr-eyebrow">{page.kind === 'step' ? t.stepOf(page.step, steps.length) : page.eyebrow}</p>
           <h2 id="vr-guide-title">{t.title}</h2>
         </div>
+        <label className="vr-check vr-guide-head-check">
+          <input type="checkbox" checked={!showAtStart} onChange={(e) => setShowGuideAtStart(!e.target.checked)} />
+          {t.dontShow}
+        </label>
         <button type="button" className="vr-icon-button" aria-label={t.close} onClick={closeGuide}>
           ×
         </button>

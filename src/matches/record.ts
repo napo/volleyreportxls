@@ -248,7 +248,7 @@ export function toMatch(record: MatchRecord): Match {
     sets: record.sets.filter(setIsPlayed).map((set) => ({
       number: set.number,
       score: set.score,
-      lines: set.rows.filter(rowIsUsed).map((row) => tallyLine({ id: row.id, playerNumber: row.playerNumber, counts: row.counts })),
+      lines: set.rows.filter((row) => (set.lineup ? rowHasCounts(row) || enteredInSet(set, row) : rowIsUsed(row))).map((row) => tallyLine({ id: row.id, playerNumber: row.playerNumber, counts: row.counts })),
       ...(set.phases && { phases: set.phases }),
     })),
     ...(record.opponentErrors !== undefined && { opponentErrors: record.opponentErrors }),
@@ -265,4 +265,11 @@ export function teamKey(teamName: string, competition: string): string {
 export function sameContent(a: MatchRecord, b: MatchRecord): boolean {
   const strip = ({ createdAt: _c, updatedAt: _u, ...rest }: MatchRecord) => JSON.stringify(rest);
   return strip(a) === strip(b);
+}
+
+/** Given in the lineup of the set (starters, liberos) or brought in by a substitution with the keypad. */
+function enteredInSet(set: SetRecord, row: TallyRowRecord): boolean {
+  const n = row.playerNumber;
+  if (n === null || !set.lineup) return false;
+  return set.lineup.court.includes(n) || set.lineup.liberos.includes(n) || (set.subs ?? []).some((s) => s.in === n);
 }

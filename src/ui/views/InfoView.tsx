@@ -1,16 +1,28 @@
 // SPDX-FileCopyrightText: 2026 Maurizio Napolitano <maurizio.napolitano@gmail.com>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import { useState } from 'react';
 import { VOLLEYREPORTXLS_URL } from '../../config';
 import { ExternalLink } from '../../platform/ExternalLink';
 import { CodeLegend } from '../components/CodeLegend';
 import { DownloadSection, GuideSection, PrivacySection, ProjectSection, SupportSection, UpdatesSection } from '../components/ProjectSections';
 import { useI18n } from '../../i18n';
 import { DownloadFormButton } from '../components/DownloadFormButton';
+import { parseRoute } from '../routes';
+
+/** The cards of the page, in order: the bar shows one at a time. */
+const TABS = ['support', 'guide', 'download', 'form', 'how', 'live', 'keypad', 'codes', 'stats', 'project', 'updates', 'privacy'] as const;
+type InfoTab = (typeof TABS)[number];
+
+function initialTab(): InfoTab {
+  const name = parseRoute(window.location.hash).name;
+  return name === 'modulo' ? 'form' : name === 'download' ? 'download' : 'support';
+}
 
 export function InfoView() {
   const { m } = useI18n();
   const t = m.info;
+  const [tab, setTab] = useState<InfoTab>(initialTab);
   return (
     <>
       <header className="vr-hero">
@@ -22,12 +34,22 @@ export function InfoView() {
         </p>
       </header>
 
-      <SupportSection />
+      <div className="vr-info-tabs" role="tablist" aria-label={t.tabs.label}>
+        {TABS.map((key) => (
+          <button key={key} type="button" role="tab" id={`vr-info-tab-${key}`} aria-selected={tab === key} aria-controls="vr-info-panel" className={`vr-info-tab${tab === key ? ' active' : ''}`} onClick={() => setTab(key)}>
+            {t.tabs[key]}
+          </button>
+        ))}
+      </div>
 
-      <GuideSection />
+      <div id="vr-info-panel" role="tabpanel" aria-labelledby={`vr-info-tab-${tab}`}>
+      {tab === 'support' && <SupportSection />}
 
-      <DownloadSection />
+      {tab === 'guide' && <GuideSection />}
 
+      {tab === 'download' && <DownloadSection />}
+
+      {tab === 'form' && (
       <section id="modulo" className="vr-card vr-dropzone">
         <span className="vr-icon-tile" aria-hidden="true">
           ↓
@@ -39,8 +61,10 @@ export function InfoView() {
           <DownloadFormButton />
         </div>
       </section>
+      )}
 
-      <section className="vr-card">
+      {tab === 'how' && (
+<section className="vr-card">
         <div className="vr-card-head">
           <div>
             <h2>{t.howTitle}</h2>
@@ -53,8 +77,10 @@ export function InfoView() {
           ))}
         </ol>
       </section>
+      )}
 
-      <section id="tablet" className="vr-card">
+      {tab === 'live' && (
+<section id="tablet" className="vr-card">
         <div className="vr-card-head">
           <div>
             <h2>{t.liveTitle}</h2>
@@ -67,8 +93,10 @@ export function InfoView() {
           ))}
         </ol>
       </section>
+      )}
 
-      <section id="tastierino" className="vr-card">
+      {tab === 'keypad' && (
+<section id="tastierino" className="vr-card">
         <div className="vr-card-head">
           <div>
             <h2>{t.keypadTitle}</h2>
@@ -81,8 +109,10 @@ export function InfoView() {
           ))}
         </ol>
       </section>
+      )}
 
-      <section className="vr-card">
+      {tab === 'codes' && (
+<section className="vr-card">
         <div className="vr-card-head">
           <div>
             <h2>{t.codesTitle}</h2>
@@ -91,8 +121,10 @@ export function InfoView() {
         </div>
         <CodeLegend />
       </section>
+      )}
 
-      <section className="vr-card">
+      {tab === 'stats' && (
+<section className="vr-card">
         <div className="vr-card-head">
           <div>
             <h2>{t.statsTitle}</h2>
@@ -100,10 +132,12 @@ export function InfoView() {
         </div>
         <p>{t.statsText}</p>
       </section>
+      )}
 
-      <ProjectSection />
-      <UpdatesSection />
-      <PrivacySection />
+      {tab === 'project' && <ProjectSection />}
+      {tab === 'updates' && <UpdatesSection />}
+      {tab === 'privacy' && <PrivacySection />}
+      </div>
     </>
   );
 }

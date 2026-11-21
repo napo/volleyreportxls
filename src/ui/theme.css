@@ -5020,3 +5020,264 @@ output.vr-sub-name {
   text-transform: none;
   color: var(--vr-text);
 }
+
+/* The undo of the keypad: large and coloured, so it is found at once */
+.vr-keypad-foot .vr-keypad-undo {
+  padding: 0.55rem 1.4rem;
+  border: 2px solid var(--vr-orange-text);
+  background: var(--vr-orange-soft);
+  color: var(--vr-orange-text);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.vr-keypad-foot .vr-keypad-undo:hover:not(:disabled) {
+  background: var(--vr-orange-text);
+  color: #fff;
+}
+
+/* Live statistics under the legend, when the legend has room (side or below the keys). */
+.vr-keypad-live {
+  margin-top: 0.6rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--vr-live-line);
+}
+
+.vr-keypad-live .vr-stats {
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .vr-keypad-live {
+    display: none;
+  }
+}
+
+/* "Don't show at start" in the title of the guide, at the right end beside the close button. */
+.vr-guide-head .vr-guide-head-check {
+  margin-left: auto;
+  align-self: center;
+  font-size: 0.85rem;
+}
+
+/* The note on scouting with the grid or the keypad. */
+.vr-scout-mode {
+  width: min(900px, calc(100vw - 2rem));
+}
+
+.vr-scout-mode-options {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 1.25rem;
+  margin: 1rem 0;
+}
+
+.vr-scout-mode-options figure {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 0;
+}
+
+.vr-scout-mode-options img {
+  width: 100%;
+  height: 16rem;
+  object-fit: contain;
+  object-position: center;
+  border-radius: 0.6rem;
+  background: var(--vr-bg);
+}
+
+.vr-scout-mode-options figcaption {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.vr-scout-mode-options figcaption p {
+  margin: 0;
+}
+
+.vr-scout-mode-button {
+  cursor: default;
+  pointer-events: none;
+}
+
+.vr-scout-mode-foot {
+  justify-content: space-between;
+}
+
+.vr-scout-mode-check {
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.vr-scout-mode-check input {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+@media (max-width: 640px) {
+  .vr-scout-mode-options {
+    grid-template-columns: 1fr;
+  }
+
+  .vr-scout-mode-options img {
+    height: 12rem;
+  }
+}
+
+/* About, quick guide: a grid, each button with its "show at start" flag right beside it, rows and columns aligned. */
+.vr-guide-rows {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  align-items: center;
+  justify-content: start;
+  gap: 0.75rem 1rem;
+}
+
+.vr-guide-row {
+  display: contents;
+}
+
+.vr-guide-row .vr-btn {
+  justify-self: stretch;
+  text-align: center;
+}
+
+@media (max-width: 520px) {
+  .vr-guide-rows {
+    grid-template-columns: max-content;
+  }
+}
+
+/* Information: one bar with every card, the chosen one shown below (no scrolling through them all). */
+.vr-info-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0 0 1rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--vr-border);
+}
+
+.vr-info-tab {
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--vr-border-hover);
+  border-radius: 999px;
+  background: var(--vr-surface);
+  color: var(--vr-heading);
+  font-family: var(--vr-font-nav);
+  font-size: 0.9rem;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.vr-info-tab:hover {
+  border-color: var(--vr-accent);
+}
+
+.vr-info-tab.active {
+  border-color: var(--vr-accent);
+  background: var(--vr-accent);
+  color: var(--vr-accent-contrast);
+}
+
+/* Live statistics: stacked bars of the evaluations, as in the charts. */
+.vr-stats-track.stacked {
+  display: flex;
+  height: 1.5rem;
+  border-radius: 0.3rem;
+}
+
+.vr-stats-segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.8rem;
+  font-style: normal;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.vr-stats-line.match .vr-stats-segment {
+  opacity: 0.7;
+}
+
+/* The last touch: easy to read from a distance. */
+.vr-keypad-foot span[aria-live] {
+  color: var(--vr-heading, #062845);
+  font-size: 1.25em;
+  font-weight: 700;
+}
+
+/* Who goes well, who goes badly in the set: two shirt numbers each, highlighted. */
+.vr-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+}
+
+.vr-form h3 {
+  margin: 0 0 0.25rem;
+  font-size: 0.85rem;
+}
+
+.vr-form p {
+  margin: 0;
+  color: var(--vr-text-secondary, #5b6670);
+}
+
+.vr-form ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vr-form-chip {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.25rem 0.5rem;
+  border: 2px solid;
+  border-radius: 0.5rem;
+  font-weight: 700;
+}
+
+.vr-form-chip strong {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.vr-form-chip small {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vr-form-chip span {
+  margin-left: auto;
+}
+
+.vr-form-chip.good {
+  border-color: var(--vr-level-good, #2e7d32);
+  background: rgba(46, 125, 50, 0.12);
+  color: var(--vr-level-good, #2e7d32);
+}
+
+.vr-form-chip.bad {
+  border-color: var(--vr-level-poor, #c62828);
+  background: rgba(198, 40, 40, 0.12);
+  color: var(--vr-level-poor, #c62828);
+}

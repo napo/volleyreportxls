@@ -53,8 +53,9 @@ import { useArchive } from '../archive-context';
 import { type MovableSkill, codeOf, orderedColumns, parseShirtNumber, skillColumns } from '../components/counts-columns';
 import { evaluationTint } from '../../report/evaluation-colors';
 import { href } from '../routes';
+import { openScoutModeNote } from '../guide';
 import { LineupDialog, LiveKeypad, SubstitutionDialog } from './LiveKeypad';
-import { setFacts, setsUpTo, teamIndicators } from '../../matches/live-situation';
+import { setFacts, setForm, setsUpTo, teamIndicators, teamShares } from '../../matches/live-situation';
 import { startingSetter, startingSix } from '../../matches/dvw';
 import { ColumnsChoice } from '../components/ColumnsChoice';
 import { OrderChoice } from '../components/OrderChoice';
@@ -800,7 +801,7 @@ export function LiveSheetView({ id }: { id: string }) {
           zones={!set.lineup ? proposedLineup(record, view).court : rotate ? zonesNow(set) : courtNow(set)}
           rotate={rotate}
           server={set.lineup ? expectedServer(set) : null}
-          situation={{ set: teamIndicators([set]), match: teamIndicators(setsUpTo(record, view)), facts: setFacts(set) }}
+          situation={{ set: teamIndicators([set]), match: teamIndicators(setsUpTo(record, view)), setShares: teamShares([set]), matchShares: teamShares(setsUpTo(record, view)), facts: setFacts(set), form: setForm(set) }}
         />
       )}
 
@@ -852,6 +853,7 @@ export function LiveSheetView({ id }: { id: string }) {
           onCancel={() => setEditing(null)}
           onConfirm={(details) => {
             setRecord(setMatchDetails(record, details));
+            if (editing === 'first') openScoutModeNote();
             setEditing(null);
           }}
         />

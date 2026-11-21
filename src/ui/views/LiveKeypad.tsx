@@ -14,7 +14,7 @@ import { useI18n } from '../../i18n';
 import type { Lineup, RowKind, Substitution } from '../../matches/record';
 import { evaluationTint } from '../../report/evaluation-colors';
 import { type MovableSkill, codeOf, orderedColumns } from '../components/counts-columns';
-import { LiveSituation, type Situation } from './LiveSituation';
+import { LiveForm, LiveSituation, LiveStats, type Situation } from './LiveSituation';
 
 const tint = (skill: Skill, evaluation: Evaluation) => `rgb(${evaluationTint(skill, evaluation).map((v) => Math.round(v * 255)).join(' ')})`;
 
@@ -222,6 +222,10 @@ export function LiveKeypad({ set, lineup, untracked, order, locked, last, canUnd
           ) : (
             <p>{t.legendHint}</p>
           )}
+          <div className="vr-keypad-live">
+            <LiveStats situation={situation} set={set} withMatch={false} />
+            <LiveForm situation={situation} nameOf={nameOf} />
+          </div>
         </aside>
       )}
       </div>
@@ -229,7 +233,7 @@ export function LiveKeypad({ set, lineup, untracked, order, locked, last, canUnd
 
       <div className="vr-keypad-foot">
         <span aria-live="polite">{last ? t.keypadLast(last) : t.keypadHint}</span>
-        <button type="button" className="vr-btn vr-btn-secondary vr-btn-small" disabled={!canUndo} onClick={() => { setChosen(null); setSkill(null); onUndo(); }} aria-label={`${t.undoLabel}: ${undoText}`}>
+        <button type="button" className="vr-btn vr-keypad-undo" disabled={!canUndo} onClick={() => { setChosen(null); setSkill(null); onUndo(); }} aria-label={`${t.undoLabel}: ${undoText}`}>
           {t.undo}
         </button>
       </div>
